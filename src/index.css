@@ -1,0 +1,33 @@
+@import 'tailwindcss';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/700.css';
+
+/* кастомные цвета */
+@theme {
+  /* Основные цвета проекта */
+  --color-primary: #1e3a8a;
+  --color-secondary: #2563eb;
+  --color-success: #16a34a;
+  --color-danger: #dc2626;
+
+  /* Фоновые оттенки */
+  --color-bg-light: #f9fafb;
+  --color-bg-dark: #111827;
+
+  /* Нейтральные цвета */
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  --font-sa: 'Inter', sans-serif;
+}
+
+body {
+  background-color: var(--color-bg-dark);
+}
+
+#root {
+  max-width: 1280px;
+  background-color: #fff;
+  height: 100vh;
+}
