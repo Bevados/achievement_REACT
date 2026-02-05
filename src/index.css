@@ -1,9 +1,10 @@
 @import 'tailwindcss';
+
 @import '@fontsource/inter/400.css';
 @import '@fontsource/inter/500.css';
 @import '@fontsource/inter/700.css';
 
-/* кастомные цвета */
+/* кастомные цвета и анимации */
 @theme {
   /* Основные цвета проекта */
   --color-primary: #1e3a8a;
@@ -18,16 +19,54 @@
   /* Нейтральные цвета */
   --color-white: #ffffff;
   --color-black: #000000;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-700: #374151;
+
+  /* Оттенки вторичного цвета (для hover состояний) */
+  --color-secondary-light: #dbeafe;
+  --color-secondary-dark: #1d4ed8;
+
+  /* Оттенки с прозрачностью */
+  --color-black-semi: rgba(0, 0, 0, 0.5);
 
   --font-sa: 'Inter', sans-serif;
 }
 
 body {
-  background-color: var(--color-bg-dark);
+  background-color: var(--color-bg-light);
+  font-family: var(--font-sa);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
+  margin: 0 auto;
   max-width: 1280px;
   background-color: #fff;
-  height: 100vh;
+  min-height: 100vh;
+}
+
+/* ============================================
+   УТИЛИТЫ ДЛЯ НАЧЕРТАНИЙ ШРИФТА
+   ============================================ */
+
+/* Regular (400) - для основного текста */
+.font-regular {
+  font-family: var(--font-sa);
+  font-weight: 400;
+}
+
+/* Medium (500) - для важного текста, кнопок, заголовков */
+.font-medium {
+  font-family: var(--font-sa);
+  font-weight: 500;
+}
+
+/* Bold (700) - для крупных заголовков, акцентов */
+.font-bold {
+  font-family: var(--font-sa);
+  font-weight: 700;
 }
