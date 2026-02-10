@@ -132,9 +132,9 @@ export default function Header({
               className="flex items-center gap-2 shrink-0 hover:opacity-80 transition-opacity"
             >
               <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg md:text-xl">A</span>
+                <span className="text-white font-bold text-adaptive">A</span>
               </div>
-              <span className="hidden md:inline font-bold text-lg text-primary">AchieveHub</span>
+              <span className="hidden md:inline font-bold text-adaptive text-primary">AchieveHub</span>
             </Link>
 
             {/* ===== НАВИГАЦИЯ ===== */}
@@ -144,7 +144,7 @@ export default function Header({
                   key={item.path}
                   to={item.path}
                   className={`
-                    relative font-medium transition-colors duration-200
+                    relative font-medium text-adaptive transition-colors duration-200
                     ${isActive(item.path) ? 'text-secondary' : 'text-gray-700 hover:text-secondary'}
                   `}
                 >
@@ -165,7 +165,7 @@ export default function Header({
                     onClick={handleProfileToggle}
                     className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                   >
-                    <span className="font-medium">Привет, {user.login}</span>
+                    <span className="font-medium text-adaptive">Привет, {user.login}</span>
                     <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center text-white text-sm font-bold">
                       {user.login.charAt(0).toUpperCase()}
                     </div>
@@ -183,7 +183,7 @@ export default function Header({
                       {/* Кнопка "Мой профиль" */}
                       <Link
                         to="/profile"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors text-adaptive"
                         onClick={closeProfile}
                       >
                         Мой профиль
@@ -192,7 +192,7 @@ export default function Header({
                       {/* Кнопка "Выход" */}
                       <button
                         onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-danger hover:bg-gray-50 transition-colors flex items-center gap-2"
+                        className="w-full text-left px-4 py-2 text-danger hover:bg-gray-50 transition-colors flex items-center gap-2 text-adaptive"
                       >
                         <LogOut size={16} />
                         Выход
@@ -203,10 +203,10 @@ export default function Header({
               ) : (
                 /* ВАРИАНТ 2: Неавторизованный пользователь - кнопки Вход/Регистрация */
                 <div className="flex items-center gap-3">
-                  <button className="px-4 py-2 text-secondary font-medium hover:bg-secondary-light rounded-lg transition-colors">
+                  <button className="px-4 py-2 text-secondary font-medium text-adaptive hover:bg-secondary-light rounded-lg transition-colors">
                     Вход
                   </button>
-                  <button className="px-4 py-2 bg-secondary text-white font-medium rounded-lg hover:bg-secondary-dark transition-colors">
+                  <button className="px-4 py-2 bg-secondary text-white font-medium text-adaptive rounded-lg hover:bg-secondary-dark transition-colors">
                     Регистрация
                   </button>
                 </div>
@@ -250,7 +250,7 @@ export default function Header({
                   to={item.path}
                   onClick={handleNavClick}
                   className={`
-                    block px-4 py-3 rounded-lg font-medium transition-all duration-200
+                    block px-4 py-3 rounded-lg font-medium text-adaptive transition-all duration-200
                     ${
                       isActive(item.path)
                         ? 'bg-secondary-light text-secondary font-semibold border-l-4 border-secondary'
@@ -272,7 +272,7 @@ export default function Header({
                   <Link
                     to="/profile"
                     onClick={handleNavClick}
-                    className={`block px-4 py-3 rounded-lg font-medium transition-colors ${
+                    className={`block px-4 py-3 rounded-lg font-medium text-adaptive transition-colors ${
                       isActive('/profile')
                         ? 'bg-secondary-light text-secondary'
                         : 'text-gray-700 hover:bg-gray-50'
@@ -284,7 +284,7 @@ export default function Header({
                   {/* Кнопка выхода */}
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-3 text-danger font-medium hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-2"
+                    className="w-full text-left px-4 py-3 text-danger font-medium text-adaptive hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-2"
                   >
                     <LogOut size={18} />
                     Выход
@@ -293,10 +293,10 @@ export default function Header({
               ) : (
                 /* Кнопки входа/регистрации для неавторизованных */
                 <div className="space-y-2">
-                  <button className="w-full px-4 py-3 text-secondary font-medium hover:bg-secondary-light rounded-lg transition-colors border border-secondary">
+                  <button className="w-full px-4 py-3 text-secondary font-medium text-adaptive hover:bg-secondary-light rounded-lg transition-colors border border-secondary">
                     Вход
                   </button>
-                  <button className="w-full px-4 py-3 bg-secondary text-white font-medium rounded-lg hover:bg-secondary-dark transition-colors">
+                  <button className="w-full px-4 py-3 bg-secondary text-white font-medium text-adaptive rounded-lg hover:bg-secondary-dark transition-colors">
                     Регистрация
                   </button>
                 </div>

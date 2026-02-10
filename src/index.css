@@ -6,6 +6,13 @@
 
 /* кастомные цвета и анимации */
 @theme {
+  /* ============================================
+     СВЕТЛАЯ ТЕМА (по умолчанию)
+     ============================================ */
+
+   /* background для body */
+   --color-body: #f9fafb;
+
   /* Основные цвета проекта */
   --color-primary: #1e3a8a;
   --color-secondary: #2563eb;
@@ -31,22 +38,77 @@
   /* Оттенки с прозрачностью */
   --color-black-semi: rgba(0, 0, 0, 0.5);
 
+  /* Отnенок для подписи logo */
+   --color-text-logo: #1e3a8a;
+
+  /* Адаптивный размер шрифта (fluid typography) */
+  /* Диапазон: 12px - 16px при ширине 320px - 1280px */
+  --font-size-adaptive: calc(12px + (16px - 12px) * ((100vw - 320px) / (1280px - 320px)));
+
   --font-sa: 'Inter', sans-serif;
 }
 
+/* ============================================
+   ТЕМНАЯ ТЕМА (когда активен класс 'dark')
+   ============================================ */
+html.dark {
+   /* background для body */
+   --color-body: #40464b;
+
+  --color-primary: #1e3a8a;
+  --color-secondary: #3b82f6;
+  --color-success: #22c55e;
+  --color-danger: #ef4444;
+
+  /* Фоновые оттенки для темной темы */
+  --color-bg-light: #1f2937; /* Основной фон (вместо белого) */
+  --color-bg-dark: #0f172a; /* Более тёмный фон */
+
+  /* Нейтральные цвета для темной темы */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #1f2937;
+  --color-gray-200: #374151;
+  --color-gray-700: #d1d5db;
+
+  /* Оттенки вторичного цвета для темной темы */
+  --color-secondary-light: #1e40af;
+  --color-secondary-dark: #60a5fa;
+
+  /* Оттенки с прозрачностью */
+  --color-black-semi: rgba(0, 0, 0, 0.7);
+
+  /* Отnенок для подписи logo */
+   --color-text-logo: #60a5fa;
+
+  /* Адаптивный размер шрифта (fluid typography) */
+  /* Диапазон: 12px - 16px при ширине 320px - 1280px */
+  --font-size-adaptive: calc(12px + (16px - 12px) * ((100vw - 320px) / (1280px - 320px)));
+}
+
 body {
-  background-color: var(--color-bg-light);
+  background-color: var(--color-body);
   font-family: var(--font-sa);
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: var(--color-gray-700);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 #root {
   margin: 0 auto;
   max-width: 1280px;
-  background-color: #fff;
+  background-color: var(--color-bg-light);
   min-height: 100vh;
+  transition: background-color 0.3s ease;
 }
 
 /* ============================================
@@ -69,4 +131,9 @@ body {
 .font-bold {
   font-family: var(--font-sa);
   font-weight: 700;
+}
+
+/* АДАПТИВНЫЙ РАЗМЕР ШРИФТА */
+.text-adaptive {
+  font-size: var(--font-size-adaptive);
 }
