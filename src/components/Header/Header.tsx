@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, LogOut } from 'lucide-react';
 
 import { siteConfig } from '../../config/site.config';
+import ThemeToggle from '../ThemeToggle/ThemeToggle';
 
 /** Интерфейс для данных пользователя */
 interface User {
@@ -124,8 +125,8 @@ export default function Header({
       )}
 
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-        <nav className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center h-16 md:h-20 px-4 sm:px-6 lg:px-8">
+        <nav className="max-w-7xl mx-auto relative">
+          <div className="relative flex justify-between items-center h-16 md:h-20 pl-4 pr-4 sm:pl-6 sm:pr-6 md:pr-16 lg:pl-8 lg:pr-20">
             {/* ===== ЛОГОТИП И НАЗВАНИЕ САЙТА ===== */}
             <Link
               to="/"
@@ -134,7 +135,9 @@ export default function Header({
               <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-adaptive">A</span>
               </div>
-              <span className="hidden md:inline font-bold text-adaptive text-primary">AchieveHub</span>
+              <span className="hidden md:inline font-bold text-adaptive text-primary">
+                AchieveHub
+              </span>
             </Link>
 
             {/* ===== НАВИГАЦИЯ ===== */}
@@ -233,6 +236,9 @@ export default function Header({
               </button>
             </div>
           </div>
+          <div className="hidden md:flex items-center absolute right-0 top-1/2 -translate-y-1/2 md:pr-2 lg:pr-4">
+            <ThemeToggle rotate={true} />
+          </div>
 
           {/* ===== МОБИЛЬНОЕ МЕНЮ (ВЫЕЗЖАЮЩЕЕ) ===== */}
           <div
@@ -241,7 +247,10 @@ export default function Header({
               isMenuOpen ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'
             }`}
           >
-            <div className="px-2 py-4 space-y-2 border-t border-gray-200">
+            <div className="px-3 py-4 flex justify-end border-t border-gray-200 ">
+              <ThemeToggle />
+            </div>
+            <div className="px-3 py-4 space-y-2 border-t border-gray-200">
               {/* ПУНКТЫ НАВИГАЦИИ МОБИЛЬНОГО МЕНЮ */}
               {navItems.map((item, index) => (
                 <Link

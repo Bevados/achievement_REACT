@@ -12,7 +12,11 @@ import { useThemeStore } from '../../store/theme.store';
  * 4. Все компоненты которые используют useThemeStore обновляются
  */
 
-export default function ThemeToggle() {
+interface ThemeToggleProps {
+  rotate?: boolean;
+}
+
+export default function ThemeToggle({ rotate = false }: ThemeToggleProps) {
   // STATE: Компонент загружен (для избежания hydration mismatch)
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -36,6 +40,7 @@ export default function ThemeToggle() {
         ${isDark ? 'bg-gray-700' : 'bg-gray-200'}
         hover:shadow-md focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2
         dark:focus:ring-offset-gray-200 ease-in-out
+        ${rotate ? 'rotate-90' : ''}
       `}
       aria-label={isDark ? 'Перейти на светлую тему' : 'Перейти на тёмную тему'}
       title={isDark ? 'Светлая тема' : 'Тёмная тема'}
@@ -47,6 +52,7 @@ export default function ThemeToggle() {
           transition-transform duration-300 ease-in-out
           shadow-md
           ${isDark ? 'translate-x-8' : 'translate-x-1'}
+          ${rotate ? '-rotate-90' : ''}
         `}
       >
         {isDark ? (
