@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Environment variables - НИКОГДА не коммитить приватные ключи!
+.env
+.env.local
+.env.*.local
+firebase-service-account.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -56,9 +56,9 @@ export default function ThemeToggle({ rotate = false }: ThemeToggleProps) {
         `}
       >
         {isDark ? (
-          <Moon size={16} className="text-secondary flex-shrink-0" aria-hidden="true" />
+          <Moon size={16} className="text-secondary shrink-0" aria-hidden="true" />
         ) : (
-          <Sun size={16} className="text-yellow-500 flex-shrink-0" aria-hidden="true" />
+          <Sun size={16} className="text-yellow-500 shrink-0" aria-hidden="true" />
         )}
       </div>
 
