@@ -4,112 +4,115 @@
 @import '@fontsource/inter/500.css';
 @import '@fontsource/inter/700.css';
 
-/* кастомные цвета и анимации */
+/* Базовые дизайн-токены (Tailwind v4 @theme) */
 @theme {
   /* ============================================
      СВЕТЛАЯ ТЕМА (по умолчанию)
      ============================================ */
 
-  /* background для body */
+  /* Фон страницы */
   --color-body: #f9fafb;
 
-  /* Основные цвета проекта */
+  /* Основные цвета */
   --color-primary: #1e3a8a;
   --color-secondary: #2563eb;
   --color-danger: #dc2626;
 
-  /* Фоновые оттенки */
+  /* Поверхности */
   --color-bg-light: #f9fafb;
 
-  /* Нейтральные цвета */
+  /* Нейтральные */
   --color-white: #ffffff;
   --color-gray-700: #374151;
 
-  /* Оттенки вторичного цвета (для hover состояний) */
+  /* Состояния/оттенки */
   --color-secondary-light: #dbeafe;
   --color-secondary-dark: #1d4ed8;
 
-  /* Адаптивный размер шрифта (fluid typography) */
-  /* Диапазон: 12px - 16px при ширине 320px - 1280px */
+  /* Fluid typography: 12px -> 16px на ширине 320px -> 1280px */
   --font-size-adaptive: calc(12px + (16px - 12px) * ((100vw - 320px) / (1280px - 320px)));
 
-  --font-sa: 'Inter', sans-serif;
+  /* Шрифт */
+  --font-sans: 'Inter', sans-serif;
+
+  /* Временный алиас для обратной совместимости (если где-то уже используется --font-sa) */
+  --font-sa: var(--font-sans);
 }
 
 /* ============================================
-   ТЕМНАЯ ТЕМА (когда активен класс 'dark')
+   ТЁМНАЯ ТЕМА (при классе .dark на html)
    ============================================ */
 html.dark {
-  /* background для body */
   --color-body: #40464b;
 
   --color-primary: #1e3a8a;
   --color-secondary: #3b82f6;
   --color-danger: #ef4444;
 
-  /* Фоновые оттенки для темной темы */
-  --color-bg-light: #1f2937; /* Основной фон (вместо белого) */
+  --color-bg-light: #1f2937;
 
-  /* Нейтральные цвета для темной темы */
   --color-white: #ffffff;
   --color-gray-700: #a6a8ad;
 
-  /* Оттенки вторичного цвета для темной темы */
   --color-secondary-light: #e7ebfa;
   --color-secondary-dark: #60a5fa;
 
-  /* Адаптивный размер шрифта (fluid typography) */
-  /* Диапазон: 12px - 16px при ширине 320px - 1280px */
-  --font-size-adaptive: calc(12px + (16px - 12px) * ((100vw - 320px) / (1280px - 320px)));
+  color-scheme: dark;
 }
 
 body {
   background-color: var(--color-body);
-  font-family: var(--font-sa);
+  color: var(--color-gray-700);
+  font-family: var(--font-sans);
   font-weight: 400;
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: var(--color-gray-700);
+
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
 }
 
-html.dark {
-  color-scheme: dark;
-}
-
+/* Корневой контейнер на всю ширину.
+   Ограничение ширины лучше делать в layout-контейнере конкретных страниц. */
 #root {
-  margin: 0 auto;
-  max-width: 1280px;
-  background-color: var(--color-bg-light);
+  width: 100%;
   min-height: 100vh;
+  margin: 0;
+  background-color: var(--color-bg-light);
   transition: background-color 0.3s ease;
 }
 
 /* ============================================
-   УТИЛИТЫ ДЛЯ НАЧЕРТАНИЙ ШРИФТА
+   УТИЛИТЫ ШРИФТА (если хотите оставить кастом)
    ============================================ */
-
-/* Regular (400) - для основного текста */
 .font-regular {
-  font-family: var(--font-sa);
+  font-family: var(--font-sans);
   font-weight: 400;
 }
 
-/* Medium (500) - для важного текста, кнопок, заголовков */
 .font-medium {
-  font-family: var(--font-sa);
+  font-family: var(--font-sans);
   font-weight: 500;
 }
 
-/* Bold (700) - для крупных заголовков, акцентов */
 .font-bold {
-  font-family: var(--font-sa);
+  font-family: var(--font-sans);
   font-weight: 700;
 }
 
-/* АДАПТИВНЫЙ РАЗМЕР ШРИФТА */
 .text-adaptive {
   font-size: var(--font-size-adaptive);
+}
+
+/* Доступность: отключаем анимации/переходы при reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
 }

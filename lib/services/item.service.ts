@@ -7,13 +7,13 @@
   сосредоточена в контроллерах и репозиториях, но слой оставлен для масштабируемости.
 */
 import * as repository from '../repositories/item.repository';
-import type { Item } from '../types/item.types';
+import type { CreateItemDto, Item, UpdateItemDto } from '../types/item.types';
 
 export async function getItems(userId: string) {
   return repository.findUserItems(userId);
 }
 
-export async function createNewItem(userId: string, data: any) {
+export async function createNewItem(userId: string, data: CreateItemDto) {
   const item: Item = {
     ...data,
     owner: userId,
@@ -25,7 +25,7 @@ export async function createNewItem(userId: string, data: any) {
   return repository.createItem(item);
 }
 
-export async function updateExistingItem(id: string, userId: string, data: any) {
+export async function updateExistingItem(id: string, userId: string, data: UpdateItemDto) {
   return repository.updateItem(id, userId, {
     ...data,
     updatedAt: new Date(),

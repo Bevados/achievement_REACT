@@ -20,3 +20,23 @@ export interface Item {
   createdAt: Date;
   updatedAt: Date;
 }
+
+/*
+  DTO для создания item на уровне API.
+  owner/createdAt/updatedAt заполняются на сервере, поэтому с клиента не принимаются.
+*/
+export interface CreateItemDto {
+  name: string;
+  description?: string;
+  completed?: boolean;
+}
+
+/*
+  DTO для частичного обновления item.
+  Все поля опциональны, так как PATCH обновляет только переданные поля.
+*/
+export interface UpdateItemDto {
+  name?: string;
+  description?: string;
+  completed?: boolean;
+}

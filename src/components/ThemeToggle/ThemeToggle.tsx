@@ -38,8 +38,8 @@ export default function ThemeToggle({ rotate = false }: ThemeToggleProps) {
       className={`
         relative w-14 h-7 rounded-full transition-all duration-300
         ${isDark ? 'bg-gray-700' : 'bg-gray-200'}
-        hover:shadow-md focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2
-        dark:focus:ring-offset-gray-200 ease-in-out
+        hover:shadow-md focus:outline-none
+        ease-in-out
         ${rotate ? 'rotate-90' : ''}
       `}
       aria-label={isDark ? 'Перейти на светлую тему' : 'Перейти на тёмную тему'}

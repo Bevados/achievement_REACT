@@ -33,6 +33,10 @@ export default async function handler(req: AuthenticatedRequest, res: VercelResp
         return res.status(405).end();
     }
   } catch {
+    if (!res.headersSent) {
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+
     return;
   }
 }
