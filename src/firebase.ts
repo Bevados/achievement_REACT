@@ -7,6 +7,7 @@
 
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import {
+  createUserWithEmailAndPassword,
   getAuth,
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
@@ -42,7 +43,6 @@ if (!getApps().length) {
 // `auth` используется в компонентах и при запросах к API (получение ID-токена).
 export const auth = getAuth(firebaseApp);
 
-
 // ----------------- Вспомогательные функции -----------------
 
 /**
@@ -51,6 +51,15 @@ export const auth = getAuth(firebaseApp);
  */
 export async function signInEmail(email: string, password: string) {
   const res = await signInWithEmailAndPassword(auth, email, password);
+  return res.user;
+}
+
+/**
+ * Регистрация по email/password.
+ * Возвращает созданного пользователя или пробрасывает ошибку от Firebase.
+ */
+export async function registerEmail(email: string, password: string) {
+  const res = await createUserWithEmailAndPassword(auth, email, password);
   return res.user;
 }
 

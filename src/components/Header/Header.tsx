@@ -15,12 +15,16 @@ interface User {
 /** Интерфейс для пропсов Header компонента */
 interface HeaderProps {
   user?: User; // Данные пользователя (опционально)
-  onLogout?: () => void; // Callback функция при выходе
+  onLogout?: () => void | Promise<void>; // Callback функция при выходе
+  onOpenLogin?: () => void;
+  onOpenRegister?: () => void;
 }
 
 export default function Header({
   user = { login: '', isAuthenticated: false },
   onLogout,
+  onOpenLogin,
+  onOpenRegister,
 }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileDropdown, setIsProfileDropdown] = useState(false);
@@ -112,6 +116,16 @@ export default function Header({
   const handleProfileToggle = () => {
     if (isProfileDropdown) closeProfile();
     else openProfile();
+  };
+
+  const handleOpenLogin = () => {
+    setIsMenuOpen(false);
+    onOpenLogin?.();
+  };
+
+  const handleOpenRegister = () => {
+    setIsMenuOpen(false);
+    onOpenRegister?.();
   };
 
   return (
@@ -206,10 +220,18 @@ export default function Header({
               ) : (
                 /* ВАРИАНТ 2: Неавторизованный пользователь - кнопки Вход/Регистрация */
                 <div className="flex items-center gap-3">
-                  <button className="px-4 py-2 text-secondary font-medium text-adaptive hover:bg-secondary-light rounded-lg transition-colors">
+                  <button
+                    type="button"
+                    onClick={handleOpenLogin}
+                    className="px-4 py-2 text-secondary font-medium text-adaptive hover:bg-secondary-light rounded-lg transition-colors"
+                  >
                     Вход
                   </button>
-                  <button className="px-4 py-2 bg-secondary text-white font-medium text-adaptive rounded-lg hover:bg-secondary-dark transition-colors">
+                  <button
+                    type="button"
+                    onClick={handleOpenRegister}
+                    className="px-4 py-2 bg-secondary text-white font-medium text-adaptive rounded-lg hover:bg-secondary-dark transition-colors"
+                  >
                     Регистрация
                   </button>
                 </div>
@@ -302,10 +324,18 @@ export default function Header({
               ) : (
                 /* Кнопки входа/регистрации для неавторизованных */
                 <div className="space-y-2">
-                  <button className="w-full px-4 py-3 text-secondary font-medium text-adaptive hover:bg-secondary-light rounded-lg transition-colors border border-secondary">
+                  <button
+                    type="button"
+                    onClick={handleOpenLogin}
+                    className="w-full px-4 py-3 text-secondary font-medium text-adaptive hover:bg-secondary-light rounded-lg transition-colors border border-secondary"
+                  >
                     Вход
                   </button>
-                  <button className="w-full px-4 py-3 bg-secondary text-white font-medium text-adaptive rounded-lg hover:bg-secondary-dark transition-colors">
+                  <button
+                    type="button"
+                    onClick={handleOpenRegister}
+                    className="w-full px-4 py-3 bg-secondary text-white font-medium text-adaptive rounded-lg hover:bg-secondary-dark transition-colors"
+                  >
                     Регистрация
                   </button>
                 </div>
