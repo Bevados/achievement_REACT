@@ -15,6 +15,7 @@ interface User {
 /** Интерфейс для пропсов Header компонента */
 interface HeaderProps {
   user?: User; // Данные пользователя (опционально)
+  isAuthResolving?: boolean; // Идет ли проверка сохраненной сессии Firebase
   onLogout?: () => void | Promise<void>; // Callback функция при выходе
   onOpenLogin?: () => void;
   onOpenRegister?: () => void;
@@ -22,6 +23,7 @@ interface HeaderProps {
 
 export default function Header({
   user = { login: '', isAuthenticated: false },
+  isAuthResolving = false,
   onLogout,
   onOpenLogin,
   onOpenRegister,
@@ -40,7 +42,11 @@ export default function Header({
   const isActive = (path: string) => location.pathname === path;
 
   /** Какую навигацию показывать: Для авторизованных или неавторизованных */
-  const navItems = user?.isAuthenticated ? siteConfig.navItemsPrivate : siteConfig.navItemsPublic;
+  const navItems = isAuthResolving
+    ? []
+    : user?.isAuthenticated
+      ? siteConfig.navItemsPrivate
+      : siteConfig.navItemsPublic;
 
   // EFFECT: Обработка клавиши Escape
   useEffect(() => {
@@ -156,27 +162,48 @@ export default function Header({
 
             {/* ===== НАВИГАЦИЯ ===== */}
             <div className="hidden md:flex items-center gap-8">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`
-                    relative font-medium text-adaptive transition-colors duration-200
-                    ${isActive(item.path) ? 'text-secondary' : 'text-gray-700 hover:text-secondary'}
-                  `}
+              {isAuthResolving ? (
+                <div
+                  className="flex items-center gap-3"
+                  aria-live="polite"
+                  aria-label="Загрузка навигации"
                 >
-                  {item.label}
-                  {isActive(item.path) && (
-                    <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-secondary" />
-                  )}
-                </Link>
-              ))}
+                  <div className="h-3 w-20 animate-pulse rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
+                  <div className="h-3 w-28 animate-pulse rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
+                  <div className="h-3 w-24 animate-pulse rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
+                </div>
+              ) : (
+                navItems.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`
+                      relative font-medium text-adaptive transition-colors duration-200
+                      ${isActive(item.path) ? 'text-secondary' : 'text-gray-700 hover:text-secondary'}
+                    `}
+                  >
+                    {item.label}
+                    {isActive(item.path) && (
+                      <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-secondary" />
+                    )}
+                  </Link>
+                ))
+              )}
             </div>
 
             {/* ===== АВТОРИЗАЦИЯ / ПРОФИЛЬ ===== */}
             <div className="hidden md:flex items-center gap-4">
-              {/* ВАРИАНТ 1: Авторизованный пользователь - дропдаун профиля */}
-              {user?.isAuthenticated ? (
+              {isAuthResolving ? (
+                <div
+                  className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50/80 px-3 py-2"
+                  aria-live="polite"
+                  aria-label="Проверяем сессию"
+                >
+                  <div className="h-3 w-24 animate-pulse rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
+                  <div className="h-8 w-8 animate-pulse rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
+                </div>
+              ) : user?.isAuthenticated ? (
+                /* ВАРИАНТ 1: Авторизованный пользователь - дропдаун профиля */
                 <div className="relative" ref={profileRef}>
                   <button
                     onClick={handleProfileToggle}
@@ -241,7 +268,7 @@ export default function Header({
             {/*  ===== МОБИЛЬНОЕ МЕНЮ - BURGER КНОПКА =====*/}
             <div className="md:hidden flex items-center gap-4">
               {/* Аватар на мобильных (если авторизован) */}
-              {user?.isAuthenticated && (
+              {!isAuthResolving && user?.isAuthenticated && (
                 <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center text-white text-xs font-bold">
                   {user.login.charAt(0).toUpperCase()}
                 </div>
@@ -273,31 +300,48 @@ export default function Header({
               <ThemeToggle />
             </div>
             <div className="px-3 py-4 space-y-2 border-t border-gray-200">
-              {/* ПУНКТЫ НАВИГАЦИИ МОБИЛЬНОГО МЕНЮ */}
-              {navItems.map((item, index) => (
-                <Link
-                  key={item.path}
-                  ref={index === 0 ? firstMenuItemRef : null}
-                  to={item.path}
-                  onClick={handleNavClick}
-                  className={`
-                    block px-4 py-3 rounded-lg font-medium text-adaptive transition-all duration-200
-                    ${
-                      isActive(item.path)
-                        ? 'bg-secondary-light text-secondary font-semibold border-l-4 border-secondary'
-                        : 'text-gray-700 hover:bg-gray-50'
-                    }
-                  `}
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {isAuthResolving ? (
+                <div className="space-y-3 px-1" aria-live="polite" aria-label="Загрузка меню">
+                  <div className="h-10 w-full animate-pulse rounded-lg bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
+                  <div className="h-10 w-full animate-pulse rounded-lg bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
+                </div>
+              ) : (
+                <>
+                  {/* ПУНКТЫ НАВИГАЦИИ МОБИЛЬНОГО МЕНЮ */}
+                  {navItems.map((item, index) => (
+                    <Link
+                      key={item.path}
+                      ref={index === 0 ? firstMenuItemRef : null}
+                      to={item.path}
+                      onClick={handleNavClick}
+                      className={`
+                        block px-4 py-3 rounded-lg font-medium text-adaptive transition-all duration-200
+                        ${
+                          isActive(item.path)
+                            ? 'bg-secondary-light text-secondary font-semibold border-l-4 border-secondary'
+                            : 'text-gray-700 hover:bg-gray-50'
+                        }
+                      `}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </>
+              )}
 
               {/* РАЗДЕЛИТЕЛЬ */}
               <div className="border-t border-gray-200 my-2" />
 
               {/* АВТОРИЗАЦИЯ/ПРОФИЛЬ НА МОБИЛЬНЫХ */}
-              {user?.isAuthenticated ? (
+              {isAuthResolving ? (
+                <div
+                  className="flex items-center gap-2 px-4 py-3 rounded-lg bg-gray-50"
+                  aria-label="Проверяем сессию"
+                >
+                  <div className="h-3 w-32 animate-pulse rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
+                  <div className="h-7 w-7 animate-pulse rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
+                </div>
+              ) : user?.isAuthenticated ? (
                 <>
                   {/* Ссылка на профиль */}
                   <Link

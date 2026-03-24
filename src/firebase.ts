@@ -12,6 +12,7 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  updateProfile,
   type User,
 } from 'firebase/auth';
 
@@ -56,10 +57,18 @@ export async function signInEmail(email: string, password: string) {
 
 /**
  * Регистрация по email/password.
+ * После создания пользователя сохраняем nickname в displayName.
  * Возвращает созданного пользователя или пробрасывает ошибку от Firebase.
  */
-export async function registerEmail(email: string, password: string) {
+export async function registerEmail(email: string, password: string, nickname: string) {
   const res = await createUserWithEmailAndPassword(auth, email, password);
+
+  // displayName используется в UI (например, приветствие в header).
+  await updateProfile(res.user, { displayName: nickname.trim() });
+
+  // Принудительно обновляем объект пользователя, чтобы в store сразу пришел актуальный displayName.
+  await res.user.reload();
+
   return res.user;
 }
 

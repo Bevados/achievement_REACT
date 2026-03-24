@@ -9,6 +9,7 @@ function App() {
   const authUser = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const initAuthListener = useAuthStore((state) => state.initAuthListener);
+  const isInitialized = useAuthStore((state) => state.isInitialized);
 
   const openModal = useModalStore((state) => state.openModal);
 
@@ -37,6 +38,7 @@ function App() {
     <>
       <Header
         user={userForHeader}
+        isAuthResolving={!isInitialized}
         onLogout={logout}
         onOpenLogin={() => openModal('login')}
         onOpenRegister={() => openModal('register')}

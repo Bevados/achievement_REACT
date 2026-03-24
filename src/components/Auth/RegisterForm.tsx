@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import { useAuthStore } from '../../store/auth.store';
 
 interface RegisterFormValues {
+  nickname: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -26,6 +27,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
   } = useForm<RegisterFormValues>({
     mode: 'onSubmit',
     defaultValues: {
+      nickname: '',
       email: '',
       password: '',
       confirmPassword: '',
@@ -38,7 +40,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
     clearError();
 
     try {
-      await registerUser(values.email, values.password);
+      await registerUser(values.email, values.password, values.nickname);
 
       try {
         // После регистрации проверяем, что защищенный API доступен с новым токеном.
@@ -56,6 +58,34 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+      <label className="block">
+        <span className="mb-1 block text-sm font-medium text-gray-700">Nickname</span>
+        <input
+          type="text"
+          autoComplete="nickname"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none transition focus:border-secondary"
+          placeholder="Например, Alex"
+          {...register('nickname', {
+            required: 'Введите nickname',
+            minLength: {
+              value: 3,
+              message: 'Nickname должен быть не короче 3 символов',
+            },
+            maxLength: {
+              value: 20,
+              message: 'Nickname должен быть не длиннее 20 символов',
+            },
+            pattern: {
+              value: /^[a-zA-Z0-9_]+$/,
+              message: 'Только латинские буквы, цифры и _',
+            },
+          })}
+        />
+        {errors.nickname ? (
+          <p className="mt-1 text-sm text-danger">{errors.nickname.message}</p>
+        ) : null}
+      </label>
+
       <label className="block">
         <span className="mb-1 block text-sm font-medium text-gray-700">Email</span>
         <input

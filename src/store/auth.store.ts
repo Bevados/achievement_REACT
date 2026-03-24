@@ -18,7 +18,7 @@ interface AuthStore {
   error: string | null;
   initAuthListener: () => void;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, nickname: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
   probeProtectedApi: () => Promise<void>;
@@ -115,11 +115,11 @@ export const useAuthStore = create<AuthStore>((set) => ({
     }
   },
 
-  register: async (email, password) => {
+  register: async (email, password, nickname) => {
     set({ isLoading: true, error: null });
 
     try {
-      const user = await registerEmail(email, password);
+      const user = await registerEmail(email, password, nickname);
       set({
         user: toAuthUser(user),
         isAuthenticated: true,
