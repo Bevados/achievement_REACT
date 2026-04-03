@@ -8,6 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "docs:scaffold": "node scripts/docs-scaffold.mjs",
+    "docs:check": "node scripts/docs-check.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },
