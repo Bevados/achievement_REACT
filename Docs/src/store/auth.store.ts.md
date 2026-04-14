@@ -18,24 +18,23 @@ Store хранит состояние текущего пользователя,
 
 1. Экспортируется `useAuthStore`.
 2. Публичный контракт состояния:
-3. `user`, `isAuthenticated`, `isLoading`, `isInitialized`, `error`.
-4. Публичный контракт действий:
-5. `initAuthListener()`, `login(email, password)`, `register(email, password, nickname)`, `logout()`, `clearError()`, `probeProtectedApi()`.
-6. Внутренние helper-функции:
-7. `mapFirebaseError` - переводит коды Firebase в сообщения для UI.
-8. `toAuthUser` - нормализует объект Firebase User.
-9. Инварианты:
-10. `initAuthListener` должен вызываться один раз на старте приложения.
-11. В `login/register/logout` ошибка пробрасывается дальше после записи текста ошибки в store.
-12. `isInitialized` становится `true` только после первого события от `onAuthStateChange`.
+2.1. `user`, `isAuthenticated`, `isLoading`, `isInitialized`, `error`.
+3. Публичный контракт действий:
+3.1. `initAuthListener()`, `login(email, password)`, `register(email, password, nickname)`, `logout()`, `clearError()`, `probeProtectedApi()`.
+4. Внутренние helper-функции:
+4.1. `mapFirebaseError` - переводит коды Firebase в сообщения для UI.
+4.2. `toAuthUser` - нормализует объект Firebase User.
+5. Инварианты:
+5.1. `initAuthListener` должен вызываться один раз на старте приложения.
+5.2. В `login/register/logout` ошибка пробрасывается дальше после записи текста ошибки в store.
+5.3. `isInitialized` становится `true` только после первого события от `onAuthStateChange`.
 
 ## Нетривиальная логика
 
 1. Глобальная переменная `unsubscribeAuthListener` защищает от повторной подписки на auth listener.
-2. В `initAuthListener` сначала выставляется `isLoading`, затем listener переводит store в один из двух стабильных режимов:
-3. авторизован (`user` заполнен) или гость (`user=null`).
-4. Ошибки auth-методов обрабатываются централизованно через `mapFirebaseError`.
-5. `probeProtectedApi` не меняет auth-state: это диагностический smoke-запрос, который либо логирует успех, либо бросает ошибку.
+2. В `initAuthListener` сначала выставляется `isLoading`, затем listener переводит store в один из двух стабильных режимов: авторизован (`user` заполнен) или гость (`user=null`).
+3. Ошибки auth-методов обрабатываются централизованно через `mapFirebaseError`.
+4. `probeProtectedApi` не меняет auth-state: это диагностический smoke-запрос, который либо логирует успех, либо бросает ошибку.
 
 ## Где используется
 

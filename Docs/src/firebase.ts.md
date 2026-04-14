@@ -15,15 +15,15 @@
 
 1. Экспортируется `auth` (`getAuth(firebaseApp)`).
 2. Экспортируемые функции:
-3. `signInEmail(email, password)` -> `Promise<User>`.
-4. `registerEmail(email, password, nickname)` -> `Promise<User>`.
-5. `signOut()` -> `Promise<void>`.
-6. `onAuthStateChange(callback)` -> функция отписки.
-7. `getIdToken()` -> `Promise<string | null>`.
+ `signInEmail(email, password)` -> `Promise<User>`.
+ `registerEmail(email, password, nickname)` -> `Promise<User>`.
+ `signOut()` -> `Promise<void>`.
+ `onAuthStateChange(callback)` -> функция отписки.
+ `getIdToken()` -> `Promise<string | null>`.
 8. Инварианты:
-9. Без `VITE_FIREBASE_API_KEY` и `VITE_FIREBASE_PROJECT_ID` модуль бросает ошибку на инициализации.
-10. `registerEmail` после `updateProfile` вызывает `reload`, чтобы в UI сразу появился свежий `displayName`.
-11. `getIdToken` возвращает `null`, если пользователь не авторизован.
+8.1. Без `VITE_FIREBASE_API_KEY` и `VITE_FIREBASE_PROJECT_ID` модуль бросает ошибку на инициализации.
+8.2. `registerEmail` после `updateProfile` вызывает `reload`, чтобы в UI сразу появился свежий `displayName`.
+8.3. `getIdToken` возвращает `null`, если пользователь не авторизован.
 
 ## Нетривиальная логика
 

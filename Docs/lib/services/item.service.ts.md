@@ -17,8 +17,8 @@
 3. `updateExistingItem(id: string, userId: string, data: UpdateItemDto)` - обновляет item и проставляет `updatedAt`.
 4. `removeItem(id: string, userId: string)` - удаляет item пользователя.
 5. Инварианты:
-6. `owner` всегда формируется на сервере из `userId`, а не доверяется клиенту.
-7. `createdAt/updatedAt` формируются на сервере для консистентности времени и аудита.
+ `owner` всегда формируется на сервере из `userId`, а не доверяется клиенту.
+ `createdAt/updatedAt` формируются на сервере для консистентности времени и аудита.
 
 ## Нетривиальная логика
 

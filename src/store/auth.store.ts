@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { FirebaseError } from 'firebase/app';
-import type { User } from 'firebase/auth';
 import { signInEmail, registerEmail, signOut, onAuthStateChange } from '../firebase';
 import { probeItemsEndpoint } from '../api/items.api';
+
+import type { User } from 'firebase/auth';
 
 interface AuthUser {
   uid: string;

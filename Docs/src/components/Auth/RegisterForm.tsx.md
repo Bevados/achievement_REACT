@@ -14,23 +14,23 @@
 
 1. Экспортируется default-компонент `RegisterForm`.
 2. Пропсы:
-3. `onSuccess: () => void` - вызывается после успешной регистрации.
-4. `onSwitchToLogin: () => void` - переключение на форму входа.
-5. Локальная форма (`RegisterFormValues`): `nickname`, `email`, `password`, `confirmPassword`.
-6. Инварианты:
-7. `registerUser` вызывается только при валидной форме.
-8. `confirmPassword` должен совпадать с `password`.
-9. Ошибка регистрации берется из `auth.store` и показывается в UI.
+2.1. `onSuccess: () => void` - вызывается после успешной регистрации.
+3.1. `onSwitchToLogin: () => void` - переключение на форму входа.
+4. Локальная форма (`RegisterFormValues`): `nickname`, `email`, `password`, `confirmPassword`.
+5. Инварианты:
+5.1. `registerUser` вызывается только при валидной форме.
+5.2. `confirmPassword` должен совпадать с `password`.
+6. Ошибка регистрации берется из `auth.store` и показывается в UI.
 
 ## Нетривиальная логика
 
 1. `watch('password')` используется для динамической проверки `confirmPassword` в validate-правиле.
 2. Перед submit вызывается `clearError()`, чтобы сбросить старые сообщения.
 3. После успешной регистрации выполняется `probeProtectedApi`:
-4. Его ошибка логируется, но не отменяет успешную регистрацию.
-5. Валидация nickname жестче остальных полей:
-6. minLength 3, maxLength 20, только латиница/цифры/underscore.
-7. При переключении на логин в footer очищается ошибка и вызывается `onSwitchToLogin`.
+3.1. Его ошибка логируется, но не отменяет успешную регистрацию.
+4. Валидация nickname жестче остальных полей:
+4.1. minLength 3, maxLength 20, только латиница/цифры/underscore.
+5. При переключении на логин в footer очищается ошибка и вызывается `onSwitchToLogin`.
 
 ## Где используется
 

@@ -27,10 +27,8 @@
 
 ## Нетривиальная логика
 
-1. В `userForHeader` используется fallback-цепочка `displayName || email || 'User'`.
-2. Это защищает Header от пустого имени, если `displayName` не заполнен в Firebase профиле.
-3. Колбэки `onOpenLogin`/`onOpenRegister` не открывают модалку напрямую через локальный state, а делегируют в `modal.store`.
-4. Такой подход избавляет от prop-drilling и держит один источник истины для модального окна.
+1. В `userForHeader` используется fallback-цепочка `displayName || email || 'User'`. Это защищает Header от пустого имени, если `displayName` не заполнен в Firebase профиле.
+3. Колбэки `onOpenLogin`/`onOpenRegister` не открывают модалку напрямую через локальный state, а делегируют в `modal.store`. Такой подход избавляет от prop-drilling и держит один источник истины для модального окна.
 
 ## Где используется
 

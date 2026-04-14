@@ -17,16 +17,16 @@
 ## Экспорты и контракты
 
 1. Экспортируемые handlers:
-2. `getItems(req, res)` - возвращает список item пользователя.
-3. `createItem(req, res)` - валидирует body, создает item.
-4. `updateItem(req, res)` - валидирует body и `query.id`, обновляет item.
-5. `deleteItem(req, res)` - валидирует `query.id`, удаляет item.
-6. Внутренние helper-функции:
-7. `getIdFromQuery` - нормализует `id` из query (`string | string[]`) и валидирует формат.
-8. `handleControllerError` - единая обработка ошибок (валидация/внутренние ошибки).
-9. Инварианты:
-10. `req.userId` должен быть установлен middleware `verifyAuth` до вызова контроллера.
-11. Для операций update/delete id обязателен и должен соответствовать формату Mongo ObjectId.
+ `getItems(req, res)` - возвращает список item пользователя.
+ `createItem(req, res)` - валидирует body, создает item.
+ `updateItem(req, res)` - валидирует body и `query.id`, обновляет item.
+ `deleteItem(req, res)` - валидирует `query.id`, удаляет item.
+2. Внутренние helper-функции:
+ `getIdFromQuery` - нормализует `id` из query (`string | string[]`) и валидирует формат.
+ `handleControllerError` - единая обработка ошибок (валидация/внутренние ошибки).
+3. Инварианты:
+ `req.userId` должен быть установлен middleware `verifyAuth` до вызова контроллера.
+ Для операций update/delete id обязателен и должен соответствовать формату Mongo ObjectId.
 
 ## Нетривиальная логика
 

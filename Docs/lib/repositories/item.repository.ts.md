@@ -19,8 +19,8 @@
 3. `updateItem(id: string, userId: string, updateData: Partial<Item>)` - обновляет item по `_id` и `owner`.
 4. `deleteItem(id: string, userId: string)` - удаляет item по `_id` и `owner`.
 5. Инварианты:
-6. Для update/delete всегда применяется фильтр по владельцу (`owner: userId`).
-7. id для update/delete должен быть валидным ObjectId, иначе операция завершится ошибкой выше по стеку.
+ Для update/delete всегда применяется фильтр по владельцу (`owner: userId`).
+ id для update/delete должен быть валидным ObjectId, иначе операция завершится ошибкой выше по стеку.
 
 ## Нетривиальная логика
 

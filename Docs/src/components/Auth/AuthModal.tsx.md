@@ -17,9 +17,9 @@
 1. Экспортируется default-компонент `AuthModal`.
 2. Компонент не принимает пропсы, все состояние берет из store.
 3. Контракт поведения:
-4. `isOpen` и `activeModal` читаются из `useModalStore`.
-5. Закрытие всегда выполняет два действия: `clearError()` и `closeModal()`.
-6. При `activeModal='register'` рендерится `RegisterForm`, иначе `LoginForm`.
+3.1. `isOpen` и `activeModal` читаются из `useModalStore`.
+3.2. Закрытие всегда выполняет два действия: `clearError()` и `closeModal()`.
+3.3. При `activeModal='register'` рендерится `RegisterForm`, иначе `LoginForm`.
 
 ## Нетривиальная логика
 

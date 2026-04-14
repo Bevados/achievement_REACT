@@ -12,11 +12,10 @@
 ## Экспорты и контракты
 
 1. Экспортируется интерфейс `AuthenticatedRequest extends VercelRequest`.
-2. Добавленное поле:
-3. `userId: string`.
+2. Добавленное поле:`userId: string`.
 4. Инварианты:
-5. `userId` должен быть установлен middleware `verifyAuth` до выполнения контроллера.
-6. Использование `AuthenticatedRequest` без auth-проверки может привести к runtime-ошибке из-за отсутствующего `userId`.
+ `userId` должен быть установлен middleware `verifyAuth` до выполнения контроллера.
+ Использование `AuthenticatedRequest` без auth-проверки может привести к runtime-ошибке из-за отсутствующего `userId`.
 
 ## Нетривиальная логика
 

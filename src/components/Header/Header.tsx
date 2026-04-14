@@ -80,7 +80,6 @@ export default function Header({
       }
       // Закрываем профиль дропдаун если кликнули вне него
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
-        // animate out then unmount
         setProfileAnimateIn(false);
         setTimeout(() => setIsProfileDropdown(false), 200);
       }
@@ -152,7 +151,7 @@ export default function Header({
               to="/"
               className="flex items-center gap-2 shrink-0 hover:opacity-80 transition-opacity"
             >
-              <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-linear-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-adaptive">A</span>
               </div>
               <span className="hidden md:inline font-bold text-adaptive text-primary">
@@ -168,9 +167,9 @@ export default function Header({
                   aria-live="polite"
                   aria-label="Загрузка навигации"
                 >
-                  <div className="h-3 w-20 animate-pulse rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
-                  <div className="h-3 w-28 animate-pulse rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
-                  <div className="h-3 w-24 animate-pulse rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
+                  <div className="h-3 w-20 animate-pulse rounded-full bg-linear-to-r from-gray-100 via-gray-200 to-gray-100" />
+                  <div className="h-3 w-28 animate-pulse rounded-full bg-linear-to-r from-gray-100 via-gray-200 to-gray-100" />
+                  <div className="h-3 w-24 animate-pulse rounded-full bg-linear-to-r from-gray-100 via-gray-200 to-gray-100" />
                 </div>
               ) : (
                 navItems.map((item) => (
@@ -199,8 +198,8 @@ export default function Header({
                   aria-live="polite"
                   aria-label="Проверяем сессию"
                 >
-                  <div className="h-3 w-24 animate-pulse rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
-                  <div className="h-8 w-8 animate-pulse rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
+                  <div className="h-3 w-24 animate-pulse rounded-full bg-linear-to-r from-gray-100 via-gray-200 to-gray-100" />
+                  <div className="h-8 w-8 animate-pulse rounded-full bg-linear-to-r from-gray-100 via-gray-200 to-gray-100" />
                 </div>
               ) : user?.isAuthenticated ? (
                 /* ВАРИАНТ 1: Авторизованный пользователь - дропдаун профиля */
@@ -218,7 +217,7 @@ export default function Header({
                   {/* Блок дропдаун профиля */}
                   {isProfileDropdown && (
                     <div
-                      className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden transform transition-opacity transition-transform duration-200 ease-out ${
+                      className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden transform  transition-opacity duration-200 ease-out ${
                         profileAnimateIn
                           ? 'opacity-100 scale-100'
                           : 'opacity-0 scale-95 pointer-events-none'
@@ -302,8 +301,8 @@ export default function Header({
             <div className="px-3 py-4 space-y-2 border-t border-gray-200">
               {isAuthResolving ? (
                 <div className="space-y-3 px-1" aria-live="polite" aria-label="Загрузка меню">
-                  <div className="h-10 w-full animate-pulse rounded-lg bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
-                  <div className="h-10 w-full animate-pulse rounded-lg bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
+                  <div className="h-10 w-full animate-pulse rounded-lg bg-linear-to-r from-gray-100 via-gray-200 to-gray-100" />
+                  <div className="h-10 w-full animate-pulse rounded-lg bg-linear-to-r from-gray-100 via-gray-200 to-gray-100" />
                 </div>
               ) : (
                 <>
@@ -338,8 +337,8 @@ export default function Header({
                   className="flex items-center gap-2 px-4 py-3 rounded-lg bg-gray-50"
                   aria-label="Проверяем сессию"
                 >
-                  <div className="h-3 w-32 animate-pulse rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
-                  <div className="h-7 w-7 animate-pulse rounded-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100" />
+                  <div className="h-3 w-32 animate-pulse rounded-full bg-linear-to-r from-gray-100 via-gray-200 to-gray-100" />
+                  <div className="h-7 w-7 animate-pulse rounded-full bg-linear-to-r from-gray-100 via-gray-200 to-gray-100" />
                 </div>
               ) : user?.isAuthenticated ? (
                 <>
