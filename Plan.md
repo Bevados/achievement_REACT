@@ -176,18 +176,7 @@
 
 ## Шаг 2. Backend и API (следующий в работе)
 
-### 2.1 Что делаем
-
-1. Создаем типы и DTO для Collection/Entry на backend.
-2. Добавляем zod-схемы для create/update/query.
-3. Реализуем repositories для MongoDB.
-4. Реализуем services (бизнес-правила).
-5. Реализуем controllers (HTTP-ответы и ошибки).
-6. Подключаем endpoints (private + public).
-7. Добавляем индексы.
-8. Проводим ручной API smoke-check.
-
-### 2.2 Зачем
+### 2.1 Цель шага
 
 1. Типы и DTO задают стабильный контракт API.
 2. Zod защищает API от невалидных данных.
@@ -196,7 +185,18 @@
 5. Controller унифицирует формат ответов и статусов.
 6. Smoke-check подтверждает, что backend готов к фронту.
 
-### 2.3 API-контракты MVP
+### 2.2 Подшаги реализации (по порядку)
+
+1. 2.2.1 Типы и DTO для Collection/Entry на backend (done).
+2. 2.2.2 Zod-схемы для create/update/query/params (done).
+3. 2.2.3 Repositories для MongoDB (done).
+4. 2.2.4 Services (бизнес-правила) (in progress).
+5. 2.2.5 Controllers (HTTP-ответы и ошибки).
+6. 2.2.6 Endpoints wiring (private + public).
+7. 2.2.7 Индексы MongoDB.
+8. 2.2.8 Ручной API smoke-check.
+
+### 2.3 API-контракты MVP (спецификация всего шага 2)
 
 Private (только с Bearer токеном):
 
