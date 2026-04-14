@@ -19,7 +19,7 @@
    - ENTRY_SORT_FIELDS / EntrySortField.
 2. Доменные типы хранения:
    - CollectionDocument.
-   - EntryDocument (цена в БД хранится как integer cents).
+   - EntryDocument (collectionId хранится как ObjectId-ссылка, цена в БД хранится как integer cents).
 3. Типы представления API:
    - CollectionView.
    - EntryView (цена в API в долларах как number).
@@ -43,6 +43,7 @@
    - DTO/API принимает dollars (например, 12.34).
    - Хранение в БД предполагается в cents (например, 1234) для корректной арифметики без float-ошибок.
    - Date в DTO/API зафиксирована как ISO-строка, чтобы граница клиент/сервер была предсказуемой.
+3. В EntryDocument поле collectionId хранится как ObjectId, чтобы связь Entry -> Collection была нативной для MongoDB и не требовала лишних преобразований на уровне запросов.
 
 ## Где используется
 

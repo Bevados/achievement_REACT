@@ -52,7 +52,7 @@ export interface CollectionDocument {
 
 export interface EntryDocument {
   _id?: ObjectId;
-  collectionId: string;
+  collectionId: ObjectId;
   ownerId: string;
   title: string;
   status: EntryStatus;

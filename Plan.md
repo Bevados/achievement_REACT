@@ -306,8 +306,18 @@ Public:
 5. Цена: в API/DTO передаем в долларах (до 2 знаков после точки), в БД храним в центах (integer).
 6. Date в API/DTO передаем как ISO-строку.
 7. Пагинация фиксируется в list DTO (page, limit, sortBy, sortOrder и фильтры).
+8. Price на API принимается только как number (строковый формат, например "12.34", не принимаем).
+9. Для list query: limit по умолчанию 10, допустимый диапазон 1..100.
+10. Для tags: максимум 10 тегов, длина каждого до 20 символов.
+11. Для EntryDocument поле collectionId храним как ObjectId-ссылку.
 
 ## Прогресс шага 2.1
 
 1. Добавлен базовый типовой контракт Collection/Entry и DTO: `lib/types/collection.types.ts`.
 2. Добавлена документация для нового файла: `Docs/lib/types/collection.types.ts.md`.
+
+## Прогресс шага 2.2
+
+1. Добавлены Zod-схемы Collection/Entry для body/query/params: `lib/validation/collection.schema.ts`.
+2. Зафиксированы ограничения price, tags, pagination, rating и date на уровне runtime-валидации.
+3. Добавлена документация для нового schema-файла: `Docs/lib/validation/collection.schema.ts.md`.
