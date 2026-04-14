@@ -302,3 +302,12 @@ Public:
 1. Для Entry: `rating` необязательный.
 2. Для Entry: `date` необязательная.
 3. Для Entry: `status` обязательный.
+4. Категории коллекций храним как slug enum: travel, sport, shopping, learning, health_body, creativity, hobby, career, family, home, self_development, other.
+5. Цена: в API/DTO передаем в долларах (до 2 знаков после точки), в БД храним в центах (integer).
+6. Date в API/DTO передаем как ISO-строку.
+7. Пагинация фиксируется в list DTO (page, limit, sortBy, sortOrder и фильтры).
+
+## Прогресс шага 2.1
+
+1. Добавлен базовый типовой контракт Collection/Entry и DTO: `lib/types/collection.types.ts`.
+2. Добавлена документация для нового файла: `Docs/lib/types/collection.types.ts.md`.
