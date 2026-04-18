@@ -27,6 +27,7 @@
    - collectionListQuerySchema.
    - entryListQuerySchema.
 5. Зафиксированные инварианты:
+   - private create/update коллекций не принимает `isPublic`.
    - price принимается только как number >= 0 и максимум 2 знака после точки.
    - limit по умолчанию 10, допустимый диапазон 1..100.
    - tags: максимум 10 тегов, длина каждого 1..20 символов.
@@ -37,7 +38,7 @@
 ## Нетривиальная логика
 
 1. В query-схемах используется z.coerce.number, чтобы корректно валидировать строковые query-параметры без ручного парсинга в контроллере.
-2. isPublic в query поддерживает true/false из строки и приводится к boolean, что упрощает работу service-слоя.
+2. Collection list query ориентирован на category/search/sort и не принимает `isPublic` от клиента в private API.
 3. Для tags применяется дедупликация через Set, чтобы устранить повторяющиеся значения еще на границе API.
 4. Для update-схем используется refine с проверкой на непустой объект, чтобы PATCH не принимал пустой body.
 5. Для entryListQuerySchema добавлена межполевая проверка minRating <= maxRating.

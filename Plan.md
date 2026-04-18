@@ -190,8 +190,8 @@
 1. 2.2.1 Типы и DTO для Collection/Entry на backend (done).
 2. 2.2.2 Zod-схемы для create/update/query/params (done).
 3. 2.2.3 Repositories для MongoDB (done).
-4. 2.2.4 Services (бизнес-правила) (in progress).
-5. 2.2.5 Controllers (HTTP-ответы и ошибки).
+4. 2.2.4 Services (бизнес-правила) (done).
+5. 2.2.5 Controllers (HTTP-ответы и ошибки) (in progress).
 6. 2.2.6 Endpoints wiring (private + public).
 7. 2.2.7 Индексы MongoDB.
 8. 2.2.8 Ручной API smoke-check.
@@ -310,6 +310,11 @@ Public:
 9. Для list query: limit по умолчанию 10, допустимый диапазон 1..100.
 10. Для tags: максимум 10 тегов, длина каждого до 20 символов.
 11. Для EntryDocument поле collectionId храним как ObjectId-ссылку.
+12. Поле `isPublic` удалено из private DTO и private Zod-схем коллекций.
+13. Публичные examples выдаются из системного ownerId `system_examples` (константа backend), а не из пользовательских данных.
+14. Для access-check в сервисе используем семантику: чужие данные -> 403, отсутствующие -> 404.
+15. Поиск коллекций в backend делаем по `title + description`.
+16. `entriesCount` поддерживается в service-оркестрации при create/delete entry.
 
 ## Прогресс шага 2.1
 
@@ -321,3 +326,17 @@ Public:
 1. Добавлены Zod-схемы Collection/Entry для body/query/params: `lib/validation/collection.schema.ts`.
 2. Зафиксированы ограничения price, tags, pagination, rating и date на уровне runtime-валидации.
 3. Добавлена документация для нового schema-файла: `Docs/lib/validation/collection.schema.ts.md`.
+
+## Прогресс шага 2.3
+
+1. Реализован repository-слой для коллекций и карточек: `lib/repositories/collection.repository.ts`.
+2. Добавлены list/filter/sort/pagination операции, raw lookup методы и helper изменения `entriesCount`.
+3. Добавлена документация repository: `Docs/lib/repositories/collection.repository.ts.md`.
+
+## Прогресс шага 2.2.4
+
+1. Реализован service-слой Collection/Entry: `lib/services/collection.service.ts`.
+2. Добавлены бизнес-правила конверсии `price/date/tags`, access-check 403/404 и каскад delete.
+3. Добавлены tests-first unit-тесты сервиса: `lib/services/collection.service.test.ts`.
+4. Добавлены контрактные тесты schema для запрета `isPublic` в private API: `lib/validation/collection.schema.test.ts`.
+5. Документация синхронизирована для новых/измененных файлов в `Docs/lib/...`.

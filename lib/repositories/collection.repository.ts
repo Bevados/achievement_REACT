@@ -16,6 +16,7 @@ import type {
   EntrySortField,
   PaginatedResult,
 } from '../types/collection.types';
+import { SYSTEM_EXAMPLES_OWNER_ID } from '../types/collection.types';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
@@ -82,12 +83,11 @@ function buildCollectionFilter(
     filter.category = query.category;
   }
 
-  if (typeof query.isPublic === 'boolean') {
-    filter.isPublic = query.isPublic;
-  }
-
   if (query.search) {
-    filter.title = { $regex: query.search, $options: 'i' };
+    filter.$or = [
+      { title: { $regex: query.search, $options: 'i' } },
+      { description: { $regex: query.search, $options: 'i' } },
+    ];
   }
 
   return filter;
@@ -95,6 +95,7 @@ function buildCollectionFilter(
 
 function buildPublicCollectionFilter(query: CollectionListQueryDto): Filter<CollectionDocument> {
   const filter: Filter<CollectionDocument> = {
+    ownerId: SYSTEM_EXAMPLES_OWNER_ID,
     isPublic: true,
   };
 
@@ -103,7 +104,10 @@ function buildPublicCollectionFilter(query: CollectionListQueryDto): Filter<Coll
   }
 
   if (query.search) {
-    filter.title = { $regex: query.search, $options: 'i' };
+    filter.$or = [
+      { title: { $regex: query.search, $options: 'i' } },
+      { description: { $regex: query.search, $options: 'i' } },
+    ];
   }
 
   return filter;
@@ -198,6 +202,11 @@ export async function findCollectionById(ownerId: string, collectionId: string) 
   return collection.findOne({ _id: new ObjectId(collectionId), ownerId });
 }
 
+export async function findCollectionByIdRaw(collectionId: string) {
+  const collection = await getCollection<CollectionDocument>('collections');
+  return collection.findOne({ _id: new ObjectId(collectionId) });
+}
+
 export async function createCollection(
   data: CollectionDocument,
 ): Promise<InsertOneResult<CollectionDocument>> {
@@ -263,6 +272,21 @@ export async function findCollectionEntries(
   };
 }
 
+export async function findEntryById(ownerId: string, collectionId: string, entryId: string) {
+  const entries = await getCollection<EntryDocument>('entries');
+
+  return entries.findOne({
+    _id: new ObjectId(entryId),
+    collectionId: new ObjectId(collectionId),
+    ownerId,
+  });
+}
+
+export async function findEntryByIdRaw(entryId: string) {
+  const entries = await getCollection<EntryDocument>('entries');
+  return entries.findOne({ _id: new ObjectId(entryId) });
+}
+
 export async function createEntry(data: EntryDocument): Promise<InsertOneResult<EntryDocument>> {
   const entries = await getCollection<EntryDocument>('entries');
   return entries.insertOne(data);
@@ -318,4 +342,35 @@ export async function deleteEntriesByCollectionId(
     ownerId,
     collectionId: new ObjectId(collectionId),
   });
+}
+
+export async function changeCollectionEntriesCount(
+  ownerId: string,
+  collectionId: string,
+  delta: number,
+): Promise<UpdateResult<CollectionDocument>> {
+  const collection = await getCollection<CollectionDocument>('collections');
+
+  if (delta < 0) {
+    return collection.updateOne(
+      {
+        _id: new ObjectId(collectionId),
+        ownerId,
+        entriesCount: { $gt: 0 },
+      },
+      {
+        $inc: { entriesCount: delta },
+      },
+    );
+  }
+
+  return collection.updateOne(
+    {
+      _id: new ObjectId(collectionId),
+      ownerId,
+    },
+    {
+      $inc: { entriesCount: delta },
+    },
+  );
 }

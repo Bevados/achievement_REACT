@@ -20,6 +20,8 @@ export type CollectionCategory = (typeof COLLECTION_CATEGORIES)[number];
 export const ENTRY_STATUSES = ['planned', 'in_progress', 'completed'] as const;
 export type EntryStatus = (typeof ENTRY_STATUSES)[number];
 
+export const SYSTEM_EXAMPLES_OWNER_ID = 'system_examples';
+
 export const SORT_ORDERS = ['asc', 'desc'] as const;
 export type SortOrder = (typeof SORT_ORDERS)[number];
 
@@ -100,7 +102,6 @@ export interface CreateCollectionDto {
   category: CollectionCategory;
   description?: string;
   coverImageUrl?: string;
-  isPublic?: boolean;
 }
 
 export interface UpdateCollectionDto {
@@ -108,7 +109,6 @@ export interface UpdateCollectionDto {
   category?: CollectionCategory;
   description?: string;
   coverImageUrl?: string;
-  isPublic?: boolean;
 }
 
 export interface CreateEntryDto {
@@ -142,7 +142,6 @@ export interface BaseListQueryDto {
 export interface CollectionListQueryDto extends BaseListQueryDto {
   sortBy?: CollectionSortField;
   category?: CollectionCategory;
-  isPublic?: boolean;
   search?: string;
 }
 

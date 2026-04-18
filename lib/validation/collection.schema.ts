@@ -27,18 +27,6 @@ const urlSchema = z.preprocess(
   z.url().max(2048),
 );
 
-const booleanQuerySchema = z.preprocess((value) => {
-  if (value === 'true') {
-    return true;
-  }
-
-  if (value === 'false') {
-    return false;
-  }
-
-  return value;
-}, z.boolean());
-
 export const objectIdSchema = z.string().regex(objectIdPattern, 'Invalid ObjectId format');
 
 export const collectionIdParamSchema = z.object({
@@ -56,7 +44,6 @@ export const createCollectionSchema: z.ZodType<CreateCollectionDto> = z
     category: z.enum(COLLECTION_CATEGORIES),
     description: z.string().trim().min(1).max(1000).optional(),
     coverImageUrl: urlSchema.optional(),
-    isPublic: z.boolean().optional(),
   })
   .strict();
 
@@ -66,7 +53,6 @@ export const updateCollectionSchema: z.ZodType<UpdateCollectionDto> = z
     category: z.enum(COLLECTION_CATEGORIES).optional(),
     description: z.string().trim().min(1).max(1000).optional(),
     coverImageUrl: urlSchema.optional(),
-    isPublic: z.boolean().optional(),
   })
   .strict()
   .refine((payload) => Object.keys(payload).length > 0, {
@@ -122,7 +108,6 @@ export const collectionListQuerySchema = baseListQuerySchema
   .extend({
     sortBy: z.enum(COLLECTION_SORT_FIELDS).optional(),
     category: z.enum(COLLECTION_CATEGORIES).optional(),
-    isPublic: booleanQuerySchema.optional(),
     search: z.string().trim().min(1).max(120).optional(),
   })
   .strict();

@@ -14,6 +14,7 @@
 1. Enum-like константы и типы:
    - COLLECTION_CATEGORIES / CollectionCategory.
    - ENTRY_STATUSES / EntryStatus.
+   - SYSTEM_EXAMPLES_OWNER_ID.
    - SORT_ORDERS / SortOrder.
    - COLLECTION_SORT_FIELDS / CollectionSortField.
    - ENTRY_SORT_FIELDS / EntrySortField.
@@ -44,6 +45,8 @@
    - Хранение в БД предполагается в cents (например, 1234) для корректной арифметики без float-ошибок.
    - Date в DTO/API зафиксирована как ISO-строка, чтобы граница клиент/сервер была предсказуемой.
 3. В EntryDocument поле collectionId хранится как ObjectId, чтобы связь Entry -> Collection была нативной для MongoDB и не требовала лишних преобразований на уровне запросов.
+4. Поле isPublic удалено из private Create/Update DTO коллекций: пользователь не может передавать флаг публичности через private API.
+5. Для examples используется отдельный системный ownerId (`system_examples`), что разделяет пользовательские и демонстрационные данные без отдельной Mongo-коллекции.
 
 ## Где используется
 
