@@ -11,6 +11,7 @@
 2. mongodb (ObjectId) - генерация реалистичных id для тестовых документов.
 3. ./collection.service - тестируемые сервисные функции и error-классы.
 4. vi.mock('../repositories/collection.repository') - подмена слоя БД моками.
+5. vi.mock('../../api/_mongodb') - подмена подключения MongoDB и сессии для проверки commit/abort в транзакциях.
 
 ## Экспорты и контракты
 
@@ -21,12 +22,14 @@
    - Конверсия price/date/tags в create/update entry.
    - Оркестрация каскадного удаления коллекции.
    - Поддержка entriesCount через `changeCollectionEntriesCount`.
+   - Rollback-сценарии: при сбое второго шага мутации вызывается abortTransaction.
 
 ## Нетривиальная логика
 
 1. Repository функции замоканы через `vi.hoisted`, чтобы стабильно подменять модуль до импорта сервиса.
-2. Для каскадного удаления используется контроль порядка вызовов через массив `sequence`.
-3. Тесты проверяют не только результат, но и payload вызовов repository (`expect.objectContaining`) для фиксации write-контрактов сервиса.
+2. Для транзакционных операций мокается session-объект Mongo (`startTransaction`, `commitTransaction`, `abortTransaction`, `endSession`).
+3. Для каскадного удаления используется контроль порядка вызовов через массив `sequence`.
+4. Тесты проверяют не только результат, но и payload вызовов repository (`expect.objectContaining`) для фиксации write-контрактов сервиса.
 
 ## Где используется
 

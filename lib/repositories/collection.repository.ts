@@ -1,4 +1,5 @@
 import {
+  type ClientSession,
   ObjectId,
   type DeleteResult,
   type Filter,
@@ -209,15 +210,17 @@ export async function findCollectionByIdRaw(collectionId: string) {
 
 export async function createCollection(
   data: CollectionDocument,
+  session?: ClientSession,
 ): Promise<InsertOneResult<CollectionDocument>> {
   const collection = await getCollection<CollectionDocument>('collections');
-  return collection.insertOne(data);
+  return collection.insertOne(data, { session });
 }
 
 export async function updateCollectionById(
   ownerId: string,
   collectionId: string,
   updateData: Partial<CollectionDocument>,
+  session?: ClientSession,
 ): Promise<UpdateResult<CollectionDocument>> {
   const collection = await getCollection<CollectionDocument>('collections');
   const { _id, ownerId: ignoredOwnerId, ...safeUpdateData } = updateData;
@@ -230,19 +233,21 @@ export async function updateCollectionById(
     {
       $set: safeUpdateData,
     },
+    { session },
   );
 }
 
 export async function deleteCollectionById(
   ownerId: string,
   collectionId: string,
+  session?: ClientSession,
 ): Promise<DeleteResult> {
   const collection = await getCollection<CollectionDocument>('collections');
 
   return collection.deleteOne({
     _id: new ObjectId(collectionId),
     ownerId,
-  });
+  }, { session });
 }
 
 export async function findCollectionEntries(
@@ -287,9 +292,12 @@ export async function findEntryByIdRaw(entryId: string) {
   return entries.findOne({ _id: new ObjectId(entryId) });
 }
 
-export async function createEntry(data: EntryDocument): Promise<InsertOneResult<EntryDocument>> {
+export async function createEntry(
+  data: EntryDocument,
+  session?: ClientSession,
+): Promise<InsertOneResult<EntryDocument>> {
   const entries = await getCollection<EntryDocument>('entries');
-  return entries.insertOne(data);
+  return entries.insertOne(data, { session });
 }
 
 export async function updateEntryById(
@@ -297,6 +305,7 @@ export async function updateEntryById(
   collectionId: string,
   entryId: string,
   updateData: Partial<EntryDocument>,
+  session?: ClientSession,
 ): Promise<UpdateResult<EntryDocument>> {
   const entries = await getCollection<EntryDocument>('entries');
   const {
@@ -315,6 +324,7 @@ export async function updateEntryById(
     {
       $set: safeUpdateData,
     },
+    { session },
   );
 }
 
@@ -322,6 +332,7 @@ export async function deleteEntryById(
   ownerId: string,
   collectionId: string,
   entryId: string,
+  session?: ClientSession,
 ): Promise<DeleteResult> {
   const entries = await getCollection<EntryDocument>('entries');
 
@@ -329,25 +340,27 @@ export async function deleteEntryById(
     _id: new ObjectId(entryId),
     collectionId: new ObjectId(collectionId),
     ownerId,
-  });
+  }, { session });
 }
 
 export async function deleteEntriesByCollectionId(
   ownerId: string,
   collectionId: string,
+  session?: ClientSession,
 ): Promise<DeleteResult> {
   const entries = await getCollection<EntryDocument>('entries');
 
   return entries.deleteMany({
     ownerId,
     collectionId: new ObjectId(collectionId),
-  });
+  }, { session });
 }
 
 export async function changeCollectionEntriesCount(
   ownerId: string,
   collectionId: string,
   delta: number,
+  session?: ClientSession,
 ): Promise<UpdateResult<CollectionDocument>> {
   const collection = await getCollection<CollectionDocument>('collections');
 
@@ -361,6 +374,7 @@ export async function changeCollectionEntriesCount(
       {
         $inc: { entriesCount: delta },
       },
+      { session },
     );
   }
 
@@ -372,5 +386,6 @@ export async function changeCollectionEntriesCount(
     {
       $inc: { entriesCount: delta },
     },
+    { session },
   );
 }

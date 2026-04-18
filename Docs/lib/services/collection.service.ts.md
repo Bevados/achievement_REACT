@@ -16,6 +16,7 @@
 1. Error-модель сервиса:
    - ForbiddenError.
    - NotFoundError.
+   - TransactionError.
 2. Операции коллекций:
    - getOwnerCollections(ownerId, query).
    - getPublicCollections(query).
@@ -35,14 +36,16 @@
    - price хранится в БД как cents, наружу отдается в dollars.
    - date в БД хранится как Date (UTC), наружу отдается как ISO string.
    - createEntry/deleteEntry поддерживают entriesCount через repository helper.
+   - createEntry/deleteEntry/deleteCollection выполняются в Mongo-транзакции с rollback при ошибке.
 
 ## Нетривиальная логика
 
 1. Access-check реализован двухэтапно: owner lookup + raw lookup, чтобы корректно различать Forbidden и NotFound.
 2. Маппинг Document -> View централизован (`toCollectionView`, `toEntryView`), что исключает утечки ObjectId/Date в API-слой.
 3. Нормализация тегов (`trim + lowercase + dedupe`) выполняется в service при записи, а не в repository.
-4. Каскадное удаление коллекции оркестрируется в строгом порядке: access-check -> delete entries -> delete collection.
-5. Конверсия цены выполняется с округлением до cents (`Math.round`) для защиты от float-ошибок.
+4. Транзакционная обертка `runInTransaction` централизует `startTransaction/commit/abort/endSession` и гарантирует откат при падении шага внутри мутации.
+5. Каскадное удаление коллекции оркестрируется в строгом порядке: access-check -> delete entries -> delete collection (в одной транзакции).
+6. Конверсия цены выполняется с округлением до cents (`Math.round`) для защиты от float-ошибок.
 
 ## Где используется
 

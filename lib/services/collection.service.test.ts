@@ -1,6 +1,28 @@
 import { ObjectId } from 'mongodb';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+const mongoMocks = vi.hoisted(() => {
+  const session = {
+    startTransaction: vi.fn(),
+    commitTransaction: vi.fn(),
+    abortTransaction: vi.fn(),
+    endSession: vi.fn(),
+    inTransaction: vi.fn(() => true),
+  };
+
+  const startSession = vi.fn(() => session);
+  const connectToDatabase = vi.fn(async () => ({
+    client: { startSession },
+    db: {},
+  }));
+
+  return {
+    session,
+    startSession,
+    connectToDatabase,
+  };
+});
+
 const repositoryMocks = vi.hoisted(() => ({
   findOwnerCollections: vi.fn(),
   findPublicCollections: vi.fn(),
@@ -19,11 +41,16 @@ const repositoryMocks = vi.hoisted(() => ({
   changeCollectionEntriesCount: vi.fn(),
 }));
 
+vi.mock('../../api/_mongodb', () => ({
+  connectToDatabase: mongoMocks.connectToDatabase,
+}));
+
 vi.mock('../repositories/collection.repository', () => repositoryMocks);
 
 import {
   ForbiddenError,
   NotFoundError,
+  TransactionError,
   createCollection,
   createEntry,
   deleteCollection,
@@ -190,10 +217,45 @@ describe('collection.service', () => {
         tags: ['travel', 'japan'],
         date: expect.any(Date),
       }),
+      expect.any(Object),
     );
-    expect(repositoryMocks.changeCollectionEntriesCount).toHaveBeenCalledWith('user-1', collectionId, 1);
+    expect(repositoryMocks.changeCollectionEntriesCount).toHaveBeenCalledWith(
+      'user-1',
+      collectionId,
+      1,
+      expect.any(Object),
+    );
+    expect(mongoMocks.session.startTransaction).toHaveBeenCalled();
+    expect(mongoMocks.session.commitTransaction).toHaveBeenCalled();
+    expect(mongoMocks.session.abortTransaction).not.toHaveBeenCalled();
     expect(result.price).toBe(12.34);
     expect(result.tags).toEqual(['travel', 'japan']);
+  });
+
+  it('aborts createEntry transaction when entriesCount update fails', async () => {
+    const collectionId = new ObjectId().toHexString();
+
+    repositoryMocks.findCollectionById.mockResolvedValue(buildCollectionDoc());
+    repositoryMocks.createEntry.mockResolvedValue({
+      acknowledged: true,
+      insertedId: new ObjectId(),
+    });
+    repositoryMocks.changeCollectionEntriesCount.mockResolvedValue({
+      acknowledged: true,
+      matchedCount: 0,
+      modifiedCount: 0,
+      upsertedCount: 0,
+      upsertedId: null,
+    });
+
+    await expect(
+      createEntry('user-1', collectionId, {
+        title: 'Failing tx',
+        status: 'planned',
+      }),
+    ).rejects.toBeInstanceOf(TransactionError);
+
+    expect(mongoMocks.session.abortTransaction).toHaveBeenCalled();
   });
 
   it('updates entry by converting only provided fields', async () => {
@@ -290,6 +352,54 @@ describe('collection.service', () => {
 
     await deleteEntry('user-1', collectionId, entryId);
 
-    expect(repositoryMocks.changeCollectionEntriesCount).toHaveBeenCalledWith('user-1', collectionId, -1);
+    expect(repositoryMocks.changeCollectionEntriesCount).toHaveBeenCalledWith(
+      'user-1',
+      collectionId,
+      -1,
+      expect.any(Object),
+    );
+    expect(mongoMocks.session.commitTransaction).toHaveBeenCalled();
+  });
+
+  it('aborts deleteEntry transaction when counter decrement fails', async () => {
+    const collectionId = new ObjectId().toHexString();
+    const entryId = new ObjectId().toHexString();
+    const entryDoc = buildEntryDoc('user-1', new ObjectId(collectionId), new ObjectId(entryId));
+
+    repositoryMocks.findCollectionById.mockResolvedValue(buildCollectionDoc());
+    repositoryMocks.findEntryById.mockResolvedValue(entryDoc);
+    repositoryMocks.deleteEntryById.mockResolvedValue({
+      acknowledged: true,
+      deletedCount: 1,
+    });
+    repositoryMocks.changeCollectionEntriesCount.mockResolvedValue({
+      acknowledged: true,
+      matchedCount: 0,
+      modifiedCount: 0,
+      upsertedCount: 0,
+      upsertedId: null,
+    });
+
+    await expect(deleteEntry('user-1', collectionId, entryId)).rejects.toBeInstanceOf(TransactionError);
+
+    expect(mongoMocks.session.abortTransaction).toHaveBeenCalled();
+  });
+
+  it('aborts deleteCollection transaction when final delete fails', async () => {
+    const collectionId = new ObjectId().toHexString();
+
+    repositoryMocks.findCollectionById.mockResolvedValue(buildCollectionDoc());
+    repositoryMocks.deleteEntriesByCollectionId.mockResolvedValue({
+      acknowledged: true,
+      deletedCount: 2,
+    });
+    repositoryMocks.deleteCollectionById.mockResolvedValue({
+      acknowledged: true,
+      deletedCount: 0,
+    });
+
+    await expect(deleteCollection('user-1', collectionId)).rejects.toBeInstanceOf(TransactionError);
+
+    expect(mongoMocks.session.abortTransaction).toHaveBeenCalled();
   });
 });

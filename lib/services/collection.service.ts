@@ -1,4 +1,5 @@
-import { ObjectId } from 'mongodb';
+import { type ClientSession, ObjectId } from 'mongodb';
+import { connectToDatabase } from '../../api/_mongodb';
 import * as repository from '../repositories/collection.repository';
 import type {
   CollectionDocument,
@@ -25,6 +26,13 @@ export class NotFoundError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'NotFoundError';
+  }
+}
+
+export class TransactionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'TransactionError';
   }
 }
 
@@ -154,6 +162,26 @@ async function assertEntryAccess(
   throw new NotFoundError('Entry not found');
 }
 
+async function runInTransaction<T>(work: (session: ClientSession) => Promise<T>): Promise<T> {
+  const { client } = await connectToDatabase();
+  const session = client.startSession();
+
+  try {
+    session.startTransaction();
+    const result = await work(session);
+    await session.commitTransaction();
+    return result;
+  } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+
+    throw error;
+  } finally {
+    await session.endSession();
+  }
+}
+
 export async function getOwnerCollections(
   ownerId: string,
   query: CollectionListQueryDto,
@@ -225,8 +253,15 @@ export async function updateCollection(
 
 export async function deleteCollection(ownerId: string, collectionId: string): Promise<void> {
   await assertCollectionAccess(ownerId, collectionId);
-  await repository.deleteEntriesByCollectionId(ownerId, collectionId);
-  await repository.deleteCollectionById(ownerId, collectionId);
+
+  await runInTransaction(async (session) => {
+    await repository.deleteEntriesByCollectionId(ownerId, collectionId, session);
+    const deleteCollectionResult = await repository.deleteCollectionById(ownerId, collectionId, session);
+
+    if (deleteCollectionResult.deletedCount === 0) {
+      throw new TransactionError('Collection delete transaction failed');
+    }
+  });
 }
 
 export async function getCollectionEntries(
@@ -273,8 +308,16 @@ export async function createEntry(
     updatedAt: now,
   };
 
-  const insertResult = await repository.createEntry(document);
-  await repository.changeCollectionEntriesCount(ownerId, collectionId, 1);
+  const insertResult = await runInTransaction(async (session) => {
+    const created = await repository.createEntry(document, session);
+    const countResult = await repository.changeCollectionEntriesCount(ownerId, collectionId, 1, session);
+
+    if (countResult.matchedCount === 0) {
+      throw new TransactionError('Entry create transaction failed on count update');
+    }
+
+    return created;
+  });
 
   const createdEntry = await repository.findEntryById(ownerId, collectionId, insertResult.insertedId.toHexString());
   if (!createdEntry) {
@@ -341,10 +384,15 @@ export async function updateEntry(
 export async function deleteEntry(ownerId: string, collectionId: string, entryId: string): Promise<void> {
   await assertEntryAccess(ownerId, collectionId, entryId);
 
-  const deleteResult = await repository.deleteEntryById(ownerId, collectionId, entryId);
-  if (deleteResult.deletedCount === 0) {
-    throw new NotFoundError('Entry not found for delete');
-  }
+  await runInTransaction(async (session) => {
+    const deleteResult = await repository.deleteEntryById(ownerId, collectionId, entryId, session);
+    if (deleteResult.deletedCount === 0) {
+      throw new NotFoundError('Entry not found for delete');
+    }
 
-  await repository.changeCollectionEntriesCount(ownerId, collectionId, -1);
+    const countResult = await repository.changeCollectionEntriesCount(ownerId, collectionId, -1, session);
+    if (countResult.matchedCount === 0) {
+      throw new TransactionError('Entry delete transaction failed on count update');
+    }
+  });
 }

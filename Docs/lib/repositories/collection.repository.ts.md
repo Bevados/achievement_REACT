@@ -37,6 +37,7 @@ Repository не формирует HTTP-ответы и не содержит б
    - Сортировка принимает только whitelisted поля из enum-маппинга.
    - Поле sortBy=price для entries маппится в Mongo-поле priceCents.
    - Публичный поток примеров изолирован через SYSTEM_EXAMPLES_OWNER_ID.
+   - Все mutating методы поддерживают optional ClientSession для сервисных транзакций.
 
 ## Нетривиальная логика
 
@@ -48,6 +49,7 @@ Repository не формирует HTTP-ответы и не содержит б
 4. Для update-операций перед записью в Mongo удаляются критичные поля (\_id, ownerId, collectionId), чтобы исключить их случайную перезапись через $set.
 5. Поиск по search реализован через case-insensitive regex по `title` и `description` (через `$or`) для более полного MVP-результата.
 6. Для decrement счетчика entriesCount используется условие `entriesCount > 0`, чтобы исключить уход счетчика в отрицательные значения.
+7. Методы create/update/delete и счетчик принимают optional `session`, что позволяет сервису объединять multi-document операции в одну транзакцию.
 
 ## Где используется
 

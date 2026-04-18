@@ -315,6 +315,7 @@ Public:
 14. Для access-check в сервисе используем семантику: чужие данные -> 403, отсутствующие -> 404.
 15. Поиск коллекций в backend делаем по `title + description`.
 16. `entriesCount` поддерживается в service-оркестрации при create/delete entry.
+17. Мутации `createEntry`, `deleteEntry`, `deleteCollection` выполняются транзакционно с rollback при ошибке шага внутри операции.
 
 ## Прогресс шага 2.1
 
