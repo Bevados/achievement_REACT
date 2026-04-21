@@ -24,15 +24,15 @@ Validated API contract for Collection/Entry backend endpoints against Step 2 cri
 
 ## Result Summary
 
-| Scenario | Expected | Result |
-|---|---|---|
-| C1 Auth (missing/invalid bearer) | 401 + `UNAUTHORIZED` | PASS |
-| C2 Validation | 422 + `VALIDATION_ERROR` | PASS |
-| C3 Unified envelope | `{ ok: true|false, data|error }` | PASS |
-| C4 Access semantics | 403/404 mapping | PASS |
-| C5 Collections CRUD | 201/200/200/200 | PASS |
-| C6 Entries CRUD | 201/200/200/200 | PASS |
-| C7 Public endpoint | 200 without token | PASS |
+| Scenario                         | Expected                 | Result      |
+| -------------------------------- | ------------------------ | ----------- | -------- | ---- |
+| C1 Auth (missing/invalid bearer) | 401 + `UNAUTHORIZED`     | PASS        |
+| C2 Validation                    | 422 + `VALIDATION_ERROR` | PASS        |
+| C3 Unified envelope              | `{ ok: true              | false, data | error }` | PASS |
+| C4 Access semantics              | 403/404 mapping          | PASS        |
+| C5 Collections CRUD              | 201/200/200/200          | PASS        |
+| C6 Entries CRUD                  | 201/200/200/200          | PASS        |
+| C7 Public endpoint               | 200 without token        | PASS        |
 
 ## Notes
 
