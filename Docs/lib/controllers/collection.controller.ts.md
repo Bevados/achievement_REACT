@@ -34,8 +34,9 @@
 
 1. parseCollectionId и parseCollectionAndEntryIds централизуют валидацию path/query id и убирают дублирование.
 2. normalizeQueryObject нужен из-за Vercel-формата query (string|string[]|undefined) перед передачей в Zod-схемы.
-3. Каждый handler изолирует только transport-задачи; бизнес-проверки доступа и транзакции остаются в service-слое.
-4. Ошибки каждого handler делегируются в handleControllerError для консистентных HTTP-кодов.
+3. Для `getEntries` контроллер удаляет `collectionId` из normalized query перед `entryListQuerySchema`, чтобы path-параметр не ломал strict query-валидацию.
+4. Каждый handler изолирует только transport-задачи; бизнес-проверки доступа и транзакции остаются в service-слое.
+5. Ошибки каждого handler делегируются в handleControllerError для консистентных HTTP-кодов.
 
 ## Где используется
 

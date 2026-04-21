@@ -194,7 +194,7 @@
 5. 2.2.5 Controllers (HTTP-ответы и ошибки) (done).
 6. 2.2.6 Endpoints wiring (private + public) (done).
 7. 2.2.7 Индексы MongoDB (done).
-8. 2.2.8 Ручной API smoke-check (in progress).
+8. 2.2.8 Ручной API smoke-check (done).
 
 ### 2.3 API-контракты MVP (спецификация всего шага 2)
 
@@ -294,7 +294,7 @@ Public:
 
 1. Шаг 0.5: done.
 2. Шаг 1: done.
-3. Шаг 2: in progress.
+3. Шаг 2: done.
 4. Шаг 3+: planned.
 
 ## Лог принятых решений
@@ -349,3 +349,10 @@ Public:
 2. В кеш подключения добавлен флаг `indexesInitialized` для предотвращения повторной инициализации на warm-start.
 3. Создан минимальный набор индексов для `collections` и `entries` под текущие query-patterns.
 4. Обновлена документация Mongo helper: `Docs/api/_mongodb.ts.md`.
+
+## Прогресс шага 2.2.8
+
+1. Выполнен manual API smoke-check в fallback-режиме через handler/controller harness: `smoke/step-2.2.8.api.smoke.test.ts`.
+2. Подтверждены критерии шага 2: auth-gate private API, 422 валидация, единый response envelope, access-control mapping и CRUD-flow.
+3. Сформирован отчет результата: `SMOKE_CHECK_RESULTS.md`.
+4. Шаг 2 закрыт и готов к переходу на шаг 3 (публичная часть UI).

@@ -94,7 +94,9 @@ export async function deleteCollection(req: AuthenticatedRequest, res: VercelRes
 export async function getEntries(req: AuthenticatedRequest, res: VercelResponse) {
   try {
     const collectionId = parseCollectionId(req);
-    const query = entryListQuerySchema.parse(normalizeQueryObject(req.query));
+    const normalizedQuery = normalizeQueryObject(req.query);
+    delete normalizedQuery.collectionId;
+    const query = entryListQuerySchema.parse(normalizedQuery);
     const result = await getCollectionEntries(req.userId, collectionId, query);
     return sendSuccess(res, 200, result);
   } catch (error) {
