@@ -15,6 +15,7 @@ import type { VercelResponse } from '@vercel/node';
 import type { AuthenticatedRequest } from '@lib/types/request.types';
 import { verifyAuth } from '@lib/middleware/auth';
 import * as controller from '@lib/controllers/item.controller';
+import { sendError } from '@lib/http/api-response';
 
 export default async function handler(req: AuthenticatedRequest, res: VercelResponse) {
   try {
@@ -30,11 +31,11 @@ export default async function handler(req: AuthenticatedRequest, res: VercelResp
       case 'DELETE':
         return controller.deleteItem(req, res);
       default:
-        return res.status(405).end();
+        return sendError(res, 405, 'METHOD_NOT_ALLOWED', 'Method not allowed');
     }
   } catch {
     if (!res.headersSent) {
-      return res.status(500).json({ error: 'Internal server error' });
+      return sendError(res, 500, 'INTERNAL_ERROR', 'Internal server error');
     }
 
     return;

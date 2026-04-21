@@ -12,12 +12,13 @@
 import type { VercelResponse } from '@vercel/node';
 import admin from '../../api/_firebaseAdmin';
 import type { AuthenticatedRequest } from '../types/request.types';
+import { sendError } from '../http/api-response';
 
 export async function verifyAuth(req: AuthenticatedRequest, res: VercelResponse): Promise<void> {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json({ error: 'Missing or invalid Authorization header' });
+    sendError(res, 401, 'UNAUTHORIZED', 'Missing or invalid Authorization header');
     throw new Error('Unauthorized');
   }
 
@@ -26,8 +27,8 @@ export async function verifyAuth(req: AuthenticatedRequest, res: VercelResponse)
   try {
     const decoded = await admin.auth().verifyIdToken(token);
     req.userId = decoded.uid;
-  } catch (error) {
-    res.status(401).json({ error: 'Invalid or expired token' });
+  } catch {
+    sendError(res, 401, 'UNAUTHORIZED', 'Invalid or expired token');
     throw new Error('Unauthorized');
   }
 }

@@ -191,8 +191,8 @@
 2. 2.2.2 Zod-схемы для create/update/query/params (done).
 3. 2.2.3 Repositories для MongoDB (done).
 4. 2.2.4 Services (бизнес-правила) (done).
-5. 2.2.5 Controllers (HTTP-ответы и ошибки) (in progress).
-6. 2.2.6 Endpoints wiring (private + public).
+5. 2.2.5 Controllers (HTTP-ответы и ошибки) (done).
+6. 2.2.6 Endpoints wiring (private + public) (done).
 7. 2.2.7 Индексы MongoDB.
 8. 2.2.8 Ручной API smoke-check.
 
