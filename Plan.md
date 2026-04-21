@@ -193,8 +193,8 @@
 4. 2.2.4 Services (бизнес-правила) (done).
 5. 2.2.5 Controllers (HTTP-ответы и ошибки) (done).
 6. 2.2.6 Endpoints wiring (private + public) (done).
-7. 2.2.7 Индексы MongoDB.
-8. 2.2.8 Ручной API smoke-check.
+7. 2.2.7 Индексы MongoDB (done).
+8. 2.2.8 Ручной API smoke-check (in progress).
 
 ### 2.3 API-контракты MVP (спецификация всего шага 2)
 
@@ -316,6 +316,7 @@ Public:
 15. Поиск коллекций в backend делаем по `title + description`.
 16. `entriesCount` поддерживается в service-оркестрации при create/delete entry.
 17. Мутации `createEntry`, `deleteEntry`, `deleteCollection` выполняются транзакционно с rollback при ошибке шага внутри операции.
+18. Индексы MongoDB инициализируются lazy при первом подключении в runtime через `api/_mongodb.ts`.
 
 ## Прогресс шага 2.1
 
@@ -341,3 +342,10 @@ Public:
 3. Добавлены tests-first unit-тесты сервиса: `lib/services/collection.service.test.ts`.
 4. Добавлены контрактные тесты schema для запрета `isPublic` в private API: `lib/validation/collection.schema.test.ts`.
 5. Документация синхронизирована для новых/измененных файлов в `Docs/lib/...`.
+
+## Прогресс шага 2.2.7
+
+1. В `api/_mongodb.ts` добавлена lazy инициализация индексов при первом подключении.
+2. В кеш подключения добавлен флаг `indexesInitialized` для предотвращения повторной инициализации на warm-start.
+3. Создан минимальный набор индексов для `collections` и `entries` под текущие query-patterns.
+4. Обновлена документация Mongo helper: `Docs/api/_mongodb.ts.md`.

@@ -39,7 +39,7 @@ export default function BaseModal({ isOpen, title, onClose, children }: BaseModa
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] bg-black/45 backdrop-blur-[1px] flex items-center justify-center p-4"
+      className="fixed inset-0 z-100 bg-black/45 backdrop-blur-[1px] flex items-center justify-center p-4"
       onMouseDown={(event) => {
         // Закрываем только при клике по фону, а не по контенту.
         if (event.target === event.currentTarget) {

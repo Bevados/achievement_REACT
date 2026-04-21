@@ -40,6 +40,7 @@ import type { Document } from 'mongodb';
 interface CachedConnection {
   client: MongoClient | null;
   db: Db | null;
+  indexesInitialized: boolean;
 }
 
 // Глобальная переменная для кеша. Будет сохранена между вызовами в теплом состоянии.
@@ -50,7 +51,35 @@ declare global {
 
 // Инициализируем кеш, если его еще нет
 if (!global.mongoCache) {
-  global.mongoCache = { client: null, db: null };
+  global.mongoCache = { client: null, db: null, indexesInitialized: false };
+}
+
+async function initializeIndexes(db: Db): Promise<void> {
+  const collections = db.collection('collections');
+  const entries = db.collection('entries');
+
+  await Promise.all([
+    collections.createIndex(
+      { ownerId: 1, updatedAt: -1 },
+      { name: 'idx_collections_owner_updatedAt' },
+    ),
+    collections.createIndex(
+      { ownerId: 1, category: 1, updatedAt: -1 },
+      { name: 'idx_collections_owner_category_updatedAt' },
+    ),
+    collections.createIndex(
+      { ownerId: 1, isPublic: 1, updatedAt: -1 },
+      { name: 'idx_collections_owner_public_updatedAt' },
+    ),
+    entries.createIndex(
+      { ownerId: 1, collectionId: 1, updatedAt: -1 },
+      { name: 'idx_entries_owner_collection_updatedAt' },
+    ),
+    entries.createIndex(
+      { ownerId: 1, collectionId: 1, status: 1, updatedAt: -1 },
+      { name: 'idx_entries_owner_collection_status_updatedAt' },
+    ),
+  ]);
 }
 
 // ============================================
@@ -74,6 +103,11 @@ export async function connectToDatabase(): Promise<{
   db: Db;
 }> {
   if (global.mongoCache?.client && global.mongoCache.db) {
+    if (!global.mongoCache.indexesInitialized) {
+      await initializeIndexes(global.mongoCache.db);
+      global.mongoCache.indexesInitialized = true;
+    }
+
     // Быстрый путь: берем из кеша (на теплом старте)
     return {
       client: global.mongoCache.client,
@@ -98,12 +132,16 @@ export async function connectToDatabase(): Promise<{
     // Если нужна конкретная БД, можно передать параметр client.db('my_database')
     const db = client.db();
 
+    // Создаем индексы один раз на старте подключения.
+    await initializeIndexes(db);
+
     // Сохраняем в глобальный кеш для следующих вызовов
     if (!global.mongoCache) {
-      global.mongoCache = { client, db };
+      global.mongoCache = { client, db, indexesInitialized: true };
     } else {
       global.mongoCache.client = client;
       global.mongoCache.db = db;
+      global.mongoCache.indexesInitialized = true;
     }
 
     return { client, db };
@@ -148,6 +186,7 @@ export async function closeConnection(): Promise<void> {
     await global.mongoCache.client.close();
     global.mongoCache.client = null;
     global.mongoCache.db = null;
+    global.mongoCache.indexesInitialized = false;
   }
 }
 
