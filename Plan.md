@@ -196,29 +196,107 @@
 7. 2.2.7 Индексы MongoDB (done).
 8. 2.2.8 Ручной API smoke-check (done).
 
-### 2.3 API-контракты MVP (спецификация всего шага 2)
+### 2.3 API-контракты MVP (спецификация всего шага 2) (done)
 
-Private (только с Bearer токеном):
+### 2.3.1 Общие правила контракта
 
-1. GET /api/collections
-2. POST /api/collections
-3. GET /api/collections/:collectionId
-4. PATCH /api/collections/:collectionId
-5. DELETE /api/collections/:collectionId
-6. GET /api/collections/:collectionId/entries
-7. POST /api/collections/:collectionId/entries
-8. PATCH /api/collections/:collectionId/entries/:entryId
-9. DELETE /api/collections/:collectionId/entries/:entryId
+1. Private endpoint-ы требуют заголовок `Authorization: Bearer <idToken>`.
+2. Public endpoint не требует токен.
+3. Path-параметры `collectionId` и `entryId` принимаются как 24-символьные hex-строки (ObjectId format).
+4. Единый envelope успеха: `{ ok: true, data: ... }`.
+5. Единый envelope ошибки: `{ ok: false, error: { code, message, details? } }`.
+6. Для ошибок валидации используется HTTP 422, `code=VALIDATION_ERROR`, `details` = массив `{ path, message }`.
+7. Для list endpoint-ов возвращается пагинация в `meta`: `{ page, limit, total, totalPages }`.
 
-Public:
+### 2.3.2 Маппинг ошибок
 
-1. GET /api/examples/collections
+1. 401 `UNAUTHORIZED` - отсутствует/невалиден Bearer токен.
+2. 403 `FORBIDDEN` - доступ к чужому существующему ресурсу запрещен.
+3. 404 `NOT_FOUND` - ресурс не найден.
+4. 422 `VALIDATION_ERROR` - невалидные params/query/body.
+5. 500 `TRANSACTION_ERROR` - ошибка транзакционной операции.
+6. 500 `INTERNAL_ERROR` - прочие необработанные серверные ошибки.
 
-Единый ответ API:
+### 2.3.3 Private endpoint-ы
 
-1. Успех: { ok: true, data: ... }
-2. Ошибка: { ok: false, error: { code, message, details? } }
-3. Ошибка валидации: HTTP 422 + details по полям.
+1. `GET /api/collections`.
+   Auth: required.
+   Query: `page`, `limit`, `sortBy`, `sortOrder`, `category`, `search`.
+   Success: 200, `data = { items: CollectionView[], meta }`.
+   Errors: 401, 422, 500.
+
+2. `POST /api/collections`.
+   Auth: required.
+   Body: `title` и `category` обязательны; `description`, `coverImageUrl` опциональны.
+   Success: 201, `data = CollectionView`.
+   Errors: 401, 422, 500.
+
+3. `GET /api/collections/:collectionId`.
+   Auth: required.
+   Params: `collectionId`.
+   Success: 200, `data = CollectionView`.
+   Errors: 401, 403, 404, 422, 500.
+
+4. `PATCH /api/collections/:collectionId`.
+   Auth: required.
+   Params: `collectionId`.
+   Body: любое подмножество полей коллекции, но минимум 1 поле.
+   Success: 200, `data = CollectionView`.
+   Errors: 401, 403, 404, 422, 500.
+
+5. `DELETE /api/collections/:collectionId`.
+   Auth: required.
+   Params: `collectionId`.
+   Success: 200, `data = null`.
+   Errors: 401, 403, 404, 422, 500.
+
+6. `GET /api/collections/:collectionId/entries`.
+   Auth: required.
+   Params: `collectionId`.
+   Query: `page`, `limit`, `sortBy`, `sortOrder`, `status`, `tag`, `minRating`, `maxRating`.
+   Success: 200, `data = { items: EntryView[], meta }`.
+   Errors: 401, 403, 404, 422, 500.
+
+7. `POST /api/collections/:collectionId/entries`.
+   Auth: required.
+   Params: `collectionId`.
+   Body: `title` и `status` обязательны; `description`, `imageUrl`, `price`, `tags`, `rating`, `date` опциональны.
+   Success: 201, `data = EntryView`.
+   Errors: 401, 403, 404, 422, 500.
+
+8. `PATCH /api/collections/:collectionId/entries/:entryId`.
+   Auth: required.
+   Params: `collectionId`, `entryId`.
+   Body: любое подмножество полей entry, но минимум 1 поле.
+   Success: 200, `data = EntryView`.
+   Errors: 401, 403, 404, 422, 500.
+
+9. `DELETE /api/collections/:collectionId/entries/:entryId`.
+   Auth: required.
+   Params: `collectionId`, `entryId`.
+   Success: 200, `data = null`.
+   Errors: 401, 403, 404, 422, 500.
+
+### 2.3.4 Public endpoint
+
+1. `GET /api/examples/collections`.
+   Auth: not required.
+   Query: `page`, `limit`, `sortBy`, `sortOrder`, `category`, `search`.
+   Success: 200, `data = { items: CollectionView[], meta }`.
+   Errors: 422, 500.
+
+### 2.3.5 Контрактные инварианты
+
+1. `price` в API принимается как number в долларах (до 2 знаков), внутри БД хранится в центах.
+2. `date` в API принимается как ISO datetime string с offset.
+3. `tags` ограничены (до 10, длина тега до 20) и дедуплицируются.
+4. `rating` ограничен диапазоном 1..10.
+5. Для list query: `limit` в диапазоне 1..100, по умолчанию 10.
+6. Для `minRating` и `maxRating` действует правило `minRating <= maxRating`.
+7. В private API поле `isPublic` не принимается в DTO и schema.
+8. `DELETE /api/collections/:collectionId` выполняет каскадное удаление entries транзакционно.
+9. `entriesCount` поддерживается сервисом транзакционно при create/delete entry.
+10. Публичные examples отдаются только из системного ownerId `system_examples`.
 
 ---
 
@@ -329,7 +407,7 @@ Public:
 2. Зафиксированы ограничения price, tags, pagination, rating и date на уровне runtime-валидации.
 3. Добавлена документация для нового schema-файла: `Docs/lib/validation/collection.schema.ts.md`.
 
-## Прогресс шага 2.3
+## Прогресс шага 2.2.3
 
 1. Реализован repository-слой для коллекций и карточек: `lib/repositories/collection.repository.ts`.
 2. Добавлены list/filter/sort/pagination операции, raw lookup методы и helper изменения `entriesCount`.
@@ -356,3 +434,10 @@ Public:
 2. Подтверждены критерии шага 2: auth-gate private API, 422 валидация, единый response envelope, access-control mapping и CRUD-flow.
 3. Сформирован отчет результата: `SMOKE_CHECK_RESULTS.md`.
 4. Шаг 2 закрыт и готов к переходу на шаг 3 (публичная часть UI).
+
+## Прогресс шага 2.3 (API-контракты MVP)
+
+1. Раздел `2.3 API-контракты MVP` расширен до полноценной спецификации endpoint-ов, статусов и форматов ответа.
+2. Зафиксированы общие правила контракта: envelope, auth, ObjectId format, структура `details` для 422.
+3. Зафиксированы инварианты: price/date/tags/rating/pagination, `minRating <= maxRating`, каскадный delete и `entriesCount`.
+4. Спецификация 2.3 готова как source of truth для реализации UI шага 3.
