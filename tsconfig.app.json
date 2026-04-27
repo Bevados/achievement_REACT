@@ -25,5 +25,12 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "api/**/*.ts", "lib/**/*.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts",
+    "api/**/*.ts",
+    "lib/**/*.ts",
+    "contracts/**/*.ts"
+  ]
 }

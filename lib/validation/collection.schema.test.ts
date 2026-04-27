@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createCollectionSchema, updateCollectionSchema } from './collection.schema';
+import { createCollectionSchema, updateCollectionSchema } from '../../contracts/collection.contracts.schema';
 
 describe('collection.schema private contract', () => {
   it('rejects isPublic in createCollectionSchema', () => {

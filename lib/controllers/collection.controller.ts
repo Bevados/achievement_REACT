@@ -21,7 +21,7 @@ import {
   entryListQuerySchema,
   updateCollectionSchema,
   updateEntrySchema,
-} from '../validation/collection.schema';
+} from '../../contracts/collection.contracts.schema';
 import { handleControllerError } from './controller-error';
 import { getSingleQueryValue, normalizeQueryObject, sendSuccess } from '../http/api-response';
 

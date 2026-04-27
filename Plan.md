@@ -395,6 +395,7 @@
 16. `entriesCount` поддерживается в service-оркестрации при create/delete entry.
 17. Мутации `createEntry`, `deleteEntry`, `deleteCollection` выполняются транзакционно с rollback при ошибке шага внутри операции.
 18. Индексы MongoDB инициализируются lazy при первом подключении в runtime через `api/_mongodb.ts`.
+19. Контрактный слой (DTO, enum, response envelope и контрактные Zod-схемы) вынесен в папку `contracts/` для совместного использования frontend/backend.
 
 ## Прогресс шага 2.1
 
@@ -441,3 +442,11 @@
 2. Зафиксированы общие правила контракта: envelope, auth, ObjectId format, структура `details` для 422.
 3. Зафиксированы инварианты: price/date/tags/rating/pagination, `minRating <= maxRating`, каскадный delete и `entriesCount`.
 4. Спецификация 2.3 готова как source of truth для реализации UI шага 3.
+
+## Дополнительный рефакторинг контрактного слоя
+
+1. Создан общий контрактный слой: `contracts/collection.contracts.ts`.
+2. Вынесены контрактные Zod-схемы в `contracts/collection.contracts.schema.ts`.
+3. `lib/types/collection.types.ts` переведен в режим backend-only Document + re-export общего контракта.
+4. `lib/validation/collection.schema.ts` переведен в compatibility re-export из `contracts/`.
+5. Обновлены docs tooling-скрипты (`docs-check`, `docs-scaffold`) для поддержки папки `contracts`.

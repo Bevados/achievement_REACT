@@ -3,7 +3,7 @@ import path from 'node:path';
 import { execSync } from 'node:child_process';
 
 const projectRoot = process.cwd();
-const sourceRoots = ['src/', 'api/', 'lib/'];
+const sourceRoots = ['src/', 'api/', 'lib/', 'contracts/'];
 const allowedExtensions = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']);
 const requiredSections = [
   '## Что делает файл',
@@ -49,10 +49,12 @@ function getChangedFiles() {
   const trackedUnstaged = parseLines(runGitCommand('git diff --name-only'));
   const trackedStaged = parseLines(runGitCommand('git diff --name-only --cached'));
   const untrackedSource = parseLines(
-    runGitCommand('git ls-files --others --exclude-standard -- src api lib'),
+    runGitCommand('git ls-files --others --exclude-standard -- src api lib contracts'),
   );
   const untrackedDocs = parseLines(
-    runGitCommand('git ls-files --others --exclude-standard -- Docs/src Docs/api Docs/lib'),
+    runGitCommand(
+      'git ls-files --others --exclude-standard -- Docs/src Docs/api Docs/lib Docs/contracts',
+    ),
   );
 
   return {
@@ -86,7 +88,7 @@ function isDocFile(relativePath) {
     return false;
   }
 
-  const mirroredRoots = ['Docs/src/', 'Docs/api/', 'Docs/lib/'];
+  const mirroredRoots = ['Docs/src/', 'Docs/api/', 'Docs/lib/', 'Docs/contracts/'];
   return mirroredRoots.some((root) => normalized.startsWith(root));
 }
 
@@ -118,7 +120,7 @@ const changedSourceFiles = [...changedSet].filter(isSourceFile);
 const changedTrackedDocFiles = [...trackedChangedSet].filter(isDocFile);
 
 if (changedSourceFiles.length === 0 && changedTrackedDocFiles.length === 0) {
-  console.log('docs:check passed. No changed files in src/api/lib and Docs mirror.');
+  console.log('docs:check passed. No changed files in src/api/lib/contracts and Docs mirror.');
   process.exit(0);
 }
 

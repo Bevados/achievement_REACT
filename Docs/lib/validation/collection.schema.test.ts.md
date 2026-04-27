@@ -8,7 +8,7 @@
 ## Импорты и зависимости
 
 1. vitest (`describe`, `it`, `expect`) - тестовый раннер и assertions.
-2. ./collection.schema - createCollectionSchema и updateCollectionSchema.
+2. ../../contracts/collection.contracts.schema - createCollectionSchema и updateCollectionSchema.
 
 ## Экспорты и контракты
 
@@ -26,4 +26,4 @@
 
 1. Запускается Vitest вместе с backend unit-тестами.
 2. Поддерживает шаг 2.2.4 как часть tests-first по контрактам API.
-3. Является связующим тестом между типами (`collection.types.ts`) и runtime-валидацией (`collection.schema.ts`).
+3. Является связующим тестом между общими контрактами (`contracts/collection.contracts.ts`) и runtime-валидацией (`contracts/collection.contracts.schema.ts`).

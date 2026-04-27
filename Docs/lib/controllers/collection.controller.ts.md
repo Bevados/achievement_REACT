@@ -10,7 +10,7 @@
 1. @vercel/node (VercelRequest, VercelResponse) - типы HTTP-запроса/ответа.
 2. ../services/collection.service - бизнес-операции для collection/entry/public.
 3. ../types/request.types (AuthenticatedRequest) - request с userId после auth middleware.
-4. ../validation/collection.schema - схемы валидации params/query/body.
+4. ../../contracts/collection.contracts.schema - общие контрактные схемы валидации params/query/body.
 5. ./controller-error - единая обработка ошибок контроллера.
 6. ../http/api-response - sendSuccess и helpers для query/params.
 

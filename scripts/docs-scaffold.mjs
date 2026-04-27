@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const projectRoot = process.cwd();
-const sourceRoots = ['src', 'api', 'lib'];
+const sourceRoots = ['src', 'api', 'lib', 'contracts'];
 const allowedExtensions = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']);
 const docsRoot = path.join(projectRoot, 'Docs');
 
