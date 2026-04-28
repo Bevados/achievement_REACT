@@ -473,3 +473,12 @@
 4. Создана публичная заготовка примеров: `src/pages/ExamplesPage.tsx`.
 5. Добавлен store отложенного намерения после auth: `src/store/auth-intent.store.ts`.
 6. Добавлены тесты для route/CTA/store: `src/App.test.tsx`, `src/pages/HomePage.test.tsx`, `src/store/auth-intent.store.test.ts`.
+
+### Краткий changelog (коммит 310b756, 28.04.2026)
+
+1. Внедрены route guards для гостевых и приватных маршрутов, включая redirect `auth / -> /collections`.
+2. Добавлены страницы `HomePage`, `CollectionsPage`, `ExamplesPage` и базовая визуальная структура публичной главной.
+3. Реализован deferred-intent flow для Hero CTA через `src/store/auth-intent.store.ts`.
+4. Приведена secondary CTA-навигация к SPA-переходу на `/examples` (без полной перезагрузки страницы).
+5. Добавлены и обновлены unit/integration тесты для App/HomePage/intent-store.
+6. Документация синхронизирована с исходниками и успешно проходит `docs:check`.
