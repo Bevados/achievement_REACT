@@ -307,6 +307,15 @@
 3. Состояния: loading, empty, error.
 4. Базовая адаптивность для мобильных.
 
+### 3.1 Гостевая главная и route guards (in progress)
+
+1. В `src/App.tsx` добавлены маршруты `/, /examples, /collections` и redirect-guards.
+2. Главная `/' и `/examples` доступны только неавторизованным пользователям.
+3. Авторизованный пользователь при заходе на `/` перенаправляется на `/collections`.
+4. Добавлена стартовая private-страница `/collections` как каркас раздела "Мои коллекции".
+5. Hero CTA на главной ставит deferred-intent `create-collection` и открывает login modal.
+6. Обычный вход из Header очищает intent и не запускает flow создания коллекции.
+
 Зачем:
 
 1. Сразу виден результат проекта без авторизации.
@@ -373,7 +382,8 @@
 1. Шаг 0.5: done.
 2. Шаг 1: done.
 3. Шаг 2: done.
-4. Шаг 3+: planned.
+4. Шаг 3.1: in progress (routing + guest home + deferred intent wired).
+5. Шаг 3.2+: planned.
 
 ## Лог принятых решений
 
@@ -396,6 +406,10 @@
 17. Мутации `createEntry`, `deleteEntry`, `deleteCollection` выполняются транзакционно с rollback при ошибке шага внутри операции.
 18. Индексы MongoDB инициализируются lazy при первом подключении в runtime через `api/_mongodb.ts`.
 19. Контрактный слой (DTO, enum, response envelope и контрактные Zod-схемы) вынесен в папку `contracts/` для совместного использования frontend/backend.
+20. Главная страница `/` доступна только гостям; авторизованный пользователь перенаправляется на `/collections`.
+21. Логин и регистрация на шаге 3.1 остаются модальными; отдельный route `/login` не используется.
+22. URL-область коллекций отделена от auth-путей: используются `/collections` и последующие private-routes.
+23. Deferred-intent `create-collection` устанавливается только из Hero CTA гостевой главной.
 
 ## Прогресс шага 2.1
 
@@ -450,3 +464,12 @@
 3. `lib/types/collection.types.ts` переведен в режим backend-only Document + re-export общего контракта.
 4. `lib/validation/collection.schema.ts` переведен в compatibility re-export из `contracts/`.
 5. Обновлены docs tooling-скрипты (`docs-check`, `docs-scaffold`) для поддержки папки `contracts`.
+
+## Прогресс шага 3.1 (публичная главная + guards)
+
+1. Реализован route-shell приложения в `src/App.tsx` с guest/private redirect-правилами.
+2. Создана гостевая HomePage с Hero, блоком преимуществ и preview placeholders: `src/pages/HomePage.tsx`.
+3. Создана каркасная private-страница коллекций: `src/pages/CollectionsPage.tsx`.
+4. Создана публичная заготовка примеров: `src/pages/ExamplesPage.tsx`.
+5. Добавлен store отложенного намерения после auth: `src/store/auth-intent.store.ts`.
+6. Добавлены тесты для route/CTA/store: `src/App.test.tsx`, `src/pages/HomePage.test.tsx`, `src/store/auth-intent.store.test.ts`.
