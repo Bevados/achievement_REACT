@@ -12,9 +12,9 @@
 2. `react-router-dom` (`Navigate`, `Route`, `Routes`) - объявление маршрутов и redirect-правил.
 3. `src/components/Header/Header.tsx` - верхняя панель навигации и авторизации.
 4. `src/components/Auth/AuthModal.tsx` - контейнер модального окна login/register.
-5. `src/pages/HomePage.tsx` - гостевая главная с Hero CTA.
-6. `src/pages/CollectionsPage.tsx` - private-раздел коллекций.
-7. `src/pages/ExamplesPage.tsx` - публичный раздел примеров.
+5. `src/pages/HomePage/HomePage.tsx` - гостевая главная с Hero CTA.
+6. `src/pages/CollectionsPage/CollectionsPage.tsx` - private-раздел коллекций.
+7. `src/pages/ExamplesPage/ExamplesPage.tsx` - публичный раздел примеров.
 8. `src/store/theme.store.tsx` (`useThemeStore`) - инициализация темы при первом рендере.
 9. `src/store/auth.store.ts` (`useAuthStore`) - состояние пользователя и auth-действия.
 10. `src/store/modal.store.ts` (`useModalStore`) - открытие модалки по кликам из Header/CTA.

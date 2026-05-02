@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "docs:scaffold": "node scripts/docs-scaffold.mjs",
     "docs:check": "node scripts/docs-check.mjs",
+    "seed:examples": "node scripts/seed-system-examples.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

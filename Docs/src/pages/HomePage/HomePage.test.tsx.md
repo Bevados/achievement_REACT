@@ -1,4 +1,4 @@
-# src/pages/HomePage.test.tsx
+# src/pages/HomePage/HomePage.test.tsx
 
 ## Что делает файл
 
@@ -10,7 +10,7 @@
 2. `@testing-library/react` - рендер и поиск элементов.
 3. `@testing-library/user-event` - пользовательский клик по CTA.
 4. `react-router-dom` (`MemoryRouter`) - роутер-контекст для тестирования `Link` внутри HomePage.
-5. `src/pages/HomePage.tsx` - тестируемый компонент.
+5. `src/pages/HomePage/HomePage.tsx` - тестируемый компонент.
 
 ## Экспорты и контракты
 

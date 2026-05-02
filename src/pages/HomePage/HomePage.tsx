@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { homeBenefits, homePreviewCards } from '../config/home.config';
+import { homeBenefits, homePreviewCards } from '../../config/home.config';
 
 interface HomePageProps {
   onCreateCollection: () => void;
@@ -9,8 +9,14 @@ export default function HomePage({ onCreateCollection }: HomePageProps) {
   return (
     <div className="space-y-12 pb-12">
       <section className="relative overflow-hidden rounded-3xl border border-sky-200 bg-linear-to-br from-white via-sky-50 to-blue-100 px-6 py-10 sm:px-10 lg:px-12 lg:py-14">
-        <div className="absolute -left-12 top-10 h-40 w-40 rounded-full bg-blue-200/40 blur-2xl" aria-hidden="true" />
-        <div className="absolute -right-10 bottom-0 h-44 w-44 rounded-full bg-cyan-200/40 blur-2xl" aria-hidden="true" />
+        <div
+          className="absolute -left-12 top-10 h-40 w-40 rounded-full bg-blue-200/40 blur-2xl"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute -right-10 bottom-0 h-44 w-44 rounded-full bg-cyan-200/40 blur-2xl"
+          aria-hidden="true"
+        />
 
         <div className="relative grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
@@ -23,8 +29,8 @@ export default function HomePage({ onCreateCollection }: HomePageProps) {
             </h1>
 
             <p className="mt-4 max-w-2xl text-base leading-relaxed text-gray-700 sm:text-lg">
-              Объединяйте планы, завершенные шаги и важные детали в одном месте. От личных
-              привычек до карьерных рывков - ваш прогресс всегда перед глазами.
+              Объединяйте планы, завершенные шаги и важные детали в одном месте. От личных привычек
+              до карьерных рывков - ваш прогресс всегда перед глазами.
             </p>
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -49,7 +55,9 @@ export default function HomePage({ onCreateCollection }: HomePageProps) {
             data-testid="home-hero-visual"
             aria-label="Визуальный пример коллекции"
           >
-            <p className="text-xs font-semibold uppercase tracking-wide text-sky-600">Ваша доска прогресса</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-sky-600">
+              Ваша доска прогресса
+            </p>
             <div className="mt-4 space-y-3">
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
                 <p className="text-sm font-semibold text-emerald-800">Learning Roadmap</p>

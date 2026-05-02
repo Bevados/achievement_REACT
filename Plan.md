@@ -174,7 +174,7 @@
 
 ---
 
-## Шаг 2. Backend и API (следующий в работе)
+## Шаг 2. Backend и API (done)
 
 ### 2.1 Цель шага
 
@@ -307,7 +307,7 @@
 3. Состояния: loading, empty, error.
 4. Базовая адаптивность для мобильных.
 
-### 3.1 Гостевая главная и route guards (in progress)
+### 3.1 Гостевая главная и route guards (done)
 
 1. В `src/App.tsx` добавлены маршруты `/, /examples, /collections` и redirect-guards.
 2. Главная `/' и `/examples` доступны только неавторизованным пользователям.
@@ -321,7 +321,7 @@
 1. Сразу виден результат проекта без авторизации.
 2. Появляется сценарий демонстрации на собеседовании.
 
-## Шаг 4. Приватная часть UI
+## Шаг 4. Приватная часть UI (done)
 
 1. PrivateRoute и защита приватных экранов.
 2. Страница "Мои коллекции".
@@ -382,8 +382,11 @@
 1. Шаг 0.5: done.
 2. Шаг 1: done.
 3. Шаг 2: done.
-4. Шаг 3.1: in progress (routing + guest home + deferred intent wired).
-5. Шаг 3.2+: planned.
+4. Шаг 3: done (3.1 + 3.2.1-3.2.6).
+5. Шаг 4: done (4.1-4.3).
+6. Шаг 5: planned.
+7. Шаг 6: planned.
+8. Шаг 7: planned.
 
 ## Лог принятых решений
 
@@ -482,3 +485,104 @@
 4. Приведена secondary CTA-навигация к SPA-переходу на `/examples` (без полной перезагрузки страницы).
 5. Добавлены и обновлены unit/integration тесты для App/HomePage/intent-store.
 6. Документация синхронизирована с исходниками и успешно проходит `docs:check`.
+
+## Прогресс шага 3.2.1 (общий UI для списков коллекций)
+
+1. Созданы переиспользуемые компоненты списка и карточки коллекций: `src/components/Collections/CollectionsGrid.tsx`, `src/components/Collections/CollectionCard.tsx`.
+2. Публичная страница примеров переведена на общий UI-компонент с демо-данными: `src/pages/ExamplesPage/ExamplesPage.tsx`.
+3. Private-страница "Мои коллекции" переведена на тот же общий UI-компонент: `src/pages/CollectionsPage/CollectionsPage.tsx`.
+4. Синхронизирована документация для новых и измененных файлов в `Docs/src/...`, включая перенос путей страниц в подпапки.
+5. Проверки: `get_errors` без ошибок, `npm run docs:check` проходит успешно.
+
+## Прогресс шага 3.2.2 (подключение публичного API на examples)
+
+1. Добавлен API-клиент публичных коллекций: `src/api/collections.api.ts`.
+2. Страница `src/pages/ExamplesPage/ExamplesPage.tsx` переведена с демо-данных на реальный запрос к `/api/examples/collections`.
+3. На странице реализованы состояния `loading`, `error` (с кнопкой retry), `empty`, `success`.
+4. Добавлена/обновлена документация: `Docs/src/api/collections.api.ts.md`, `Docs/src/pages/ExamplesPage/ExamplesPage.tsx.md`.
+5. Проверки: `get_errors` без ошибок, `npm run docs:check` проходит успешно.
+
+## Прогресс шага 3.2.3 (динамические параметры вместо хардкода)
+
+1. Страница `src/pages/ExamplesPage/ExamplesPage.tsx` переведена на динамические query-параметры: `page`, `sortBy`, `sortOrder`.
+2. Добавлены UI-контролы сортировки и порядка, изменение параметров запускает новый запрос к API.
+3. Добавлена пагинация с кнопками `Назад/Вперед` и отображением `страница/всего/total`.
+4. Обновлена документация страницы: `Docs/src/pages/ExamplesPage/ExamplesPage.tsx.md`.
+5. Проверки: `get_errors` без ошибок, `npm run docs:check` проходит успешно.
+
+## Прогресс шага 3.2.4 (вынос UI-опций сортировки в config)
+
+1. Опции `sortBy` и `sortOrder` вынесены из `src/pages/ExamplesPage/ExamplesPage.tsx` в `src/config/collections.config.ts`.
+2. Страница примеров переведена на импорт опций из config, локальные дубли удалены.
+3. Обновлена документация: `Docs/src/config/collections.config.ts.md`, `Docs/src/pages/ExamplesPage/ExamplesPage.tsx.md`.
+4. Проверки: `get_errors` без ошибок, `npm run docs:check` проходит успешно.
+
+## Прогресс шага 3.2.5 (фильтры category + search на examples)
+
+1. На `src/pages/ExamplesPage/ExamplesPage.tsx` добавлены UI-контролы фильтрации: select категории и форма поиска.
+2. Вызов `getPublicCollections` теперь передает `category` и `search` вместе с `page/sortBy/sortOrder`.
+3. Добавлены состояния `category`, `searchInput`, `search`; поиск применяется по submit, а кнопка `Сбросить` очищает фильтры и возвращает `page=1`.
+4. Обновлена документация страницы: `Docs/src/pages/ExamplesPage/ExamplesPage.tsx.md`.
+5. Проверки: `get_errors` без ошибок, `npm run docs:check` проходит успешно.
+
+## Прогресс шага 3.2.6 (синхронизация фильтров examples с URL)
+
+1. На `src/pages/ExamplesPage/ExamplesPage.tsx` добавлен `useSearchParams` для двусторонней синхронизации состояния фильтров с query string.
+2. Состояния `page/sortBy/sortOrder/category/search` теперь читаются из URL при первом рендере и при навигации back/forward.
+3. При изменении фильтров URL автоматически обновляется (без хранения дефолтных значений в query).
+4. Обновлена документация страницы: `Docs/src/pages/ExamplesPage/ExamplesPage.tsx.md`.
+5. Проверки: `get_errors` без ошибок, `npm run docs:check` проходит успешно.
+
+## Прогресс шага 4.1 (интеграция private-страницы коллекций)
+
+1. В `src/api/collections.api.ts` добавлен защищенный клиент `getOwnerCollections(query?)` для запроса `/api/collections` с Bearer-токеном.
+2. `src/pages/CollectionsPage/CollectionsPage.tsx` переведена с мок-данных на реальную загрузку приватных коллекций.
+3. На private-странице добавлены состояния `loading`, `error` (retry), `empty`, `success`.
+4. Добавлены фильтры и пагинация (`page/sortBy/sortOrder/category/search`) и двусторонняя синхронизация query с URL.
+5. Переиспользование общего UI сохранено: рендер коллекций выполняется через `CollectionsGrid`/`CollectionCard`.
+6. Обновлена документация: `Docs/src/api/collections.api.ts.md`, `Docs/src/pages/CollectionsPage/CollectionsPage.tsx.md`.
+7. Проверки: `get_errors` без ошибок, `npm run docs:check` проходит успешно.
+
+## Прогресс шага 4.2 (рефакторинг дублирования public/private списков)
+
+1. Создан общий хук `src/hooks/useCollectionsListController.ts` с переиспользуемой логикой списка коллекций:
+   - фильтры `sortBy/sortOrder/category/search`,
+   - пагинация `page`,
+   - состояния `loading/error/empty/success`,
+   - URL-синхронизация query-параметров,
+   - retry загрузки.
+2. Созданы общие UI-компоненты:
+   - `src/components/Collections/CollectionsFilters.tsx`,
+   - `src/components/Collections/CollectionsPagination.tsx`.
+3. `src/pages/ExamplesPage/ExamplesPage.tsx` переведена на общий хук и общие UI-компоненты.
+4. `src/pages/CollectionsPage/CollectionsPage.tsx` переведена на общий хук и общие UI-компоненты.
+5. Отличия public/private страниц сведены к источнику данных (`getPublicCollections`/`getOwnerCollections`) и текстам контента.
+6. Обновлена документация:
+   - `Docs/src/hooks/useCollectionsListController.ts.md`,
+   - `Docs/src/components/Collections/CollectionsFilters.tsx.md`,
+   - `Docs/src/components/Collections/CollectionsPagination.tsx.md`,
+   - `Docs/src/pages/ExamplesPage/ExamplesPage.tsx.md`,
+   - `Docs/src/pages/CollectionsPage/CollectionsPage.tsx.md`.
+7. Проверки: `get_errors` без ошибок, `npm run docs:check` проходит успешно.
+
+## Прогресс шага 4.3 (seed examples + обязательные UI-тесты)
+
+1. Добавлен seed-скрипт `scripts/seed-system-examples.mjs` с заполнением MongoDB данными `system_examples`.
+2. Seed создает:
+   - 18 публичных коллекций (`ownerId=system_examples`, `isPublic=true`) для проверки пагинации списка,
+   - карточки `entries` для всех коллекций,
+   - все 64 комбинации optional-полей entry в отдельной коллекции покрытия,
+   - актуальный `entriesCount` у каждой коллекции через bulk-обновление.
+3. Добавлен npm-скрипт запуска: `seed:examples`.
+4. Добавлены обязательные тесты:
+   - `src/pages/ExamplesPage/ExamplesPage.test.tsx` (`loading/empty/error/success`),
+   - `src/components/Collections/CollectionCard.test.tsx` (корректный рендер карточки + fallback optional-полей).
+5. Добавлена документация тестов:
+   - `Docs/src/pages/ExamplesPage/ExamplesPage.test.tsx.md`,
+   - `Docs/src/components/Collections/CollectionCard.test.tsx.md`.
+6. Добавлена документация seed-скрипта: `Docs/scripts/seed-system-examples.mjs.md`.
+7. Проверки:
+   - `get_errors` без ошибок,
+   - `npm run docs:check` проходит,
+   - новые тесты проходят,
+   - `npm run seed:examples -- --dry-run` проходит без записи в БД.

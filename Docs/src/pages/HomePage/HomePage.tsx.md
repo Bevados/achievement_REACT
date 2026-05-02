@@ -1,4 +1,4 @@
-# src/pages/HomePage.tsx
+# src/pages/HomePage/HomePage.tsx
 
 ## Что делает файл
 
@@ -32,4 +32,4 @@
 ## Где используется
 
 1. `src/App.tsx` - рендерит HomePage на маршруте `/` только для гостей.
-2. `src/pages/HomePage.test.tsx` - проверяет вызов CTA callback и структуру preview-блока.
+2. `src/pages/HomePage/HomePage.test.tsx` - проверяет вызов CTA callback и структуру preview-блока.

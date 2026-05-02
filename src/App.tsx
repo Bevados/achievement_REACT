@@ -6,9 +6,9 @@ import { useAuthStore } from './store/auth.store';
 import { useModalStore } from './store/modal.store';
 import { useAuthIntentStore } from './store/auth-intent.store';
 import AuthModal from './components/Auth/AuthModal';
-import HomePage from './pages/HomePage';
-import CollectionsPage from './pages/CollectionsPage';
-import ExamplesPage from './pages/ExamplesPage';
+import HomePage from './pages/HomePage/HomePage';
+import CollectionsPage from './pages/CollectionsPage/CollectionsPage';
+import ExamplesPage from './pages/ExamplesPage/ExamplesPage';
 
 // Компонент, отображаемый во время проверки сессии пользователя, скелетон загрузки
 function AuthResolvingState() {
