@@ -3,46 +3,46 @@
 ## Что делает файл
 
 Это корневой UI-компонент приложения.
-Файл связывает layout (Header), модалку авторизации (AuthModal), маршруты приложения и состояния из Zustand-store (auth, modal, theme, auth-intent).
-Также именно здесь запускается инициализация темы и подписка на Firebase auth listener.
+Файл связывает layout, модалку авторизации, маршруты приложения и Zustand-store для темы, авторизации, модалки и auth-intent.
+Именно здесь запускается инициализация темы и подписка на Firebase auth listener.
 
 ## Импорты и зависимости
 
-1. `react` (`useEffect`) - запуск побочных эффектов на старте приложения.
-2. `react-router-dom` (`Navigate`, `Route`, `Routes`) - объявление маршрутов и redirect-правил.
-3. `src/components/Header/Header.tsx` - верхняя панель навигации и авторизации.
-4. `src/components/Auth/AuthModal.tsx` - контейнер модального окна login/register.
-5. `src/pages/HomePage/HomePage.tsx` - гостевая главная с Hero CTA.
-6. `src/pages/CollectionsPage/CollectionsPage.tsx` - private-раздел коллекций.
-7. `src/pages/ExamplesPage/ExamplesPage.tsx` - публичный раздел примеров.
-8. `src/store/theme.store.tsx` (`useThemeStore`) - инициализация темы при первом рендере.
-9. `src/store/auth.store.ts` (`useAuthStore`) - состояние пользователя и auth-действия.
-10. `src/store/modal.store.ts` (`useModalStore`) - открытие модалки по кликам из Header/CTA.
-11. `src/store/auth-intent.store.ts` (`useAuthIntentStore`) - хранение отложенного пользовательского намерения после авторизации.
+1. `react` (`useEffect`) нужен для стартовых побочных эффектов.
+2. `react-router-dom` (`Navigate`, `Route`, `Routes`) задаёт маршруты и redirect-правила.
+3. `src/components/Header/Header.tsx` рендерит верхнюю навигацию.
+4. `src/components/Auth/AuthModal.tsx` рендерит login/register модалку.
+5. `src/pages/HomePage/HomePage.tsx` даёт гостевую главную страницу с Hero CTA.
+6. `src/pages/CollectionsPage/CollectionsPage.tsx` содержит приватный раздел коллекций.
+7. `src/pages/ExamplesPage/ExamplesPage.tsx` содержит публичный раздел примеров.
+8. `src/pages/ProfilePage/ProfilePage.tsx` даёт временную заглушку профиля.
+9. `src/store/theme.store.tsx` (`useThemeStore`) инициализирует тему.
+10. `src/store/auth.store.ts` (`useAuthStore`) даёт auth-state и auth-действия.
+11. `src/store/modal.store.ts` (`useModalStore`) открывает модалку авторизации.
+12. `src/store/auth-intent.store.ts` (`useAuthIntentStore`) хранит отложенное пользовательское намерение.
 
 ## Экспорты и контракты
 
 1. Экспортируется default-компонент `App`.
 2. Компонент не принимает пропсы.
-3. Возвращает структуру из `Header`, route-content и `AuthModal`.
-4. Инварианты:
-5. `initAuthListener` запускается при маунте (через `useEffect`) и не должен вызываться вручную из дочерних компонентов.
-6. `Header` получает `isAuthResolving={!isInitialized}`, чтобы показывать loading-состояние до завершения первой auth-проверки.
-7. `userForHeader` всегда имеет одинаковую форму (`login`, `isAuthenticated`), даже для гостя.
-8. Route-политика:
-9. `/` и `/examples` доступны только гостю.
-10. Авторизованный пользователь на guest-route получает redirect на `/collections`.
-11. `/collections` доступен только авторизованному пользователю.
-12. Неавторизованный пользователь на private-route получает redirect на `/`.
+3. `App` возвращает `Header`, маршрутный контент и `AuthModal`.
+4. Инварианты маршрутизации:
+4.1. `/` и `/examples` доступны только гостю.
+4.2. Авторизованный пользователь на гостевых маршрутах перенаправляется на `/collections`.
+4.3. `/collections` и `/profile` доступны только авторизованному пользователю.
+4.4. Неавторизованный пользователь на приватном маршруте получает redirect на `/`.
 
 ## Нетривиальная логика
 
-1. В `userForHeader` используется fallback-цепочка `displayName || email || 'User'`. Это защищает Header от пустого имени, если `displayName` не заполнен в Firebase профиле.
-2. Колбэки `onOpenLogin` и `onOpenRegister` сначала очищают `pendingIntent`, затем открывают модалку. Это предотвращает случайный перенос старого intent из Hero CTA в обычный flow входа.
-3. Hero CTA на HomePage ставит `setIntent('create-collection')` и открывает login modal. Фактический redirect по intent будет подключен на следующих шагах, когда появится реальный экран создания коллекции.
-4. Пока auth-состояние не инициализировано, route-content рендерит skeleton-секцию `AuthResolvingState`, чтобы избежать визуальных скачков и ложных redirect.
+1. `initAuthListener` вызывается на маунте и не должен запускаться вручную из дочерних компонентов.
+2. `Header` получает `isAuthResolving={!isInitialized}`, чтобы показывать loading-состояние до первого ответа Firebase.
+3. `userForHeader` всегда имеет одинаковую форму `{ login, isAuthenticated }`, даже когда пользователь ещё не авторизован.
+4. `handleOpenLogin` и `handleOpenRegister` сначала очищают `pendingIntent`, а потом открывают модалку, чтобы не переносить старое намерение в обычный flow входа.
+5. Hero CTA на главной странице ставит `setIntent('create-collection')` и открывает login modal.
+6. Пока auth-состояние не инициализировано, route-content рендерит `AuthResolvingState`, чтобы избежать ложных redirect и визуальных скачков.
+7. Путь `/profile` пока ведёт на минимальную заглушку, но уже существует как валидный маршрут.
 
 ## Где используется
 
 1. `src/main.tsx` - импортирует `App` и рендерит его внутри `BrowserRouter`.
-2. `src/App.test.tsx` - проверяет redirect-политику и wiring Hero CTA / Header login.
+2. `src/App.test.tsx` - проверяет route-guards, Hero CTA flow, Header login flow и маршрут `/profile`.

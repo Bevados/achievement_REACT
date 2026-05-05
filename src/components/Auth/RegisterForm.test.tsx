@@ -6,15 +6,13 @@ import RegisterForm from './RegisterForm';
 const storeMocks = vi.hoisted(() => ({
   register: vi.fn(),
   clearError: vi.fn(),
-  probeProtectedApi: vi.fn(),
   error: null as string | null,
 }));
 
 vi.mock('../../store/auth.store', () => ({
-  // Имитируем поведение Zustand-селектора:
-  // компонент передает функцию selector(state) => value,
-  // а мы возвращаем значение из мок-объекта storeMocks.
-  // Так можно протестировать форму изолированно от реального стора.
+  // РРјРёС‚РёСЂСѓРµРј РїРѕРІРµРґРµРЅРёРµ Zustand-СЃРµР»РµРєС‚РѕСЂР°:
+  // РєРѕРјРїРѕРЅРµРЅС‚ РїРµСЂРµРґР°РµС‚ С„СѓРЅРєС†РёСЋ selector(state) => value,
+  // Р° РјС‹ РІРѕР·РІСЂР°С‰Р°РµРј Р·РЅР°С‡РµРЅРёРµ РёР· РјРѕРє-РѕР±СЉРµРєС‚Р° storeMocks.
   useAuthStore: (selector: (state: typeof storeMocks) => unknown) => selector(storeMocks),
 }));
 
@@ -23,44 +21,38 @@ describe('RegisterForm', () => {
     vi.clearAllMocks();
     storeMocks.error = null;
     storeMocks.register.mockResolvedValue(undefined);
-    storeMocks.probeProtectedApi.mockResolvedValue(undefined);
   });
 
-  it('показывает ошибку при несовпадении паролей и не вызывает register', async () => {
+  it('РїРѕРєР°Р·С‹РІР°РµС‚ РѕС€РёР±РєСѓ РїСЂРё РЅРµСЃРѕРІРїР°РґРµРЅРёРё РїР°СЂРѕР»РµР№ Рё РЅРµ РІС‹Р·С‹РІР°РµС‚ register', async () => {
     const user = userEvent.setup();
 
     render(<RegisterForm onSuccess={vi.fn()} onSwitchToLogin={vi.fn()} />);
 
-    await user.type(screen.getByPlaceholderText('Например, Alex'), 'alex');
+    await user.type(screen.getByPlaceholderText('РќР°РїСЂРёРјРµСЂ, Alex'), 'alex');
     await user.type(screen.getByPlaceholderText('you@example.com'), 'alex@example.com');
-    await user.type(screen.getByPlaceholderText('Минимум 6 символов'), 'secret123');
-    await user.type(screen.getByPlaceholderText('Повторите пароль'), 'different123');
+    await user.type(screen.getByPlaceholderText('РњРёРЅРёРјСѓРј 6 СЃРёРјРІРѕР»РѕРІ'), 'secret123');
+    await user.type(screen.getByPlaceholderText('РџРѕРІС‚РѕСЂРёС‚Рµ РїР°СЂРѕР»СЊ'), 'different123');
 
-    await user.click(screen.getByRole('button', { name: 'Зарегистрироваться' }));
+    await user.click(screen.getByRole('button', { name: 'Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊСЃСЏ' }));
 
-    // Важная проверка:
-    // валидация формы должна остановить submit,
-    // если пароль и подтверждение не совпадают.
-    expect(await screen.findByText('Пароли не совпадают')).toBeInTheDocument();
+    expect(await screen.findByText('РџР°СЂРѕР»Рё РЅРµ СЃРѕРІРїР°РґР°СЋС‚')).toBeInTheDocument();
     expect(storeMocks.register).not.toHaveBeenCalled();
   });
 
-  it('успешно отправляет nickname/email/password и вызывает onSuccess', async () => {
+  it('СѓСЃРїРµС€РЅРѕ РѕС‚РїСЂР°РІР»СЏРµС‚ nickname/email/password Рё РІС‹Р·С‹РІР°РµС‚ onSuccess', async () => {
     const user = userEvent.setup();
     const onSuccess = vi.fn();
 
     render(<RegisterForm onSuccess={onSuccess} onSwitchToLogin={vi.fn()} />);
 
-    await user.type(screen.getByPlaceholderText('Например, Alex'), 'boromir');
+    await user.type(screen.getByPlaceholderText('РќР°РїСЂРёРјРµСЂ, Alex'), 'boromir');
     await user.type(screen.getByPlaceholderText('you@example.com'), 'boromir@example.com');
-    await user.type(screen.getByPlaceholderText('Минимум 6 символов'), 'secret123');
-    await user.type(screen.getByPlaceholderText('Повторите пароль'), 'secret123');
+    await user.type(screen.getByPlaceholderText('РњРёРЅРёРјСѓРј 6 СЃРёРјРІРѕР»РѕРІ'), 'secret123');
+    await user.type(screen.getByPlaceholderText('РџРѕРІС‚РѕСЂРёС‚Рµ РїР°СЂРѕР»СЊ'), 'secret123');
 
-    await user.click(screen.getByRole('button', { name: 'Зарегистрироваться' }));
+    await user.click(screen.getByRole('button', { name: 'Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊСЃСЏ' }));
 
     await waitFor(() => {
-      // Проверяем, что в register ушли именно те данные,
-      // которые пользователь ввел в форму (в правильном порядке аргументов).
       expect(storeMocks.register).toHaveBeenCalledWith(
         'boromir@example.com',
         'secret123',
@@ -68,16 +60,14 @@ describe('RegisterForm', () => {
       );
     });
 
-    // После успешной регистрации (и probe-запроса) должен вызваться onSuccess.
-    // В реальном приложении это закрывает модалку регистрации.
     expect(onSuccess).toHaveBeenCalledTimes(1);
   });
 
-  it('показывает ошибку из auth.store', () => {
-    storeMocks.error = 'Пользователь с таким email уже существует.';
+  it('РїРѕРєР°Р·С‹РІР°РµС‚ РѕС€РёР±РєСѓ РёР· auth.store', () => {
+    storeMocks.error = 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ С‚Р°РєРёРј email СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.';
 
     render(<RegisterForm onSuccess={vi.fn()} onSwitchToLogin={vi.fn()} />);
 
-    expect(screen.getByText('Пользователь с таким email уже существует.')).toBeInTheDocument();
+    expect(screen.getByText('РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ С‚Р°РєРёРј email СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.')).toBeInTheDocument();
   });
 });

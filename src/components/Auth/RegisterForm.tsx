@@ -17,12 +17,10 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
   const registerUser = useAuthStore((state) => state.register);
   const error = useAuthStore((state) => state.error);
   const clearError = useAuthStore((state) => state.clearError);
-  const probeProtectedApi = useAuthStore((state) => state.probeProtectedApi);
 
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
     mode: 'onSubmit',
@@ -34,25 +32,14 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
     },
   });
 
-  const passwordValue = watch('password');
-
   const onSubmit = async (values: RegisterFormValues) => {
     clearError();
 
     try {
       await registerUser(values.email, values.password, values.nickname);
-
-      try {
-        // После регистрации проверяем, что защищенный API доступен с новым токеном.
-        // Ошибка smoke-теста не должна отменять успешную регистрацию.
-        await probeProtectedApi();
-      } catch (probeError) {
-        console.warn('Protected API probe failed after registration:', probeError);
-      }
-
       onSuccess();
     } catch {
-      // Ошибка уже хранится и показывается через auth.store.
+      // РћС€РёР±РєР° СѓР¶Рµ С…СЂР°РЅРёС‚СЃСЏ Рё РїРѕРєР°Р·С‹РІР°РµС‚СЃСЏ С‡РµСЂРµР· auth.store.
     }
   };
 
@@ -64,20 +51,20 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
           type="text"
           autoComplete="nickname"
           className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none transition focus:border-secondary"
-          placeholder="Например, Alex"
+          placeholder="РќР°РїСЂРёРјРµСЂ, Alex"
           {...register('nickname', {
-            required: 'Введите nickname',
+            required: 'Р’РІРµРґРёС‚Рµ nickname',
             minLength: {
               value: 3,
-              message: 'Nickname должен быть не короче 3 символов',
+              message: 'Nickname РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РЅРµ РєРѕСЂРѕС‡Рµ 3 СЃРёРјРІРѕР»РѕРІ',
             },
             maxLength: {
               value: 20,
-              message: 'Nickname должен быть не длиннее 20 символов',
+              message: 'Nickname РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РЅРµ РґР»РёРЅРЅРµРµ 20 СЃРёРјРІРѕР»РѕРІ',
             },
             pattern: {
               value: /^[a-zA-Z0-9_]+$/,
-              message: 'Только латинские буквы, цифры и _',
+              message: 'РўРѕР»СЊРєРѕ Р»Р°С‚РёРЅСЃРєРёРµ Р±СѓРєРІС‹, С†РёС„СЂС‹ Рё _',
             },
           })}
         />
@@ -94,10 +81,10 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
           className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none transition focus:border-secondary"
           placeholder="you@example.com"
           {...register('email', {
-            required: 'Введите email',
+            required: 'Р’РІРµРґРёС‚Рµ email',
             pattern: {
               value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: 'Введите корректный email',
+              message: 'Р’РІРµРґРёС‚Рµ РєРѕСЂСЂРµРєС‚РЅС‹Р№ email',
             },
           })}
         />
@@ -105,17 +92,17 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
       </label>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-gray-700">Пароль</span>
+        <span className="mb-1 block text-sm font-medium text-gray-700">РџР°СЂРѕР»СЊ</span>
         <input
           type="password"
           autoComplete="new-password"
           className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none transition focus:border-secondary"
-          placeholder="Минимум 6 символов"
+          placeholder="РњРёРЅРёРјСѓРј 6 СЃРёРјРІРѕР»РѕРІ"
           {...register('password', {
-            required: 'Введите пароль',
+            required: 'Р’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ',
             minLength: {
               value: 6,
-              message: 'Пароль должен быть не короче 6 символов',
+              message: 'РџР°СЂРѕР»СЊ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РЅРµ РєРѕСЂРѕС‡Рµ 6 СЃРёРјРІРѕР»РѕРІ',
             },
           })}
         />
@@ -125,15 +112,16 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
       </label>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-gray-700">Повторите пароль</span>
+        <span className="mb-1 block text-sm font-medium text-gray-700">РџРѕРІС‚РѕСЂРёС‚Рµ РїР°СЂРѕР»СЊ</span>
         <input
           type="password"
           autoComplete="new-password"
           className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none transition focus:border-secondary"
-          placeholder="Повторите пароль"
+          placeholder="РџРѕРІС‚РѕСЂРёС‚Рµ РїР°СЂРѕР»СЊ"
           {...register('confirmPassword', {
-            required: 'Подтвердите пароль',
-            validate: (value) => value === passwordValue || 'Пароли не совпадают',
+            required: 'РџРѕРґС‚РІРµСЂРґРёС‚Рµ РїР°СЂРѕР»СЊ',
+            validate: (value, formValues) =>
+              value === formValues.password || 'РџР°СЂРѕР»Рё РЅРµ СЃРѕРІРїР°РґР°СЋС‚',
           })}
         />
         {errors.confirmPassword ? (
@@ -148,11 +136,11 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
         disabled={isSubmitting}
         className="w-full rounded-lg bg-secondary px-4 py-2 font-medium text-white transition hover:bg-secondary-dark disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isSubmitting ? 'Создаем аккаунт...' : 'Зарегистрироваться'}
+        {isSubmitting ? 'РЎРѕР·РґР°РµРј Р°РєРєР°СѓРЅС‚...' : 'Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊСЃСЏ'}
       </button>
 
       <p className="text-center text-sm text-gray-600">
-        Уже есть аккаунт?{' '}
+        РЈР¶Рµ РµСЃС‚СЊ Р°РєРєР°СѓРЅС‚?{' '}
         <button
           type="button"
           onClick={() => {
@@ -161,7 +149,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
           }}
           className="font-medium text-secondary hover:underline"
         >
-          Войти
+          Р’РѕР№С‚Рё
         </button>
       </p>
     </form>

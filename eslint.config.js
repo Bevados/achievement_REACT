@@ -5,6 +5,10 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 import { defineConfig, globalIgnores } from 'eslint/config';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig([
   globalIgnores(['dist']),
@@ -32,7 +36,16 @@ export default defineConfig([
 
     rules: {
       'react/react-in-jsx-scope': 'off',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+    },
+  },
+  {
+    files: ['smoke/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
 ]);

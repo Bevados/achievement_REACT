@@ -43,6 +43,10 @@ function toSortDirection(order?: 'asc' | 'desc'): SortDirection {
   return order === 'asc' ? 1 : -1;
 }
 
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function resolvePagination(query: { page?: number; limit?: number }) {
   const page = query.page ?? DEFAULT_PAGE;
   const limit = query.limit ?? DEFAULT_LIMIT;
@@ -85,9 +89,10 @@ function buildCollectionFilter(
   }
 
   if (query.search) {
+    const searchPattern = escapeRegex(query.search);
     filter.$or = [
-      { title: { $regex: query.search, $options: 'i' } },
-      { description: { $regex: query.search, $options: 'i' } },
+      { title: { $regex: searchPattern, $options: 'i' } },
+      { description: { $regex: searchPattern, $options: 'i' } },
     ];
   }
 
@@ -105,9 +110,10 @@ function buildPublicCollectionFilter(query: CollectionListQueryDto): Filter<Coll
   }
 
   if (query.search) {
+    const searchPattern = escapeRegex(query.search);
     filter.$or = [
-      { title: { $regex: query.search, $options: 'i' } },
-      { description: { $regex: query.search, $options: 'i' } },
+      { title: { $regex: searchPattern, $options: 'i' } },
+      { description: { $regex: searchPattern, $options: 'i' } },
     ];
   }
 
@@ -223,7 +229,7 @@ export async function updateCollectionById(
   session?: ClientSession,
 ): Promise<UpdateResult<CollectionDocument>> {
   const collection = await getCollection<CollectionDocument>('collections');
-  const { _id, ownerId: ignoredOwnerId, ...safeUpdateData } = updateData;
+  const { _id, ownerId: _ignoredOwnerId, ...safeUpdateData } = updateData;
 
   return collection.updateOne(
     {
@@ -310,8 +316,8 @@ export async function updateEntryById(
   const entries = await getCollection<EntryDocument>('entries');
   const {
     _id,
-    ownerId: ignoredOwnerId,
-    collectionId: ignoredCollectionId,
+    ownerId: _ignoredOwnerId,
+    collectionId: _ignoredCollectionId,
     ...safeUpdateData
   } = updateData;
 

@@ -104,6 +104,18 @@ describe('App routing and CTA flow', () => {
     expect(modalStoreMock.openModal).toHaveBeenCalledWith('login');
   });
 
+  it('renders profile placeholder for authenticated user', () => {
+    authStoreMock.user = {
+      uid: 'u-1',
+      email: 'alex@example.com',
+      displayName: 'Alex',
+    };
+
+    renderApp('/profile');
+
+    expect(screen.getByRole('heading', { name: 'Профиль' })).toBeInTheDocument();
+  });
+
   it('header login clears intent and opens login modal', async () => {
     const user = userEvent.setup();
 

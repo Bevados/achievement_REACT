@@ -15,7 +15,6 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
   const login = useAuthStore((state) => state.login);
   const error = useAuthStore((state) => state.error);
   const clearError = useAuthStore((state) => state.clearError);
-  const probeProtectedApi = useAuthStore((state) => state.probeProtectedApi);
 
   const {
     register,
@@ -34,18 +33,9 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
 
     try {
       await login(values.email, values.password);
-
-      try {
-        // Пробный защищенный запрос: помогает убедиться, что токен уходит в API.
-        // Если он не прошел (например, API не поднят локально), вход все равно успешен.
-        await probeProtectedApi();
-      } catch (probeError) {
-        console.warn('Protected API probe failed after login:', probeError);
-      }
-
       onSuccess();
     } catch {
-      // Ошибка уже записана в auth.store и отображается пользователю.
+      // РћС€РёР±РєР° СѓР¶Рµ Р·Р°РїРёСЃР°РЅР° РІ auth.store Рё РѕС‚РѕР±СЂР°Р¶Р°РµС‚СЃСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ.
     }
   };
 
@@ -59,10 +49,10 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
           className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none transition focus:border-secondary"
           placeholder="you@example.com"
           {...register('email', {
-            required: 'Введите email',
+            required: 'Р’РІРµРґРёС‚Рµ email',
             pattern: {
               value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: 'Введите корректный email',
+              message: 'Р’РІРµРґРёС‚Рµ РєРѕСЂСЂРµРєС‚РЅС‹Р№ email',
             },
           })}
         />
@@ -70,17 +60,17 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
       </label>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-gray-700">Пароль</span>
+        <span className="mb-1 block text-sm font-medium text-gray-700">РџР°СЂРѕР»СЊ</span>
         <input
           type="password"
           autoComplete="current-password"
           className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none transition focus:border-secondary"
           placeholder="********"
           {...register('password', {
-            required: 'Введите пароль',
+            required: 'Р’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ',
             minLength: {
               value: 6,
-              message: 'Пароль должен быть не короче 6 символов',
+              message: 'РџР°СЂРѕР»СЊ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РЅРµ РєРѕСЂРѕС‡Рµ 6 СЃРёРјРІРѕР»РѕРІ',
             },
           })}
         />
@@ -96,11 +86,11 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
         disabled={isSubmitting}
         className="w-full rounded-lg bg-secondary px-4 py-2 font-medium text-white transition hover:bg-secondary-dark disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isSubmitting ? 'Входим...' : 'Войти'}
+        {isSubmitting ? 'Р’С…РѕРґРёРј...' : 'Р’РѕР№С‚Рё'}
       </button>
 
       <p className="text-center text-sm text-gray-600">
-        Нет аккаунта?{' '}
+        РќРµС‚ Р°РєРєР°СѓРЅС‚Р°?{' '}
         <button
           type="button"
           onClick={() => {
@@ -109,7 +99,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
           }}
           className="font-medium text-secondary hover:underline"
         >
-          Зарегистрироваться
+          Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊСЃСЏ
         </button>
       </p>
     </form>

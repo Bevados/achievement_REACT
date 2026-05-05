@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { FirebaseError } from 'firebase/app';
 import { signInEmail, registerEmail, signOut, onAuthStateChange } from '../firebase';
-import { probeItemsEndpoint } from '../api/items.api';
 
 import type { User } from 'firebase/auth';
 
@@ -22,33 +21,32 @@ interface AuthStore {
   register: (email: string, password: string, nickname: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
-  probeProtectedApi: () => Promise<void>;
 }
 
 let unsubscribeAuthListener: (() => void) | null = null;
 
 function mapFirebaseError(error: unknown): string {
   if (!(error instanceof FirebaseError)) {
-    return 'Неизвестная ошибка. Попробуйте еще раз.';
+    return 'РќРµРёР·РІРµСЃС‚РЅР°СЏ РѕС€РёР±РєР°. РџРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰Рµ СЂР°Р·.';
   }
 
   switch (error.code) {
     case 'auth/invalid-email':
-      return 'Некорректный формат email.';
+      return 'РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ С„РѕСЂРјР°С‚ email.';
     case 'auth/missing-password':
-      return 'Введите пароль.';
+      return 'Р’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ.';
     case 'auth/weak-password':
-      return 'Слишком простой пароль. Минимум 6 символов.';
+      return 'РЎР»РёС€РєРѕРј РїСЂРѕСЃС‚РѕР№ РїР°СЂРѕР»СЊ. РњРёРЅРёРјСѓРј 6 СЃРёРјРІРѕР»РѕРІ.';
     case 'auth/email-already-in-use':
-      return 'Пользователь с таким email уже существует.';
+      return 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ С‚Р°РєРёРј email СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.';
     case 'auth/invalid-credential':
-      return 'Неверный email или пароль.';
+      return 'РќРµРІРµСЂРЅС‹Р№ email РёР»Рё РїР°СЂРѕР»СЊ.';
     case 'auth/user-disabled':
-      return 'Пользователь заблокирован.';
+      return 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅ.';
     case 'auth/too-many-requests':
-      return 'Слишком много попыток. Попробуйте позже.';
+      return 'РЎР»РёС€РєРѕРј РјРЅРѕРіРѕ РїРѕРїС‹С‚РѕРє. РџРѕРїСЂРѕР±СѓР№С‚Рµ РїРѕР·Р¶Рµ.';
     default:
-      return `Ошибка авторизации: ${error.code}`;
+      return `РћС€РёР±РєР° Р°РІС‚РѕСЂРёР·Р°С†РёРё: ${error.code}`;
   }
 }
 
@@ -150,15 +148,4 @@ export const useAuthStore = create<AuthStore>((set) => ({
   },
 
   clearError: () => set({ error: null }),
-
-  probeProtectedApi: async () => {
-    const result = await probeItemsEndpoint();
-
-    if (!result.ok) {
-      throw new Error(`Пробный запрос неуспешен: HTTP ${result.status}`);
-    }
-
-    // Здесь оставляем технический лог для обучения: можно увидеть ответ API в консоли.
-    console.info('Protected API probe success:', result.data);
-  },
 }));

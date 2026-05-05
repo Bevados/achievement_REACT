@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 const projectRoot = process.cwd();
 const sourceRoots = ['src/', 'api/', 'lib/', 'contracts/'];
@@ -27,7 +27,12 @@ const forbiddenTemplateMarkers = [
 
 function runGitCommand(command) {
   try {
-    return execSync(command, { cwd: projectRoot, encoding: 'utf8' }).trim();
+    const [subcommand, ...args] = command.split(' ');
+    if (subcommand !== 'git') {
+      return '';
+    }
+
+    return execFileSync('git', args, { cwd: projectRoot, encoding: 'utf8' }).trim();
   } catch {
     return '';
   }
@@ -46,6 +51,16 @@ function parseLines(output) {
 }
 
 function getChangedFiles() {
+  const envTracked = process.env.DOCS_CHECK_TRACKED_FILES;
+  const envAll = process.env.DOCS_CHECK_ALL_FILES;
+
+  if (envTracked !== undefined && envAll !== undefined) {
+    return {
+      tracked: parseLines(envTracked),
+      all: parseLines(envAll),
+    };
+  }
+
   const trackedUnstaged = parseLines(runGitCommand('git diff --name-only'));
   const trackedStaged = parseLines(runGitCommand('git diff --name-only --cached'));
   const untrackedSource = parseLines(
@@ -130,6 +145,12 @@ const invalidDocs = [];
 const templateDocs = [];
 
 for (const sourceFile of changedSourceFiles) {
+  const sourceAbsPath = path.join(projectRoot, sourceFile);
+
+  if (!fs.existsSync(sourceAbsPath)) {
+    continue;
+  }
+
   const docPath = sourceToDocPath(sourceFile);
   const docAbsPath = path.join(projectRoot, docPath);
 
@@ -154,6 +175,12 @@ for (const sourceFile of changedSourceFiles) {
 }
 
 for (const changedDocFile of changedTrackedDocFiles) {
+  const changedDocAbsPath = path.join(projectRoot, changedDocFile);
+
+  if (!fs.existsSync(changedDocAbsPath)) {
+    continue;
+  }
+
   const missingSections = checkRequiredSections(changedDocFile);
   if (missingSections.length > 0) {
     invalidDocs.push({ docPath: changedDocFile, missingSections });

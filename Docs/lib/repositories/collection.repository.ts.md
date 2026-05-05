@@ -2,57 +2,40 @@
 
 ## Что делает файл
 
-Файл реализует слой прямой работы с MongoDB для домена Collection/Entry.
-Он инкапсулирует CRUD-операции, серверную пагинацию, сортировку и фильтрацию.
-Repository не формирует HTTP-ответы и не содержит бизнес-правил UI/контроллера.
+Файл реализует слой прямой работы с MongoDB для домена коллекций и карточек.
+Repository инкапсулирует CRUD-операции, пагинацию, сортировку, фильтрацию и низкоуровневые Mongo-запросы.
+Он не формирует HTTP-ответы и не хранит UI-логику.
 
 ## Импорты и зависимости
 
-1. mongodb: ObjectId и типы результатов Mongo-операций (InsertOneResult, UpdateResult, DeleteResult), а также типы Filter/SortDirection.
-2. ../../api/\_mongodb: getCollection для получения Mongo-коллекций collections и entries.
-3. ../types/collection.types: доменные документы и DTO query-параметров для типобезопасной сборки фильтров и сортировки.
+1. `mongodb` даёт `ObjectId`, `ClientSession` и типы Mongo-операций.
+2. `../../api/_mongodb` (`getCollection`) используется для получения коллекций `collections` и `entries`.
+3. `../types/collection.types` поставляет доменные типы документов, query DTO и `SYSTEM_EXAMPLES_OWNER_ID`.
 
 ## Экспорты и контракты
 
-1. Операции коллекций:
-   - findOwnerCollections(ownerId, query): список коллекций владельца с фильтрами, сортировкой и пагинацией + meta.total.
-   - findPublicCollections(query): список публичных examples с системным ownerId `system_examples`.
-   - findCollectionById(ownerId, collectionId): получить одну коллекцию владельца по id.
-   - findCollectionByIdRaw(collectionId): получить коллекцию по id без owner-фильтра (для 403/404 диагностики в service).
-   - createCollection(data): создать коллекцию.
-   - updateCollectionById(ownerId, collectionId, updateData): обновить коллекцию владельца.
-   - deleteCollectionById(ownerId, collectionId): удалить коллекцию владельца.
-2. Операции карточек entries:
-   - findCollectionEntries(ownerId, collectionId, query): список карточек конкретной коллекции владельца с фильтрами/пагинацией.
-   - findEntryById(ownerId, collectionId, entryId): получить карточку владельца по id.
-   - findEntryByIdRaw(entryId): получить карточку по id без owner-фильтра.
-   - createEntry(data): создать карточку.
-   - updateEntryById(ownerId, collectionId, entryId, updateData): обновить карточку владельца.
-   - deleteEntryById(ownerId, collectionId, entryId): удалить карточку владельца.
-   - deleteEntriesByCollectionId(ownerId, collectionId): удалить все карточки коллекции (под каскадное удаление).
-   - changeCollectionEntriesCount(ownerId, collectionId, delta): атомарно изменить счетчик entriesCount на коллекции.
-3. Инварианты слоя:
-   - Все private-запросы фильтруются по ownerId.
-   - collectionId и entryId в Mongo-фильтрах приводятся к ObjectId.
-   - Сортировка принимает только whitelisted поля из enum-маппинга.
-   - Поле sortBy=price для entries маппится в Mongo-поле priceCents.
-   - Публичный поток примеров изолирован через SYSTEM_EXAMPLES_OWNER_ID.
-   - Все mutating методы поддерживают optional ClientSession для сервисных транзакций.
+1. Экспортируются методы работы с коллекциями: `findOwnerCollections`, `findPublicCollections`, `findCollectionById`, `findCollectionByIdRaw`, `createCollection`, `updateCollectionById`, `deleteCollectionById`.
+2. Экспортируются методы работы с карточками: `findCollectionEntries`, `findEntryById`, `findEntryByIdRaw`, `createEntry`, `updateEntryById`, `deleteEntryById`, `deleteEntriesByCollectionId`, `changeCollectionEntriesCount`.
+3. Внутренние helper-функции `resolvePagination`, `buildCollectionSort`, `buildEntrySort`, `buildCollectionFilter`, `buildPublicCollectionFilter`, `buildEntryFilter`, `escapeRegex` формируют Mongo-фильтры и служебные параметры.
+4. Инварианты слоя:
+4.1. Все приватные запросы фильтруются по `ownerId`.
+4.2. `collectionId` и `entryId` в Mongo-фильтрах приводятся к `ObjectId`.
+4.3. Сортировка принимает только whitelisted поля из enum-маппинга.
+4.4. Все mutating-методы поддерживают optional `ClientSession`.
 
 ## Нетривиальная логика
 
-1. Для пагинации возвращается объект meta с total и totalPages, чтобы клиент мог строить навигацию страниц без дополнительных запросов.
-2. Для списка коллекций реализованы два режима фильтра:
-   - private: ownerId + optional category/search.
-   - public: ownerId=system_examples + isPublic=true + optional category/search.
-3. Для entries поддержаны фильтры status/tag и межполевая фильтрация рейтинга через диапазон minRating..maxRating.
-4. Для update-операций перед записью в Mongo удаляются критичные поля (\_id, ownerId, collectionId), чтобы исключить их случайную перезапись через $set.
-5. Поиск по search реализован через case-insensitive regex по `title` и `description` (через `$or`) для более полного MVP-результата.
-6. Для decrement счетчика entriesCount используется условие `entriesCount > 0`, чтобы исключить уход счетчика в отрицательные значения.
-7. Методы create/update/delete и счетчик принимают optional `session`, что позволяет сервису объединять multi-document операции в одну транзакцию.
+1. Для списков возвращается `meta` с `page`, `limit`, `total` и `totalPages`, чтобы клиент мог строить пагинацию без второго API-слоя.
+2. Для коллекций есть два режима фильтрации:
+2.1. приватный список по `ownerId`;
+2.2. публичный список по `SYSTEM_EXAMPLES_OWNER_ID` и `isPublic=true`.
+3. Поиск по `search` идёт через `$or` по `title` и `description` с флагом `i`.
+4. Перед созданием Mongo `$regex` пользовательский ввод проходит через `escapeRegex`, чтобы спецсимволы не превращались в произвольный regex-шаблон.
+5. В update-операциях из `$set` заранее исключаются критичные поля `_id`, `ownerId` и `collectionId`, чтобы их нельзя было случайно перезаписать.
+6. При уменьшении `entriesCount` используется дополнительный фильтр `entriesCount > 0`, чтобы счётчик не уходил в отрицательные значения.
 
 ## Где используется
 
-1. Используется сервисами `collection.service.ts` для чтения/мутаций и access-check семантики.
-2. Косвенная цепочка вызова после подключения: api/\* -> controllers -> services -> this repository.
-3. Использует единый helper подключения MongoDB из api/\_mongodb.ts.
+1. `lib/services/collection.service.ts` - использует repository для чтения, мутаций и access-check логики.
+2. Вызовы проходят по цепочке `api/* -> controllers -> services -> repository`.
+3. Repository работает через общий helper подключения к MongoDB из `api/_mongodb.ts`.

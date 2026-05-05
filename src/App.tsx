@@ -9,6 +9,7 @@ import AuthModal from './components/Auth/AuthModal';
 import HomePage from './pages/HomePage/HomePage';
 import CollectionsPage from './pages/CollectionsPage/CollectionsPage';
 import ExamplesPage from './pages/ExamplesPage/ExamplesPage';
+import ProfilePage from './pages/ProfilePage/ProfilePage';
 
 // Компонент, отображаемый во время проверки сессии пользователя, скелетон загрузки
 function AuthResolvingState() {
@@ -115,6 +116,18 @@ function App() {
                 <AuthResolvingState />
               ) : isAuthenticated ? (
                 <CollectionsPage />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              !isInitialized ? (
+                <AuthResolvingState />
+              ) : isAuthenticated ? (
+                <ProfilePage />
               ) : (
                 <Navigate to="/" replace />
               )
