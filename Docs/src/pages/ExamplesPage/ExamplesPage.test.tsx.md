@@ -7,11 +7,12 @@
 
 ## Импорты и зависимости
 
-1. `vitest` - тестовый раннер и моки.
-2. `@testing-library/react` и `@testing-library/user-event` - рендер и пользовательские действия.
-3. `src/pages/ExamplesPage/ExamplesPage.tsx` - тестируемый компонент.
-4. `src/hooks/useCollectionsListController.ts` - замокан как источник состояния страницы.
-5. `contracts/collection.contracts.ts` - типизация мок-данных (`CollectionView`, `PaginationMeta`).
+1. `vitest` используется как тестовый раннер и система моков.
+2. `@testing-library/react` и `@testing-library/user-event` нужны для рендера и пользовательских действий.
+3. `react-router-dom` (`MemoryRouter`) обязателен, потому что список коллекций теперь рендерит `CollectionCard` c `Link`.
+4. `src/pages/ExamplesPage/ExamplesPage.tsx` - тестируемый компонент.
+5. `src/hooks/useCollectionsListController.ts` мокается как источник состояния страницы.
+6. `contracts/collection.contracts.ts` задает типы мок-данных (`CollectionView`, `PaginationMeta`).
 
 ## Экспорты и контракты
 
@@ -20,9 +21,10 @@
 
 ## Нетривиальная логика
 
-1. Вместо сетевых запросов мокается `useCollectionsListController`, чтобы детерминированно задавать состояние.
-2. Проверка `error` включает клик по кнопке retry и валидацию вызова `reloadCollections`.
-3. Для `success` проверяется рендер карточки и метаданных пагинации.
+1. Вместо сетевых запросов мокается `useCollectionsListController`, чтобы детерминированно задавать состояние страницы.
+2. Все рендеры проходят через локальный helper `renderPage()`, который оборачивает страницу в `MemoryRouter`.
+3. Проверка `error` включает retry-клик и валидацию вызова `reloadCollections`.
+4. Для `success` проверяется рендер карточки коллекции и метаданных пагинации.
 
 ## Где используется
 

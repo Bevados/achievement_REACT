@@ -8,8 +8,8 @@
 ## Импорты и зависимости
 
 1. @vercel/node (VercelRequest, VercelResponse) - типы HTTP.
-2. @lib/controllers/collection.controller - handler getPublicCollections.
-3. @lib/http/api-response - sendError для единых fallback-ошибок.
+2. ../../../lib/controllers/collection.controller - handler getPublicCollections.
+3. ../../../lib/http/api-response - sendError для единых fallback-ошибок.
 
 ## Экспорты и контракты
 
@@ -22,6 +22,7 @@
 
 1. Это единственный endpoint блока collections, который intentionally публичный (без verifyAuth).
 2. Ошибки также возвращаются в unified API envelope, как и в приватных маршрутах.
+3. Относительные импорты выбраны специально для стабильной работы local `vercel dev` без зависимости от alias `@lib/*`.
 
 ## Где используется
 

@@ -389,6 +389,23 @@
 7. Шаг 6: planned.
 8. Шаг 7: planned.
 
+## Прогресс шага 5.1
+
+1. Подпункт 5.1 уточнен под текущее состояние проекта: общий list UI коллекций уже реализован на шагах 3.2.x и 4.x, поэтому фактическая задача 5.1 - страница одной коллекции, read-only список entries и базовый EntryCard.
+2. Для 5.1 зафиксирован private-route `/collections/:collectionId` с переходом из списка коллекций по клику на CollectionCard.
+3. В 5.1 входят визуальные action-заглушки для будущих CRUD-сценариев (`Добавить карточку`, `Редактировать`, `Удалить`), но без рабочих форм и мутаций.
+4. Уточнено разделение public/private навигации: приватные коллекции открываются через `/collections/:collectionId`, а публичные examples должны получить отдельный route `/examples/:collectionId`.
+5. `CollectionCard` должен поддерживать контекстную навигацию: на private-странице вести в private detail, на public examples вести в public detail.
+6. Публичная detail-страница examples должна показывать саму example-коллекцию и ее entries в read-only режиме без приватных действий редактирования/удаления.
+
+## Ближайшие восстановительные задачи после шага 5.1
+
+1. Восстановить локальную подгрузку `/api/examples/collections` в `npm run dev` через dev-only Vite middleware, чтобы публичные examples снова работали без запуска `vercel dev`.
+2. Зафиксировать, что этот middleware является только локальной поддержкой публичных examples и не заменяет полноценный backend runtime.
+3. Отдельно починить локальный `vercel dev --listen 3000`, чтобы он обслуживал и public API, и private API с Firebase auth.
+4. После починки `vercel dev` проверить маршруты `/api/examples/collections`, `/api/collections`, `/api/collections/:collectionId` и `/api/collections/:collectionId/entries`.
+5. Реализовать публичные маршруты и API для `/examples/:collectionId` и `/api/examples/collections/:collectionId/entries`, чтобы пользователь мог дойти от публичной коллекции до содержимого карточек.
+
 ## Лог принятых решений
 
 1. Для Entry: `rating` необязательный.

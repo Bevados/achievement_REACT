@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import CollectionCard from './CollectionCard';
 import type { CollectionView } from '../../../contracts/collection.contracts';
 
@@ -17,14 +18,16 @@ const baseCollection: CollectionView = {
 describe('CollectionCard', () => {
   it('renders core collection data', () => {
     render(
-      <CollectionCard
-        collection={{
-          ...baseCollection,
-          description: 'Описание коллекции.',
-          coverImageUrl:
-            'https://images.unsplash.com/photo-1492571350019-22de08371fd3?auto=format&fit=crop&w=1200&q=80',
-        }}
-      />,
+      <MemoryRouter>
+        <CollectionCard
+          collection={{
+            ...baseCollection,
+            description: 'Описание коллекции.',
+            coverImageUrl:
+              'https://images.unsplash.com/photo-1492571350019-22de08371fd3?auto=format&fit=crop&w=1200&q=80',
+          }}
+        />
+      </MemoryRouter>,
     );
 
     expect(screen.getByText('Тестовая коллекция')).toBeInTheDocument();
@@ -33,20 +36,24 @@ describe('CollectionCard', () => {
     expect(screen.getByText('Публичная')).toBeInTheDocument();
     expect(screen.getByText('Описание коллекции.')).toBeInTheDocument();
     expect(screen.getByText(/Обновлено:/)).toBeInTheDocument();
-    expect(
-      screen.getByRole('img', { name: 'Обложка коллекции Тестовая коллекция' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Обложка коллекции Тестовая коллекция' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Открыть коллекцию Тестовая коллекция' })).toHaveAttribute(
+      'href',
+      '/collections/collection-1',
+    );
   });
 
   it('renders fallbacks when optional fields are missing', () => {
     render(
-      <CollectionCard
-        collection={{
-          ...baseCollection,
-          description: undefined,
-          coverImageUrl: undefined,
-        }}
-      />,
+      <MemoryRouter>
+        <CollectionCard
+          collection={{
+            ...baseCollection,
+            description: undefined,
+            coverImageUrl: undefined,
+          }}
+        />
+      </MemoryRouter>,
     );
 
     expect(screen.getByText('Описание пока не добавлено.')).toBeInTheDocument();

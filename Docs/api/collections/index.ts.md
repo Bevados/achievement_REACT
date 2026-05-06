@@ -8,10 +8,10 @@
 ## Импорты и зависимости
 
 1. @vercel/node (VercelResponse) - тип ответа.
-2. @lib/controllers/collection.controller - handlers getCollections/createCollection.
-3. @lib/http/api-response - sendError для fallback-ошибок.
-4. @lib/middleware/auth - verifyAuth, проверка Bearer-токена.
-5. @lib/types/request.types (AuthenticatedRequest) - request с userId.
+2. ../../lib/controllers/collection.controller - handlers getCollections/createCollection.
+3. ../../lib/http/api-response - sendError для fallback-ошибок.
+4. ../../lib/middleware/auth - verifyAuth, проверка Bearer-токена.
+5. ../../lib/types/request.types (AuthenticatedRequest) - request с userId.
 
 ## Экспорты и контракты
 
@@ -25,6 +25,7 @@
 
 1. verifyAuth вызывается до switch по методам, поэтому маршрут полностью приватный.
 2. Проверка res.headersSent защищает от двойного ответа в catch-блоке.
+3. Относительные импорты в entrypoint снижают риск `FUNCTION_INVOCATION_FAILED` в local `vercel dev`.
 
 ## Где используется
 

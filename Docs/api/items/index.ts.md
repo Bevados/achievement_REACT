@@ -11,9 +11,9 @@
 ## Импорты и зависимости
 
 1. `@vercel/node` (`VercelResponse`) - типизация ответа serverless-функции.
-2. `@lib/types/request.types` (`AuthenticatedRequest`) - расширенный request с `userId`, который устанавливает auth middleware.
-3. `@lib/middleware/auth` (`verifyAuth`) - валидирует токен и блокирует неавторизованные запросы.
-4. `@lib/controllers/item.controller` - набор обработчиков бизнес-операций над items.
+2. `../../lib/types/request.types` (`AuthenticatedRequest`) - расширенный request с `userId`, который устанавливает auth middleware.
+3. `../../lib/middleware/auth` (`verifyAuth`) - валидирует токен и блокирует неавторизованные запросы.
+4. `../../lib/controllers/item.controller` - набор обработчиков бизнес-операций над items.
 
 ## Экспорты и контракты
 
@@ -33,6 +33,7 @@
 2. Проверка `res.headersSent` защищает от двойного ответа (типичная ошибка в serverless/express-потоке).
 3. `switch` по методу делает entrypoint тонким: вся логика валидации и бизнес-правил вынесена в контроллер/сервис.
 4. Fallback-ответы (`405` и `500`) отдаются в едином API envelope: `{ ok: false, error: { code, message } }`.
+5. Отказ от alias `@lib/*` в entrypoint помогает local `vercel dev` корректно загрузить serverless-функцию.
 
 ## Где используется
 

@@ -32,6 +32,9 @@
 
 import { MongoClient, Db } from 'mongodb';
 import type { Document } from 'mongodb';
+import { ensureServerEnvLoaded } from './_loadEnv';
+
+ensureServerEnvLoaded();
 
 // ============================================
 // ГЛОБАЛЬНОЕ КЕШИРОВАНИЕ ПОДКЛЮЧЕНИЯ

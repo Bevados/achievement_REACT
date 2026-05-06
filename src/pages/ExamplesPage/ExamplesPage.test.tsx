@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import ExamplesPage from './ExamplesPage';
 import type { CollectionView, PaginationMeta } from '../../../contracts/collection.contracts';
 import { useCollectionsListController } from '../../hooks/useCollectionsListController';
@@ -44,13 +45,21 @@ describe('ExamplesPage states', () => {
     vi.clearAllMocks();
   });
 
+  function renderPage() {
+    return render(
+      <MemoryRouter>
+        <ExamplesPage />
+      </MemoryRouter>,
+    );
+  }
+
   it('renders loading state', () => {
     mockedUseCollectionsListController.mockReturnValue({
       ...baseControllerState,
       isLoading: true,
     });
 
-    render(<ExamplesPage />);
+    renderPage();
 
     expect(screen.getByRole('heading', { name: 'Примеры коллекций' })).toBeInTheDocument();
     expect(document.querySelector('[aria-live="polite"]')).not.toBeNull();
@@ -66,7 +75,7 @@ describe('ExamplesPage states', () => {
       reloadCollections,
     });
 
-    render(<ExamplesPage />);
+    renderPage();
 
     expect(screen.getByText('Не удалось загрузить публичные коллекции.')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Повторить загрузку' }));
@@ -81,7 +90,7 @@ describe('ExamplesPage states', () => {
       isLoading: false,
     });
 
-    render(<ExamplesPage />);
+    renderPage();
 
     expect(screen.getByText('Публичные примеры пока отсутствуют.')).toBeInTheDocument();
   });
@@ -111,7 +120,7 @@ describe('ExamplesPage states', () => {
       },
     });
 
-    render(<ExamplesPage />);
+    renderPage();
 
     expect(screen.getByText('Путешествие по Японии')).toBeInTheDocument();
     expect(screen.getByText(/Страница 1 из 1/)).toBeInTheDocument();

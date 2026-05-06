@@ -8,10 +8,10 @@
 ## Импорты и зависимости
 
 1. @vercel/node (VercelResponse) - тип ответа.
-2. @lib/controllers/collection.controller - handlers getCollection/updateCollection/deleteCollection.
-3. @lib/http/api-response - sendError для единых fallback-ошибок.
-4. @lib/middleware/auth - verifyAuth.
-5. @lib/types/request.types (AuthenticatedRequest) - request с userId.
+2. ../../../lib/controllers/collection.controller - handlers getCollection/updateCollection/deleteCollection.
+3. ../../../lib/http/api-response - sendError для единых fallback-ошибок.
+4. ../../../lib/middleware/auth - verifyAuth.
+5. ../../../lib/types/request.types (AuthenticatedRequest) - request с userId.
 
 ## Экспорты и контракты
 
@@ -26,6 +26,7 @@
 
 1. Маршрут приватный: verifyAuth всегда выполняется первым.
 2. Валидация collectionId выполняется в контроллере через Zod-схему params.
+3. Относительные импорты помогают локальному Vercel runtime корректно резолвить зависимости без alias `@lib/*`.
 
 ## Где используется
 

@@ -25,6 +25,9 @@
 */
 
 import * as admin from 'firebase-admin';
+import { ensureServerEnvLoaded } from './_loadEnv';
+
+ensureServerEnvLoaded();
 
 // --- Инициализация Admin SDK ---
 if (!admin.apps.length) {

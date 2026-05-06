@@ -12,10 +12,10 @@
 */
 
 import type { VercelResponse } from '@vercel/node';
-import type { AuthenticatedRequest } from '@lib/types/request.types';
-import { verifyAuth } from '@lib/middleware/auth';
-import * as controller from '@lib/controllers/item.controller';
-import { sendError } from '@lib/http/api-response';
+import type { AuthenticatedRequest } from '../../lib/types/request.types';
+import { verifyAuth } from '../../lib/middleware/auth';
+import * as controller from '../../lib/controllers/item.controller';
+import { sendError } from '../../lib/http/api-response';
 
 export default async function handler(req: AuthenticatedRequest, res: VercelResponse) {
   try {

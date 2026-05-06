@@ -8,10 +8,10 @@
 ## Импорты и зависимости
 
 1. @vercel/node (VercelResponse) - тип ответа.
-2. @lib/controllers/collection.controller - handlers updateEntry/deleteEntry.
-3. @lib/http/api-response - sendError для стандартного fallback.
-4. @lib/middleware/auth - verifyAuth.
-5. @lib/types/request.types (AuthenticatedRequest) - request с userId.
+2. ../../../../../lib/controllers/collection.controller - handlers updateEntry/deleteEntry.
+3. ../../../../../lib/http/api-response - sendError для стандартного fallback.
+4. ../../../../../lib/middleware/auth - verifyAuth.
+5. ../../../../../lib/types/request.types (AuthenticatedRequest) - request с userId.
 
 ## Экспорты и контракты
 
@@ -25,6 +25,7 @@
 
 1. Обязательная аутентификация перед маршрутизацией по методу.
 2. Валидация collectionId/entryId и body централизована в контроллере.
+3. Относительные импорты нужны для надёжной работы serverless-роута в локальном режиме Vercel.
 
 ## Где используется
 

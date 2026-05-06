@@ -66,6 +66,10 @@ vi.mock('./components/Auth/AuthModal', () => ({
   default: () => <div data-testid="auth-modal" />,
 }));
 
+vi.mock('./pages/CollectionDetailPage/CollectionDetailPage', () => ({
+  default: () => <h1>COLLECTION_DETAIL_PAGE</h1>,
+}));
+
 function renderApp(initialPath: string) {
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
@@ -114,6 +118,24 @@ describe('App routing and CTA flow', () => {
     renderApp('/profile');
 
     expect(screen.getByRole('heading', { name: 'Профиль' })).toBeInTheDocument();
+  });
+
+  it('renders collection detail route for authenticated user', () => {
+    authStoreMock.user = {
+      uid: 'u-1',
+      email: 'alex@example.com',
+      displayName: 'Alex',
+    };
+
+    renderApp('/collections/collection-1');
+
+    expect(screen.getByRole('heading', { name: 'COLLECTION_DETAIL_PAGE' })).toBeInTheDocument();
+  });
+
+  it('redirects guest from collection detail route to home page', () => {
+    renderApp('/collections/collection-1');
+
+    expect(screen.getByRole('button', { name: 'Создать коллекцию' })).toBeInTheDocument();
   });
 
   it('header login clears intent and opens login modal', async () => {

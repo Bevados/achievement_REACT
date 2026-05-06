@@ -2,6 +2,8 @@ import type {
   ApiResponse,
   CollectionListQueryDto,
   CollectionView,
+  EntryListQueryDto,
+  EntryView,
   PaginatedResult,
 } from '../../contracts/collection.contracts';
 import { getIdToken } from '../firebase';
@@ -11,10 +13,18 @@ type CollectionsQuery = Pick<
   'page' | 'limit' | 'sortBy' | 'sortOrder' | 'category' | 'search'
 >;
 
+type EntriesQuery = Pick<
+  EntryListQueryDto,
+  'page' | 'limit' | 'sortBy' | 'sortOrder' | 'status' | 'tag' | 'minRating' | 'maxRating'
+>;
+
 const FALLBACK_FETCH_ERROR = 'Не удалось загрузить публичные коллекции. Попробуйте еще раз.';
 const FALLBACK_PRIVATE_FETCH_ERROR = 'Не удалось загрузить ваши коллекции. Попробуйте еще раз.';
+const FALLBACK_COLLECTION_DETAIL_ERROR = 'Не удалось загрузить коллекцию. Попробуйте еще раз.';
+const FALLBACK_COLLECTION_ENTRIES_ERROR =
+  'Не удалось загрузить карточки коллекции. Попробуйте еще раз.';
 
-function toQueryString(query: CollectionsQuery): string {
+function toQueryString(query: Record<string, string | number | undefined>): string {
   const params = new URLSearchParams();
 
   for (const [key, value] of Object.entries(query)) {
@@ -40,14 +50,12 @@ function getMessageFromErrorPayload(payload: unknown): string | null {
   return null;
 }
 
-function getDataFromSuccessPayload(
-  payload: unknown,
-): PaginatedResult<CollectionView> | null {
+function getSingleDataFromSuccessPayload<T>(payload: unknown): T | null {
   if (!payload || typeof payload !== 'object') {
     return null;
   }
 
-  const maybeEnvelope = payload as ApiResponse<PaginatedResult<CollectionView>>;
+  const maybeEnvelope = payload as ApiResponse<T>;
   if (maybeEnvelope.ok !== true) {
     return null;
   }
@@ -55,15 +63,11 @@ function getDataFromSuccessPayload(
   return maybeEnvelope.data;
 }
 
-async function requestCollections(
-  endpoint: '/api/examples/collections' | '/api/collections',
-  query: CollectionsQuery,
+async function requestApi<T>(
+  url: string,
   fallbackError: string,
   requireAuth: boolean,
-): Promise<PaginatedResult<CollectionView>> {
-  const queryString = toQueryString(query);
-  const url = queryString ? `${endpoint}?${queryString}` : endpoint;
-
+): Promise<T> {
   const headers: Record<string, string> = {};
 
   if (requireAuth) {
@@ -102,12 +106,24 @@ async function requestCollections(
     throw new Error(getMessageFromErrorPayload(payload) ?? fallbackError);
   }
 
-  const data = getDataFromSuccessPayload(payload);
+  const data = getSingleDataFromSuccessPayload<T>(payload);
   if (!data) {
     throw new Error('Сервер вернул неожиданный формат ответа.');
   }
 
   return data;
+}
+
+async function requestCollections(
+  endpoint: '/api/examples/collections' | '/api/collections',
+  query: CollectionsQuery,
+  fallbackError: string,
+  requireAuth: boolean,
+): Promise<PaginatedResult<CollectionView>> {
+  const queryString = toQueryString(query);
+  const url = queryString ? `${endpoint}?${queryString}` : endpoint;
+
+  return requestApi<PaginatedResult<CollectionView>>(url, fallbackError, requireAuth);
 }
 
 export async function getPublicCollections(
@@ -120,4 +136,23 @@ export async function getOwnerCollections(
   query: CollectionsQuery = {},
 ): Promise<PaginatedResult<CollectionView>> {
   return requestCollections('/api/collections', query, FALLBACK_PRIVATE_FETCH_ERROR, true);
+}
+
+export async function getCollectionById(collectionId: string): Promise<CollectionView> {
+  return requestApi<CollectionView>(
+    `/api/collections/${encodeURIComponent(collectionId)}`,
+    FALLBACK_COLLECTION_DETAIL_ERROR,
+    true,
+  );
+}
+
+export async function getCollectionEntries(
+  collectionId: string,
+  query: EntriesQuery = {},
+): Promise<PaginatedResult<EntryView>> {
+  const queryString = toQueryString(query);
+  const baseUrl = `/api/collections/${encodeURIComponent(collectionId)}/entries`;
+  const url = queryString ? `${baseUrl}?${queryString}` : baseUrl;
+
+  return requestApi<PaginatedResult<EntryView>>(url, FALLBACK_COLLECTION_ENTRIES_ERROR, true);
 }

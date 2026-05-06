@@ -13,9 +13,10 @@
 ## Импорты и зависимости
 
 1. `mongodb` (`MongoClient`, `Db`, `Document`) - клиент БД и типы.
-2. `process.env.MONGODB_URI` - строка подключения к MongoDB Atlas.
-3. Глобальная область (`global.mongoCache`) - кеш соединения между вызовами в serverless-окружении.
-4. Коллекции `collections` и `entries` - целевые коллекции для индексов шага 2.2.7.
+2. `./_loadEnv` (`ensureServerEnvLoaded`) - локально подгружает `.env.local` до чтения `process.env`.
+3. `process.env.MONGODB_URI` - строка подключения к MongoDB Atlas.
+4. Глобальная область (`global.mongoCache`) - кеш соединения между вызовами в serverless-окружении.
+5. Коллекции `collections` и `entries` - целевые коллекции для индексов шага 2.2.7.
 
 ## Экспорты и контракты
 
@@ -43,6 +44,7 @@
 3. Инициализация индексов выполняется внутри connect-потока: это позволяет иметь self-healing подход без ручного init-скрипта.
 4. При ошибке подключения формируется человекочитаемая ошибка с причиной (`Failed to connect to MongoDB: ...`).
 5. `closeConnection` обычно не нужен в типичном Vercel runtime, но полезен для контролируемого завершения в отдельных сценариях.
+6. Перед инициализацией connection helper явно вызывает `ensureServerEnvLoaded()`, чтобы local `vercel dev` видел `.env.local`.
 
 ## Где используется
 

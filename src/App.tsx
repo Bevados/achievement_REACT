@@ -8,10 +8,10 @@ import { useAuthIntentStore } from './store/auth-intent.store';
 import AuthModal from './components/Auth/AuthModal';
 import HomePage from './pages/HomePage/HomePage';
 import CollectionsPage from './pages/CollectionsPage/CollectionsPage';
+import CollectionDetailPage from './pages/CollectionDetailPage/CollectionDetailPage';
 import ExamplesPage from './pages/ExamplesPage/ExamplesPage';
 import ProfilePage from './pages/ProfilePage/ProfilePage';
 
-// Компонент, отображаемый во время проверки сессии пользователя, скелетон загрузки
 function AuthResolvingState() {
   return (
     <section
@@ -37,13 +37,10 @@ function App() {
 
   const isAuthenticated = Boolean(authUser);
 
-  // Инициализируем тему при загрузке приложения
   useEffect(() => {
     useThemeStore.getState().initTheme();
   }, []);
 
-  // Инициализируем listener Firebase Auth.
-  // Он отслеживает вход/выход и синхронизирует состояние с Zustand store.
   useEffect(() => {
     initAuthListener();
   }, [initAuthListener]);
@@ -116,6 +113,18 @@ function App() {
                 <AuthResolvingState />
               ) : isAuthenticated ? (
                 <CollectionsPage />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          <Route
+            path="/collections/:collectionId"
+            element={
+              !isInitialized ? (
+                <AuthResolvingState />
+              ) : isAuthenticated ? (
+                <CollectionDetailPage />
               ) : (
                 <Navigate to="/" replace />
               )
