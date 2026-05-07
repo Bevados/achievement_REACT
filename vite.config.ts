@@ -2,86 +2,20 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
-import { config as loadEnvFile } from 'dotenv';
-import { ZodError } from 'zod';
-import { collectionListQuerySchema } from './contracts/collection.contracts.schema';
-import { getPublicCollections } from './lib/services/collection.service';
-
-loadEnvFile({ path: '.env.local' });
-loadEnvFile();
-
-interface LocalExamplesRequest {
-  url?: string;
-}
-
-interface LocalExamplesResponse {
-  statusCode: number;
-  setHeader: (name: string, value: string) => void;
-  end: (body: string) => void;
-}
-
-function sendJson(res: LocalExamplesResponse, statusCode: number, body: unknown) {
-  res.statusCode = statusCode;
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.end(JSON.stringify(body));
-}
-
-function localExamplesApiPlugin() {
-  return {
-    name: 'local-examples-api',
-    configureServer(server: {
-      middlewares: {
-        use: (
-          path: string,
-          handler: (
-            req: LocalExamplesRequest,
-            res: LocalExamplesResponse,
-            next: () => void,
-          ) => void,
-        ) => void;
-      };
-    }) {
-      server.middlewares.use('/api/examples/collections', async (req, res) => {
-        try {
-          const url = new URL(req.url ?? '', 'http://localhost');
-          const rawQuery = Object.fromEntries(url.searchParams.entries());
-          const query = collectionListQuerySchema.parse(rawQuery);
-          const result = await getPublicCollections(query);
-
-          sendJson(res, 200, {
-            ok: true,
-            data: result,
-          });
-        } catch (error) {
-          if (error instanceof ZodError) {
-            sendJson(res, 422, {
-              ok: false,
-              error: {
-                code: 'VALIDATION_ERROR',
-                message: 'Invalid query parameters',
-              },
-            });
-            return;
-          }
-
-          sendJson(res, 500, {
-            ok: false,
-            error: {
-              code: 'INTERNAL_ERROR',
-              message: error instanceof Error ? error.message : 'Internal server error',
-            },
-          });
-        }
-      });
-    },
-  };
-}
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), localExamplesApiPlugin()],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       '@lib': path.resolve(__dirname, 'lib'),
+    },
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: process.env.LOCAL_API_ORIGIN ?? 'http://127.0.0.1:3000',
+        changeOrigin: true,
+      },
     },
   },
   test: {

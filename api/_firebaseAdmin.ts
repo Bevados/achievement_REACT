@@ -24,7 +24,7 @@
   FIREBASE_CLIENT_EMAIL        — email сервис-аккаунта
 */
 
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 import { ensureServerEnvLoaded } from './_loadEnv';
 
 ensureServerEnvLoaded();

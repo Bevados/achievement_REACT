@@ -2,30 +2,27 @@
 
 ## Что делает файл
 
-Файл рендерит общий список (сетку) коллекций.
-Это переиспользуемая обертка для публичной и приватной страниц, чтобы не дублировать разметку.
+Компонент рендерит сетку карточек коллекций или empty-state, если коллекций нет.
 
 ## Импорты и зависимости
 
-1. `contracts/collection.contracts.ts` (`CollectionView`) - тип входного массива.
-2. `CollectionCard` - карточка, которая рендерится для каждого элемента.
+1. `contracts/collection.contracts.ts` — тип `CollectionView`.
+2. `./CollectionCard` — карточка одной коллекции.
 
 ## Экспорты и контракты
 
-1. Экспортируется default-компонент `CollectionsGrid`.
-2. Входные данные:
-3. `collections: CollectionView[]` - список коллекций.
-4. `emptyMessage: string` - сообщение для пустого состояния.
-5. Поведение:
-6. Если `collections` пустой, показывается `emptyMessage`.
-7. Если список не пустой, рендерится сетка карточек.
+1. Экспортируется `CollectionsGrid`.
+2. Пропсы:
+   - `collections: CollectionView[]`
+   - `emptyMessage: string`
+   - `getCollectionHref?: (collection) => string | undefined`
 
 ## Нетривиальная логика
 
-1. Компонент осознанно не загружает данные сам - отвечает только за визуализацию.
-2. Благодаря этому его можно безопасно переиспользовать в разных сценариях (public/private) с разными источниками данных.
+1. `getCollectionHref` позволяет странице самой решать, куда ведет карточка: в private detail или в public detail.
+2. Компонент не знает о роутинге напрямую и остается переиспользуемым list-shell.
 
 ## Где используется
 
-1. `src/pages/ExamplesPage/ExamplesPage.tsx`.
-2. `src/pages/CollectionsPage/CollectionsPage.tsx`.
+1. `src/pages/ExamplesPage/ExamplesPage.tsx`
+2. `src/pages/CollectionsPage/CollectionsPage.tsx`

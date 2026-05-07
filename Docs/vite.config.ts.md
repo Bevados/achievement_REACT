@@ -2,39 +2,33 @@
 
 ## Что делает файл
 
-Файл настраивает Vite, React, Tailwind CSS, Vitest и локальный dev-only API middleware для публичных examples.
-В режиме `npm run dev` middleware обслуживает `GET /api/examples/collections`, чтобы страница примеров могла брать публичные коллекции из MongoDB без запуска `vercel dev`.
+Файл настраивает Vite, React, Tailwind CSS, Vitest и локальный proxy для backend API.
+В режиме `npm run dev` все запросы к `/api/*` автоматически проксируются в отдельный локальный backend server, который запускается командой `npm run dev:api`.
 
 ## Импорты и зависимости
 
-1. `vitest/config` (`defineConfig`) - общий config helper для Vite и Vitest.
-2. `@vitejs/plugin-react` - React plugin для Vite.
-3. `@tailwindcss/vite` - Tailwind CSS plugin.
-4. `path` - построение alias `@lib`.
-5. `dotenv` - загрузка `.env.local` и `.env` для локального middleware.
-6. `zod` (`ZodError`) - распознавание ошибок валидации query-параметров.
-7. `contracts/collection.contracts.schema` - schema для query публичного списка коллекций.
-8. `lib/services/collection.service` - server-side service, который читает публичные коллекции из MongoDB.
+1. `vitest/config` (`defineConfig`) — общий helper для Vite и Vitest.
+2. `@vitejs/plugin-react` — React plugin для Vite.
+3. `@tailwindcss/vite` — Tailwind CSS plugin.
+4. `path` — построение alias `@lib`.
 
 ## Экспорты и контракты
 
 1. Default export `defineConfig(...)`:
-   - подключает plugins `react`, `tailwindcss`, `localExamplesApiPlugin`;
+   - подключает plugins `react` и `tailwindcss`;
    - задает alias `@lib -> lib`;
+   - включает `server.proxy` для `/api`;
    - настраивает Vitest с `jsdom`, setup-файлом и CSS.
-2. `localExamplesApiPlugin()` - локальный Vite plugin, который добавляет middleware для `/api/examples/collections`.
-3. `sendJson(res, statusCode, body)` - маленький helper для единообразного JSON-ответа middleware.
+2. Proxy по умолчанию направляет запросы на `http://127.0.0.1:3000`.
+3. При необходимости target можно переопределить через `LOCAL_API_ORIGIN`.
 
 ## Нетривиальная логика
 
-1. Middleware существует только для локального frontend-режима `npm run dev`.
-2. Источник данных не mock: запрос проходит через `getPublicCollections`, а значит использует MongoDB и системный owner `system_examples`.
-3. Валидационные ошибки query возвращаются как `422 VALIDATION_ERROR`.
-4. Остальные ошибки возвращаются как `500 INTERNAL_ERROR` с сообщением из caught error, чтобы локальная диагностика была понятнее.
-5. Полноценный private API не реализуется в Vite middleware; приватные коллекции должны проверяться через `vercel dev`.
+1. Frontend больше не подмешивает server-side middleware прямо в Vite config.
+2. Один и тот же `/api` путь теперь работает и для public examples, и для private API через отдельный backend runtime.
+3. Такой proxy не ломает Vercel deploy, потому что production entrypoints остаются в `api/*`.
 
 ## Где используется
 
-1. `npm run dev` - локальная разработка публичной страницы examples.
-2. `src/api/collections.api.ts` - клиент вызывает `/api/examples/collections`, который в dev-режиме может обслуживаться этим middleware.
-3. `src/pages/ExamplesPage/ExamplesPage.tsx` - показывает данные, пришедшие через этот endpoint.
+1. `npm run dev` — локальный frontend-режим.
+2. `src/api/collections.api.ts` — клиент вызывает относительные `/api/...`, а Vite прозрачно проксирует их в backend.

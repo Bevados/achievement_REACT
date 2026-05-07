@@ -77,6 +77,7 @@ export default function ExamplesPage() {
           <CollectionsGrid
             collections={collections}
             emptyMessage="Публичные примеры пока отсутствуют."
+            getCollectionHref={(collection) => `/examples/${collection.id}`}
           />
 
           <CollectionsPagination

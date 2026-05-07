@@ -70,6 +70,10 @@ vi.mock('./pages/CollectionDetailPage/CollectionDetailPage', () => ({
   default: () => <h1>COLLECTION_DETAIL_PAGE</h1>,
 }));
 
+vi.mock('./pages/PublicCollectionDetailPage/PublicCollectionDetailPage', () => ({
+  default: () => <h1>PUBLIC_COLLECTION_DETAIL_PAGE</h1>,
+}));
+
 function renderApp(initialPath: string) {
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
@@ -136,6 +140,24 @@ describe('App routing and CTA flow', () => {
     renderApp('/collections/collection-1');
 
     expect(screen.getByRole('button', { name: 'Создать коллекцию' })).toBeInTheDocument();
+  });
+
+  it('renders public collection detail route for guest', () => {
+    renderApp('/examples/collection-1');
+
+    expect(screen.getByRole('heading', { name: 'PUBLIC_COLLECTION_DETAIL_PAGE' })).toBeInTheDocument();
+  });
+
+  it('redirects authenticated user from public example detail to collections', () => {
+    authStoreMock.user = {
+      uid: 'u-1',
+      email: 'alex@example.com',
+      displayName: 'Alex',
+    };
+
+    renderApp('/examples/collection-1');
+
+    expect(screen.getByRole('heading', { name: 'Мои коллекции' })).toBeInTheDocument();
   });
 
   it('header login clears intent and opens login modal', async () => {

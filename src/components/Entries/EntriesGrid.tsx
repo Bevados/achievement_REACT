@@ -4,9 +4,10 @@ import EntryCard from './EntryCard';
 interface EntriesGridProps {
   entries: EntryView[];
   emptyMessage: string;
+  showActions?: boolean;
 }
 
-export default function EntriesGrid({ entries, emptyMessage }: EntriesGridProps) {
+export default function EntriesGrid({ entries, emptyMessage, showActions = true }: EntriesGridProps) {
   if (entries.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-5 text-sm text-gray-600">
@@ -18,7 +19,7 @@ export default function EntriesGrid({ entries, emptyMessage }: EntriesGridProps)
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       {entries.map((entry) => (
-        <EntryCard key={entry.id} entry={entry} />
+        <EntryCard key={entry.id} entry={entry} showActions={showActions} />
       ))}
     </div>
   );

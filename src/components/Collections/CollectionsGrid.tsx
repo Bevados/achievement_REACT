@@ -4,9 +4,14 @@ import CollectionCard from './CollectionCard';
 interface CollectionsGridProps {
   collections: CollectionView[];
   emptyMessage: string;
+  getCollectionHref?: (collection: CollectionView) => string | undefined;
 }
 
-export default function CollectionsGrid({ collections, emptyMessage }: CollectionsGridProps) {
+export default function CollectionsGrid({
+  collections,
+  emptyMessage,
+  getCollectionHref,
+}: CollectionsGridProps) {
   if (collections.length === 0) {
     return (
       <div className="mt-6 rounded-xl border border-dashed border-gray-300 bg-gray-50 p-5 text-sm text-gray-600">
@@ -18,7 +23,11 @@ export default function CollectionsGrid({ collections, emptyMessage }: Collectio
   return (
     <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {collections.map((collection) => (
-        <CollectionCard key={collection.id} collection={collection} />
+        <CollectionCard
+          key={collection.id}
+          collection={collection}
+          to={getCollectionHref?.(collection)}
+        />
       ))}
     </div>
   );

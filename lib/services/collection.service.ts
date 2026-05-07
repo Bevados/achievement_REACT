@@ -197,6 +197,16 @@ export async function getPublicCollections(
   return mapPaginated(result, toCollectionView);
 }
 
+export async function getPublicCollectionById(collectionId: string): Promise<CollectionView> {
+  const collection = await repository.findPublicCollectionById(collectionId);
+
+  if (!collection) {
+    throw new NotFoundError('Public collection not found');
+  }
+
+  return toCollectionView(collection);
+}
+
 export async function getCollectionById(ownerId: string, collectionId: string): Promise<CollectionView> {
   const collection = await assertCollectionAccess(ownerId, collectionId);
   return toCollectionView(collection);
@@ -272,6 +282,20 @@ export async function getCollectionEntries(
   await assertCollectionAccess(ownerId, collectionId);
 
   const result = await repository.findCollectionEntries(ownerId, collectionId, query);
+  return mapPaginated(result, toEntryView);
+}
+
+export async function getPublicCollectionEntries(
+  collectionId: string,
+  query: EntryListQueryDto,
+): Promise<PaginatedResult<EntryView>> {
+  const collection = await repository.findPublicCollectionById(collectionId);
+
+  if (!collection) {
+    throw new NotFoundError('Public collection not found');
+  }
+
+  const result = await repository.findPublicCollectionEntries(collectionId, query);
   return mapPaginated(result, toEntryView);
 }
 

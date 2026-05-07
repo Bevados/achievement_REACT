@@ -6,6 +6,8 @@ import {
   deleteEntry as deleteEntryService,
   getCollectionById,
   getCollectionEntries,
+  getPublicCollectionById as getPublicCollectionByIdService,
+  getPublicCollectionEntries as getPublicCollectionEntriesService,
   getOwnerCollections,
   getPublicCollections as getPublicCollectionsService,
   updateCollection as updateCollectionService,
@@ -140,6 +142,29 @@ export async function getPublicCollections(req: VercelRequest, res: VercelRespon
   try {
     const query = collectionListQuerySchema.parse(normalizeQueryObject(req.query));
     const result = await getPublicCollectionsService(query);
+    return sendSuccess(res, 200, result);
+  } catch (error) {
+    return handleControllerError(res, error);
+  }
+}
+
+export async function getPublicCollection(req: VercelRequest, res: VercelResponse) {
+  try {
+    const collectionId = parseCollectionId(req);
+    const result = await getPublicCollectionByIdService(collectionId);
+    return sendSuccess(res, 200, result);
+  } catch (error) {
+    return handleControllerError(res, error);
+  }
+}
+
+export async function getPublicEntries(req: VercelRequest, res: VercelResponse) {
+  try {
+    const collectionId = parseCollectionId(req);
+    const normalizedQuery = normalizeQueryObject(req.query);
+    delete normalizedQuery.collectionId;
+    const query = entryListQuerySchema.parse(normalizedQuery);
+    const result = await getPublicCollectionEntriesService(collectionId, query);
     return sendSuccess(res, 200, result);
   } catch (error) {
     return handleControllerError(res, error);

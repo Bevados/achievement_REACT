@@ -214,6 +214,15 @@ export async function findCollectionByIdRaw(collectionId: string) {
   return collection.findOne({ _id: new ObjectId(collectionId) });
 }
 
+export async function findPublicCollectionById(collectionId: string) {
+  const collection = await getCollection<CollectionDocument>('collections');
+  return collection.findOne({
+    _id: new ObjectId(collectionId),
+    ownerId: SYSTEM_EXAMPLES_OWNER_ID,
+    isPublic: true,
+  });
+}
+
 export async function createCollection(
   data: CollectionDocument,
   session?: ClientSession,
@@ -264,6 +273,32 @@ export async function findCollectionEntries(
   const collectionObjectId = new ObjectId(collectionId);
   const entries = await getCollection<EntryDocument>('entries');
   const filter = buildEntryFilter(ownerId, collectionObjectId, query);
+  const sort = buildEntrySort(query);
+  const { page, limit, skip } = resolvePagination(query);
+
+  const [items, total] = await Promise.all([
+    entries.find(filter).sort(sort).skip(skip).limit(limit).toArray(),
+    entries.countDocuments(filter),
+  ]);
+
+  return {
+    items,
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit) || 1,
+    },
+  };
+}
+
+export async function findPublicCollectionEntries(
+  collectionId: string,
+  query: EntryListQueryDto,
+): Promise<PaginatedResult<EntryDocument>> {
+  const collectionObjectId = new ObjectId(collectionId);
+  const entries = await getCollection<EntryDocument>('entries');
+  const filter = buildEntryFilter(SYSTEM_EXAMPLES_OWNER_ID, collectionObjectId, query);
   const sort = buildEntrySort(query);
   const { page, limit, skip } = resolvePagination(query);
 

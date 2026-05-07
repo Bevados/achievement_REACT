@@ -2,31 +2,30 @@
 
 ## Что делает файл
 
-Файл рендерит универсальную карточку коллекции.
-Карточка используется и в публичном списке примеров, и в приватном списке пользователя, а на шаге 5.1 стала еще и точкой перехода на detail-страницу конкретной коллекции.
+Компонент рендерит одну карточку коллекции в общем grid-списке.
+Он показывает обложку, категорию, количество карточек, описание, дату обновления и умеет работать как с private, так и с public навигацией.
 
 ## Импорты и зависимости
 
-1. `react-router-dom` (`Link`) нужен для перехода на `/collections/:collectionId`.
-2. `contracts/collection.contracts.ts` (`CollectionView`) задает контракт входных данных.
-3. `src/config/collections.config.ts` (`collectionCategoryLabels`) переводит slug категории в человекочитаемую подпись.
+1. `react-router-dom` (`Link`) — кликабельная навигация по карточке.
+2. `contracts/collection.contracts.ts` — тип `CollectionView`.
+3. `src/config/collections.config.ts` — человекочитаемые подписи категорий.
 
 ## Экспорты и контракты
 
-1. Экспортируется default-компонент `CollectionCard`.
-2. Входные данные: `collection: CollectionView`.
-3. Карточка рендерит category, entriesCount, title, description/fallback, updatedAt и optional cover image.
-4. Вся карточка кликабельна и ведет на `/collections/:collectionId`.
-5. Если `isPublic=true`, отображается badge `Публичная`.
+1. Экспортируется `CollectionCard`.
+2. Пропсы:
+   - `collection: CollectionView`
+   - `to?: string`
+3. Если `to` передан, карточка рендерится как `Link`.
+4. Если `to` не передан, карточка остается статичным блоком без навигации.
 
 ## Нетривиальная логика
 
-1. Карточка реализована через `Link`, а не через локальный click-handler, поэтому маршрутизация остается декларативной и доступной для клавиатурной навигации.
-2. Если `coverImageUrl` отсутствует, рендерится декоративная gradient-заглушка вместо изображения.
-3. Если `description` отсутствует, используется текстовый fallback, чтобы высота карточки не выглядела сломанной.
-4. Дата обновления форматируется локально через `toLocaleDateString('ru-RU')`.
+1. Внутренний `CollectionCardContent` отделяет общий UI от способа обертки (`Link` или `div`).
+2. Опциональные `coverImageUrl` и `description` имеют аккуратные fallback-состояния.
+3. Проп `to` позволяет переиспользовать один и тот же компонент и для `/collections/:id`, и для `/examples/:id`.
 
 ## Где используется
 
-1. `src/components/Collections/CollectionsGrid.tsx` рендерит `CollectionCard` для каждого элемента списка.
-2. Через `CollectionsGrid` компонент используется на страницах `ExamplesPage` и `CollectionsPage`.
+1. `src/components/Collections/CollectionsGrid.tsx` — рендер списка карточек коллекций.

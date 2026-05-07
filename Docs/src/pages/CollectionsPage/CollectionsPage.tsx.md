@@ -2,31 +2,23 @@
 
 ## Что делает файл
 
-Файл реализует private-страницу `Мои коллекции`.
-Страница загружает реальные данные из приватного API (`/api/collections`) и использует тот же общий контроллер списка, что и публичная страница examples.
-Фильтры и пагинация также рендерятся через общие UI-компоненты.
+Страница показывает приватный список коллекций текущего пользователя.
 
 ## Импорты и зависимости
 
-1. `src/api/collections.api.ts` (`getOwnerCollections`) - защищенный источник приватных данных.
-2. `src/hooks/useCollectionsListController.ts` - общий контроллер списка коллекций.
-3. `src/components/Collections/CollectionsFilters.tsx` - общий UI-блок фильтров.
-4. `src/components/Collections/CollectionsGrid.tsx` - общий UI-блок сетки карточек.
-5. `src/components/Collections/CollectionsPagination.tsx` - общий UI-блок пагинации.
+1. `src/api/collections.api.ts` — `getOwnerCollections`.
+2. `CollectionsGrid`, `CollectionsFilters`, `CollectionsPagination` — общий list UI.
+3. `useCollectionsListController` — контроллер списка.
 
 ## Экспорты и контракты
 
-1. Экспортируется default-компонент `CollectionsPage`.
-2. Компонент не принимает пропсы.
-3. Данные загружаются через `getOwnerCollections` и общий контроллер `useCollectionsListController`.
-4. Локальная логика фильтрации/URL-sync в странице не дублируется; используется переиспользуемая реализация из хука.
+1. Экспортируется `CollectionsPage`.
+2. Карточки private-коллекций ведут на `/collections/:collectionId`.
 
 ## Нетривиальная логика
 
-1. Страница использует приватный endpoint, поэтому запрос требует авторизации через токен (логика токена инкапсулирована в API-клиенте).
-2. Поведение `loading/error/empty/success`, фильтры, пагинация и URL-sync полностью переиспользуются из общего контроллера и общих UI-компонентов.
-3. Отличие от публичной страницы осталось только в источнике данных и текстах контента.
+1. Страница использует те же list-компоненты, что и public examples page, но дает другой `getCollectionHref`.
 
 ## Где используется
 
-1. `src/App.tsx` - маршрут `/collections` для авторизованных пользователей.
+1. `src/App.tsx` — private route `/collections`.

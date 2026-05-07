@@ -400,11 +400,11 @@
 
 ## Ближайшие восстановительные задачи после шага 5.1
 
-1. Восстановить локальную подгрузку `/api/examples/collections` в `npm run dev` через dev-only Vite middleware, чтобы публичные examples снова работали без запуска `vercel dev`.
-2. Зафиксировать, что этот middleware является только локальной поддержкой публичных examples и не заменяет полноценный backend runtime.
-3. Отдельно починить локальный `vercel dev --listen 3000`, чтобы он обслуживал и public API, и private API с Firebase auth.
-4. После починки `vercel dev` проверить маршруты `/api/examples/collections`, `/api/collections`, `/api/collections/:collectionId` и `/api/collections/:collectionId/entries`.
-5. Реализовать публичные маршруты и API для `/examples/:collectionId` и `/api/examples/collections/:collectionId/entries`, чтобы пользователь мог дойти от публичной коллекции до содержимого карточек.
+1. [done 2026-05-07] Восстановлена локальная подгрузка `/api/examples/collections` в `npm run dev` через dev-only Vite middleware. Проверено через `GET /api/examples/collections?limit=2`: endpoint вернул `200 OK`, `total=18` и реальные `system_examples` из MongoDB.
+2. [done 2026-05-07] Зафиксировано, что Vite middleware является только локальной поддержкой публичных examples и не заменяет полноценный backend runtime. Граница описана в `README.md` и `Docs/vite.config.ts.md`: `npm run dev` подходит для frontend + public examples, а private API и CRUD нужно проверять через `vercel dev`.
+3. [done 2026-05-07] Вместо нестабильного `vercel dev` на Windows добавлен отдельный локальный backend dev server с командой `npm run dev:api`. Он обслуживает те же `/api/*` маршруты, использует те же `api/*` entrypoints и `lib/*` слои, а Vite проксирует в него все локальные `/api` запросы.
+4. [done 2026-05-07] Локально проверены маршруты нового dev server: публичный `/api/examples/collections` отвечает `200`, а приватные `/api/collections`, `/api/collections/:collectionId` и `/api/collections/:collectionId/entries` проходят auth-gate и требуют реальный Firebase token.
+5. [done 2026-05-07] Реализованы публичные маршруты и API для `/examples/:collectionId`, `/api/examples/collections/:collectionId` и `/api/examples/collections/:collectionId/entries`, чтобы пользователь мог открыть example-коллекцию, увидеть ее описание и read-only список карточек.
 
 ## Лог принятых решений
 

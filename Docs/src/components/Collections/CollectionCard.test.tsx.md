@@ -2,32 +2,27 @@
 
 ## Что делает файл
 
-Файл тестирует UI-контракт карточки коллекции.
-Покрывает основной сценарий отображения данных, fallback для optional-полей и навигационную ссылку на detail-страницу.
+Тестирует рендер и навигационное поведение `CollectionCard`.
 
 ## Импорты и зависимости
 
-1. `vitest` используется как тестовый раннер и assertion layer.
-2. `@testing-library/react` рендерит компонент и ищет элементы в DOM.
-3. `react-router-dom` (`MemoryRouter`) нужен, потому что `CollectionCard` внутри использует `Link`.
-4. `src/components/Collections/CollectionCard.tsx` - тестируемый компонент.
-5. `contracts/collection.contracts.ts` дает тип `CollectionView` для тестовых данных.
+1. `vitest` — test runner и assertions.
+2. `@testing-library/react` — рендер компонента.
+3. `react-router-dom` (`MemoryRouter`) — окружение для `Link`.
 
 ## Экспорты и контракты
 
-1. Runtime-экспортов нет.
-2. Проверяемые контракты:
-2.1. карточка показывает title, category, entriesCount, public badge и updatedAt;
-2.2. при наличии `coverImageUrl` рендерится изображение;
-2.3. при отсутствии optional-полей используются fallback-состояния;
-2.4. карточка рендерит ссылку на `/collections/:collectionId`.
+1. Файл не экспортирует production-сущности.
+2. Проверяет:
+   - базовый рендер карточки,
+   - корректный `href` из пропса `to`,
+   - fallback для опциональных полей,
+   - отсутствие `Link`, если `to` не передан.
 
 ## Нетривиальная логика
 
-1. Тесты оборачивают компонент в `MemoryRouter`, потому что без router-контекста `Link` не может быть отрендерен корректно.
-2. Проверка `href` важна как часть нового контракта шага 5.1: клик по карточке теперь открывает detail page коллекции.
+1. Тесты подтверждают, что одна и та же карточка может использоваться и для private, и для public route.
 
 ## Где используется
 
-1. Запускается в наборе `npm run test`.
-2. Защищает от регрессий `src/components/Collections/CollectionCard.tsx`.
+1. `npm test` — покрытие `CollectionCard`.

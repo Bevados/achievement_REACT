@@ -78,6 +78,7 @@ export default function CollectionsPage() {
           <CollectionsGrid
             collections={collections}
             emptyMessage="У вас пока нет коллекций. Создайте первую, и она появится здесь."
+            getCollectionHref={(collection) => `/collections/${collection.id}`}
           />
 
           <CollectionsPagination

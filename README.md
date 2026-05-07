@@ -1,5 +1,14 @@
 # React + TypeScript + Vite
 
+## Local Development Modes
+
+`npm run dev` starts the Vite frontend dev server.
+`npm run dev:api` starts the local backend runtime on `http://127.0.0.1:3000`.
+
+During local development Vite proxies every `/api/*` request to the separate backend process, so public examples and private authenticated routes use the same backend runtime.
+
+The `api/*` files are still the production entrypoints for Vercel deploy. The local backend server is only a dev runner that reuses the same controllers and services without replacing the Vercel architecture.
+
 ## Архитектурная карта проекта
 
 - Карта связей файлов и потоков данных: [DOCS_FILE_MAP.md](DOCS_FILE_MAP.md)

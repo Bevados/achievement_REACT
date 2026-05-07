@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import CollectionCard from './CollectionCard';
 import type { CollectionView } from '../../../contracts/collection.contracts';
+import CollectionCard from './CollectionCard';
 
 const baseCollection: CollectionView = {
   id: 'collection-1',
@@ -16,7 +16,7 @@ const baseCollection: CollectionView = {
 };
 
 describe('CollectionCard', () => {
-  it('renders core collection data', () => {
+  it('renders core collection data and uses provided link target', () => {
     render(
       <MemoryRouter>
         <CollectionCard
@@ -26,6 +26,7 @@ describe('CollectionCard', () => {
             coverImageUrl:
               'https://images.unsplash.com/photo-1492571350019-22de08371fd3?auto=format&fit=crop&w=1200&q=80',
           }}
+          to="/examples/collection-1"
         />
       </MemoryRouter>,
     );
@@ -39,7 +40,7 @@ describe('CollectionCard', () => {
     expect(screen.getByRole('img', { name: 'Обложка коллекции Тестовая коллекция' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Открыть коллекцию Тестовая коллекция' })).toHaveAttribute(
       'href',
-      '/collections/collection-1',
+      '/examples/collection-1',
     );
   });
 
@@ -58,5 +59,6 @@ describe('CollectionCard', () => {
 
     expect(screen.getByText('Описание пока не добавлено.')).toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 });

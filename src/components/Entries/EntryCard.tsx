@@ -2,6 +2,7 @@ import type { EntryStatus, EntryView } from '../../../contracts/collection.contr
 
 interface EntryCardProps {
   entry: EntryView;
+  showActions?: boolean;
 }
 
 const statusLabels: Record<EntryStatus, string> = {
@@ -32,7 +33,7 @@ function formatPrice(value: number): string {
   }).format(value);
 }
 
-export default function EntryCard({ entry }: EntryCardProps) {
+export default function EntryCard({ entry, showActions = true }: EntryCardProps) {
   const hasMeta = Boolean(entry.date || entry.price !== undefined || entry.rating !== undefined);
   const hasTags = Boolean(entry.tags && entry.tags.length > 0);
 
@@ -58,27 +59,27 @@ export default function EntryCard({ entry }: EntryCardProps) {
             <h3 className="text-lg font-semibold text-primary">{entry.title}</h3>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled
-              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-400 disabled:cursor-not-allowed"
-            >
-              Редактировать
-            </button>
-            <button
-              type="button"
-              disabled
-              className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-300 disabled:cursor-not-allowed"
-            >
-              Удалить
-            </button>
-          </div>
+          {showActions ? (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-400 disabled:cursor-not-allowed"
+              >
+                Редактировать
+              </button>
+              <button
+                type="button"
+                disabled
+                className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-300 disabled:cursor-not-allowed"
+              >
+                Удалить
+              </button>
+            </div>
+          ) : null}
         </div>
 
-        {entry.description ? (
-          <p className="text-sm leading-relaxed text-gray-700">{entry.description}</p>
-        ) : null}
+        {entry.description ? <p className="text-sm leading-relaxed text-gray-700">{entry.description}</p> : null}
 
         {hasMeta ? (
           <dl className="grid gap-2 text-sm text-gray-600 sm:grid-cols-3">

@@ -10,6 +10,7 @@ import HomePage from './pages/HomePage/HomePage';
 import CollectionsPage from './pages/CollectionsPage/CollectionsPage';
 import CollectionDetailPage from './pages/CollectionDetailPage/CollectionDetailPage';
 import ExamplesPage from './pages/ExamplesPage/ExamplesPage';
+import PublicCollectionDetailPage from './pages/PublicCollectionDetailPage/PublicCollectionDetailPage';
 import ProfilePage from './pages/ProfilePage/ProfilePage';
 
 function AuthResolvingState() {
@@ -103,6 +104,18 @@ function App() {
                 <Navigate to="/collections" replace />
               ) : (
                 <ExamplesPage />
+              )
+            }
+          />
+          <Route
+            path="/examples/:collectionId"
+            element={
+              !isInitialized ? (
+                <AuthResolvingState />
+              ) : isAuthenticated ? (
+                <Navigate to="/collections" replace />
+              ) : (
+                <PublicCollectionDetailPage />
               )
             }
           />

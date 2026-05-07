@@ -21,8 +21,14 @@ type EntriesQuery = Pick<
 const FALLBACK_FETCH_ERROR = 'Не удалось загрузить публичные коллекции. Попробуйте еще раз.';
 const FALLBACK_PRIVATE_FETCH_ERROR = 'Не удалось загрузить ваши коллекции. Попробуйте еще раз.';
 const FALLBACK_COLLECTION_DETAIL_ERROR = 'Не удалось загрузить коллекцию. Попробуйте еще раз.';
+const FALLBACK_PUBLIC_COLLECTION_DETAIL_ERROR =
+  'Не удалось загрузить публичную коллекцию. Попробуйте еще раз.';
 const FALLBACK_COLLECTION_ENTRIES_ERROR =
   'Не удалось загрузить карточки коллекции. Попробуйте еще раз.';
+const FALLBACK_PUBLIC_COLLECTION_ENTRIES_ERROR =
+  'Не удалось загрузить карточки публичной коллекции. Попробуйте еще раз.';
+const LOCAL_BACKEND_UNAVAILABLE_ERROR =
+  'Локальный API недоступен. Запустите backend-команду `npm run dev:api` и обновите страницу.';
 
 function toQueryString(query: Record<string, string | number | undefined>): string {
   const params = new URLSearchParams();
@@ -79,10 +85,15 @@ async function requestApi<T>(
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: Object.keys(headers).length ? headers : undefined,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'GET',
+      headers: Object.keys(headers).length ? headers : undefined,
+    });
+  } catch {
+    throw new Error(LOCAL_BACKEND_UNAVAILABLE_ERROR);
+  }
 
   const contentType = response.headers.get('content-type') ?? '';
   const rawBody = await response.text();
@@ -97,9 +108,7 @@ async function requestApi<T>(
   }
 
   if (contentType.includes('text/html')) {
-    throw new Error(
-      'Локальный API недоступен. Запустите backend-команду `vercel dev --listen 3000` и обновите страницу.',
-    );
+    throw new Error(LOCAL_BACKEND_UNAVAILABLE_ERROR);
   }
 
   if (!response.ok) {
@@ -138,12 +147,31 @@ export async function getOwnerCollections(
   return requestCollections('/api/collections', query, FALLBACK_PRIVATE_FETCH_ERROR, true);
 }
 
+export async function getPublicCollectionById(collectionId: string): Promise<CollectionView> {
+  return requestApi<CollectionView>(
+    `/api/examples/collections/${encodeURIComponent(collectionId)}`,
+    FALLBACK_PUBLIC_COLLECTION_DETAIL_ERROR,
+    false,
+  );
+}
+
 export async function getCollectionById(collectionId: string): Promise<CollectionView> {
   return requestApi<CollectionView>(
     `/api/collections/${encodeURIComponent(collectionId)}`,
     FALLBACK_COLLECTION_DETAIL_ERROR,
     true,
   );
+}
+
+export async function getPublicCollectionEntries(
+  collectionId: string,
+  query: EntriesQuery = {},
+): Promise<PaginatedResult<EntryView>> {
+  const queryString = toQueryString(query);
+  const baseUrl = `/api/examples/collections/${encodeURIComponent(collectionId)}/entries`;
+  const url = queryString ? `${baseUrl}?${queryString}` : baseUrl;
+
+  return requestApi<PaginatedResult<EntryView>>(url, FALLBACK_PUBLIC_COLLECTION_ENTRIES_ERROR, false);
 }
 
 export async function getCollectionEntries(
