@@ -15,7 +15,20 @@ type CollectionsQuery = Pick<
 
 type EntriesQuery = Pick<
   EntryListQueryDto,
-  'page' | 'limit' | 'sortBy' | 'sortOrder' | 'status' | 'tag' | 'minRating' | 'maxRating'
+  | 'page'
+  | 'limit'
+  | 'sortBy'
+  | 'sortOrder'
+  | 'status'
+  | 'tag'
+  | 'createdAtFrom'
+  | 'createdAtTo'
+  | 'dateStartFrom'
+  | 'dateStartTo'
+  | 'minPrice'
+  | 'maxPrice'
+  | 'minRating'
+  | 'maxRating'
 >;
 
 const FALLBACK_FETCH_ERROR = 'Не удалось загрузить публичные коллекции. Попробуйте еще раз.';

@@ -23,5 +23,9 @@ export function handleControllerError(res: VercelResponse, error: unknown) {
     return sendError(res, 500, 'TRANSACTION_ERROR', error.message || 'Transaction failed');
   }
 
+  if (isErrorWithName(error, 'ValidationError')) {
+    return sendError(res, 422, 'VALIDATION_ERROR', error.message || 'Validation failed');
+  }
+
   return sendError(res, 500, 'INTERNAL_ERROR', 'Internal server error');
 }

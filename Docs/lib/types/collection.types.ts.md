@@ -23,6 +23,7 @@
 1. Контрактный слой вынесен отдельно в `contracts/`, чтобы frontend и backend использовали одинаковые API-типы без Mongo-зависимостей.
 2. В этом файле остаются только persistence-типы (`CollectionDocument`, `EntryDocument`) для DB-слоя.
 3. В EntryDocument поле collectionId хранится как ObjectId, чтобы связь Entry -> Collection была нативной для MongoDB.
+4. Для дат entry backend хранит `dateStart` и `dateEnd`, что позволяет различать одну дату и период без двусмысленности.
 
 ## Где используется
 

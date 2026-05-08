@@ -32,7 +32,9 @@
 
 1. Контрактный слой отделен от persistence-типа (ObjectId, priceCents, Date в БД), чтобы фронтенд не зависел от backend-деталей.
 2. Поле `SYSTEM_EXAMPLES_OWNER_ID` остается в контракте как часть публичной API-семантики examples.
-3. `EntrySortField` использует `price` (API-термин), а не `priceCents` (внутренний DB-термин).
+3. Для Entry одна дата и период теперь хранятся как `dateStart` и `dateEnd`, без отдельного пользовательского "режима карточки" на уровне DTO.
+4. `EntryListQueryDto` поддерживает server-side фильтры по `status`, диапазонам `createdAt/dateStart`, цене и рейтингу.
+5. `EntrySortField` использует `price` (API-термин), а не `priceCents` (внутренний DB-термин).
 
 ## Где используется
 

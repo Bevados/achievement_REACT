@@ -3,34 +3,37 @@
 ## Что делает файл
 
 Файл реализует private detail-страницу одной коллекции.
-Страница загружает `CollectionView` и список `EntryView[]`, показывает read-only данные коллекции, список карточек и action-заглушки для будущих CRUD-сценариев.
+Страница загружает саму коллекцию, подключает общий controller карточек, показывает read-only данные коллекции, блок фильтров `entries`, список карточек и action-заглушки для будущих CRUD-сценариев.
 
 ## Импорты и зависимости
 
-1. `react` (`useCallback`, `useEffect`, `useState`) нужен для локального async-state detail-страницы.
+1. `react` (`useCallback`, `useEffect`, `useState`) нужен для загрузки коллекции и локального async-state страницы.
 2. `react-router-dom` (`Link`, `useParams`) дает обратную навигацию и чтение `collectionId` из URL.
-3. `contracts/collection.contracts.ts` задает типы `CollectionView`, `EntryView`, `PaginationMeta`.
+3. `contracts/collection.contracts.ts` задает тип `CollectionView`.
 4. `src/api/collections.api.ts` дает методы `getCollectionById` и `getCollectionEntries`.
-5. `src/components/Entries/EntriesGrid.tsx` рендерит список карточек коллекции.
-6. `src/config/collections.config.ts` переводит категорию коллекции в локализованную подпись.
+5. `src/components/Entries/EntriesFilters.tsx` рендерит общий UI server-driven фильтров.
+6. `src/components/Entries/EntriesGrid.tsx` рендерит список карточек коллекции.
+7. `src/components/Entries/EntriesPagination.tsx` выводит пагинацию отфильтрованного списка.
+8. `src/config/collections.config.ts` переводит категорию коллекции в локализованную подпись.
+9. `src/hooks/useEntriesListController.ts` инкапсулирует фильтры, пагинацию, URL-синхронизацию и загрузку карточек.
 
 ## Экспорты и контракты
 
 1. Экспортируется default-компонент `CollectionDetailPage`.
 2. Компонент не принимает пропсы.
 3. Ожидает наличие route-param `collectionId`.
-4. Рендерит четыре базовых состояния:
-4.1. `loading`;
-4.2. `error`;
-4.3. `success + empty entries`;
-4.4. `success + entries`.
+4. Рендерит базовые состояния:
+   - `loading` для коллекции;
+   - `error` для коллекции;
+   - `loading/error/success/empty` для списка карточек через общий controller.
 
 ## Нетривиальная логика
 
-1. `reloadPage` загружает коллекцию и список `entries` параллельно через `Promise.all`, чтобы не растягивать время ожидания.
-2. Если route param отсутствует, страница формирует локальную ошибку без сетевого запроса.
-3. При любой ошибке страница сбрасывает `collection`, `entries` и `entriesMeta`, чтобы не оставлять в UI устаревшие данные от предыдущего успешного состояния.
-4. Action-кнопки `Добавить карточку`, `Редактировать коллекцию`, `Удалить коллекцию` на шаге 5.1 intentionally disabled: это каркас будущего CRUD-flow, а не рабочие мутации.
+1. `reloadPage` отвечает только за загрузку самой коллекции; список карточек живет в `useEntriesListController`.
+2. `useEntriesListController` синхронизирует `status`, диапазоны дат, цены и рейтинга с URL, поэтому фильтры переживают refresh и back/forward navigation.
+3. `EntriesFilters` управляет input-state фильтров, а фактическая загрузка карточек происходит после `onApply`.
+4. Кнопка `Повторить загрузку` в error-сценарии перезапрашивает и саму коллекцию, и список карточек, чтобы detail-screen восстанавливался целиком.
+5. Action-кнопки `Добавить карточку`, `Редактировать коллекцию`, `Удалить коллекцию` намеренно disabled: это каркас будущего CRUD-flow.
 
 ## Где используется
 

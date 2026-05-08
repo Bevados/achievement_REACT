@@ -51,6 +51,7 @@ import {
   ForbiddenError,
   NotFoundError,
   TransactionError,
+  ValidationError,
   createCollection,
   createEntry,
   deleteCollection,
@@ -87,7 +88,8 @@ function buildEntryDoc(ownerId = 'user-1', collectionId = new ObjectId(), id = n
     priceCents: 1234,
     tags: ['travel', 'japan'],
     rating: 8,
-    date: new Date('2026-03-01T08:00:00.000Z'),
+    dateStart: new Date('2026-03-01T08:00:00.000Z'),
+    dateEnd: new Date('2026-03-05T08:00:00.000Z'),
     createdAt: new Date('2026-01-12T10:00:00.000Z'),
     updatedAt: new Date('2026-01-13T10:00:00.000Z'),
   };
@@ -205,7 +207,8 @@ describe('collection.service', () => {
       title: 'Kyoto trip',
       status: 'planned',
       price: 12.34,
-      date: '2026-03-01T08:00:00.000Z',
+      dateStart: '2026-03-01T08:00:00.000Z',
+      dateEnd: '2026-03-05T08:00:00.000Z',
       tags: ['  Travel ', 'travel', ' Japan '],
     });
 
@@ -215,7 +218,8 @@ describe('collection.service', () => {
         collectionId: expect.any(ObjectId),
         priceCents: 1234,
         tags: ['travel', 'japan'],
-        date: expect.any(Date),
+        dateStart: expect.any(Date),
+        dateEnd: expect.any(Date),
       }),
       expect.any(Object),
     );
@@ -267,7 +271,8 @@ describe('collection.service', () => {
       ...currentEntry,
       priceCents: 1050,
       tags: ['a', 'b'],
-      date: new Date('2026-05-02T10:00:00.000Z'),
+      dateStart: new Date('2026-05-02T10:00:00.000Z'),
+      dateEnd: new Date('2026-05-04T10:00:00.000Z'),
       updatedAt: new Date('2026-05-03T10:00:00.000Z'),
     };
 
@@ -286,7 +291,8 @@ describe('collection.service', () => {
     const result = await updateEntry('user-1', collectionId, entryId, {
       price: 10.5,
       tags: [' A ', 'a', 'B '],
-      date: '2026-05-02T10:00:00.000Z',
+      dateStart: '2026-05-02T10:00:00.000Z',
+      dateEnd: '2026-05-04T10:00:00.000Z',
     });
 
     expect(repositoryMocks.updateEntryById).toHaveBeenCalledWith(
@@ -296,11 +302,48 @@ describe('collection.service', () => {
       expect.objectContaining({
         priceCents: 1050,
         tags: ['a', 'b'],
-        date: expect.any(Date),
+        dateStart: expect.any(Date),
+        dateEnd: expect.any(Date),
         updatedAt: expect.any(Date),
       }),
     );
     expect(result.price).toBe(10.5);
+  });
+
+  it('rejects createEntry when completed has no rating or dateStart', async () => {
+    const collectionId = new ObjectId().toHexString();
+
+    repositoryMocks.findCollectionById.mockResolvedValue(buildCollectionDoc());
+
+    await expect(
+      createEntry('user-1', collectionId, {
+        title: 'Done entry',
+        status: 'completed',
+      }),
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it('rejects updateEntry when merged completed state has no rating', async () => {
+    const collectionId = new ObjectId().toHexString();
+    const entryId = new ObjectId().toHexString();
+    const collectionDoc = buildCollectionDoc();
+    const currentEntry = {
+      ...buildEntryDoc('user-1', new ObjectId(collectionId), new ObjectId(entryId)),
+      status: 'in_progress' as const,
+      rating: undefined,
+      dateStart: undefined,
+      dateEnd: undefined,
+    };
+
+    repositoryMocks.findCollectionById.mockResolvedValue(collectionDoc);
+    repositoryMocks.findEntryById.mockResolvedValue(currentEntry);
+
+    await expect(
+      updateEntry('user-1', collectionId, entryId, {
+        status: 'completed',
+        dateStart: '2026-05-02T10:00:00.000Z',
+      }),
+    ).rejects.toBeInstanceOf(ValidationError);
   });
 
   it('deletes collection in cascade order after access check', async () => {

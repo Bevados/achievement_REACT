@@ -26,7 +26,8 @@ Service слой содержит бизнес-логику коллекций �
 
 1. Public detail читает только коллекции из `system_examples` и бросает `NotFoundError`, если example недоступен.
 2. Private access по-прежнему проходит через access-check и `ForbiddenError`.
-3. Мутации entries и collection delete сохраняют транзакционный сценарий.
+3. Для entry действует service-level бизнес-валидация: completed-entry обязан иметь `rating` и `dateStart`, а `dateEnd` не может быть раньше `dateStart`.
+4. Мутации entries и collection delete сохраняют транзакционный сценарий.
 
 ## Где используется
 

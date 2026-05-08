@@ -31,7 +31,7 @@ export const ENTRY_SORT_FIELDS = [
   'updatedAt',
   'title',
   'status',
-  'date',
+  'dateStart',
   'rating',
   'price',
 ] as const;
@@ -61,7 +61,8 @@ export interface EntryView {
   price?: number;
   tags?: string[];
   rating?: number;
-  date?: string;
+  dateStart?: string;
+  dateEnd?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -88,7 +89,8 @@ export interface CreateEntryDto {
   price?: number;
   tags?: string[];
   rating?: number;
-  date?: string;
+  dateStart?: string;
+  dateEnd?: string;
 }
 
 export interface UpdateEntryDto {
@@ -99,7 +101,8 @@ export interface UpdateEntryDto {
   price?: number;
   tags?: string[];
   rating?: number;
-  date?: string;
+  dateStart?: string;
+  dateEnd?: string;
 }
 
 export interface BaseListQueryDto {
@@ -118,6 +121,12 @@ export interface EntryListQueryDto extends BaseListQueryDto {
   sortBy?: EntrySortField;
   status?: EntryStatus;
   tag?: string;
+  createdAtFrom?: string;
+  createdAtTo?: string;
+  dateStartFrom?: string;
+  dateStartTo?: string;
+  minPrice?: number;
+  maxPrice?: number;
   minRating?: number;
   maxRating?: number;
 }

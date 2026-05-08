@@ -22,7 +22,15 @@ const COLLECTION_CATEGORIES = [
 
 const ENTRY_STATUSES = ['planned', 'in_progress', 'completed'];
 
-const OPTIONAL_ENTRY_FIELDS = ['description', 'imageUrl', 'priceCents', 'tags', 'rating', 'date'];
+const OPTIONAL_ENTRY_FIELDS = [
+  'description',
+  'imageUrl',
+  'priceCents',
+  'tags',
+  'rating',
+  'dateStart',
+  'dateRange',
+];
 
 function buildCollectionDoc(index) {
   const createdAt = new Date(Date.UTC(2026, 0, 1 + index, 9, 0, 0));
@@ -73,7 +81,8 @@ function buildOptionalEntryFields(entryIndex) {
     priceCents: (entryIndex + 1) * 137,
     tags: [`tag-${entryIndex % 5}`, `group-${entryIndex % 3}`],
     rating: (entryIndex % 10) + 1,
-    date: new Date(Date.UTC(2026, 2, (entryIndex % 26) + 1, 12, 0, 0)),
+    dateStart: new Date(Date.UTC(2026, 2, (entryIndex % 26) + 1, 12, 0, 0)),
+    dateEnd: new Date(Date.UTC(2026, 2, (entryIndex % 26) + 3, 12, 0, 0)),
   };
 }
 
@@ -95,7 +104,21 @@ function buildEntriesForCoverage(collectionDoc, collectionIndex) {
       const field = OPTIONAL_ENTRY_FIELDS[bit];
       const isEnabled = (mask & (1 << bit)) !== 0;
       if (isEnabled) {
-        entryBase[field] = optionalValues[field];
+        if (field === 'dateRange') {
+          entryBase.dateStart = optionalValues.dateStart;
+          entryBase.dateEnd = optionalValues.dateEnd;
+        } else {
+          entryBase[field] = optionalValues[field];
+        }
+      }
+    }
+
+    if (entryBase.status === 'completed') {
+      entryBase.rating ??= optionalValues.rating;
+      entryBase.dateStart ??= optionalValues.dateStart;
+
+      if (mask % 2 === 0) {
+        entryBase.dateEnd ??= optionalValues.dateEnd;
       }
     }
 
@@ -133,7 +156,17 @@ function buildEntriesForPagination(collectionDoc, collectionIndex) {
 
     if (i % 5 === 0) {
       entryBase.rating = optionalValues.rating;
-      entryBase.date = optionalValues.date;
+      entryBase.dateStart = optionalValues.dateStart;
+    }
+
+    if (i % 6 === 0) {
+      entryBase.dateStart = optionalValues.dateStart;
+      entryBase.dateEnd = optionalValues.dateEnd;
+    }
+
+    if (entryBase.status === 'completed') {
+      entryBase.rating ??= optionalValues.rating;
+      entryBase.dateStart ??= optionalValues.dateStart;
     }
 
     docs.push(entryBase);

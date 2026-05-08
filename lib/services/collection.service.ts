@@ -36,6 +36,13 @@ export class TransactionError extends Error {
   }
 }
 
+export class ValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}
+
 function mapPaginated<TInput, TOutput>(
   result: PaginatedResult<TInput>,
   mapper: (item: TInput) => TOutput,
@@ -78,12 +85,38 @@ function normalizeTags(tags?: string[]): string[] | undefined {
   return normalized;
 }
 
-function parseOptionalDate(date?: string): Date | undefined {
-  if (!date) {
+function parseOptionalDate(value?: string): Date | undefined {
+  if (!value) {
     return undefined;
   }
 
-  return new Date(date);
+  return new Date(value);
+}
+
+function assertEntryBusinessRules({
+  status,
+  rating,
+  dateStart,
+  dateEnd,
+}: {
+  status: EntryDocument['status'];
+  rating?: number;
+  dateStart?: Date;
+  dateEnd?: Date;
+}) {
+  if (status === 'completed') {
+    if (rating === undefined) {
+      throw new ValidationError('rating is required when status is completed');
+    }
+
+    if (!dateStart) {
+      throw new ValidationError('dateStart is required when status is completed');
+    }
+  }
+
+  if (dateStart && dateEnd && dateEnd.getTime() < dateStart.getTime()) {
+    throw new ValidationError('dateEnd must be greater than or equal to dateStart');
+  }
 }
 
 function toCollectionView(doc: CollectionDocument): CollectionView {
@@ -121,7 +154,8 @@ function toEntryView(doc: EntryDocument): EntryView {
     price: centsToDollars(doc.priceCents),
     tags: doc.tags,
     rating: doc.rating,
-    date: doc.date?.toISOString(),
+    dateStart: doc.dateStart?.toISOString(),
+    dateEnd: doc.dateEnd?.toISOString(),
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),
   };
@@ -327,10 +361,13 @@ export async function createEntry(
     priceCents: dollarsToCents(data.price),
     tags: normalizeTags(data.tags),
     rating: data.rating,
-    date: parseOptionalDate(data.date),
+    dateStart: parseOptionalDate(data.dateStart),
+    dateEnd: parseOptionalDate(data.dateEnd),
     createdAt: now,
     updatedAt: now,
   };
+
+  assertEntryBusinessRules(document);
 
   const insertResult = await runInTransaction(async (session) => {
     const created = await repository.createEntry(document, session);
@@ -357,7 +394,7 @@ export async function updateEntry(
   entryId: string,
   data: UpdateEntryDto,
 ): Promise<EntryView> {
-  await assertEntryAccess(ownerId, collectionId, entryId);
+  const existingEntry = await assertEntryAccess(ownerId, collectionId, entryId);
 
   const updateData: Partial<EntryDocument> = {
     updatedAt: new Date(),
@@ -391,9 +428,20 @@ export async function updateEntry(
     updateData.rating = data.rating;
   }
 
-  if (data.date !== undefined) {
-    updateData.date = parseOptionalDate(data.date);
+  if (data.dateStart !== undefined) {
+    updateData.dateStart = parseOptionalDate(data.dateStart);
   }
+
+  if (data.dateEnd !== undefined) {
+    updateData.dateEnd = parseOptionalDate(data.dateEnd);
+  }
+
+  assertEntryBusinessRules({
+    status: updateData.status ?? existingEntry.status,
+    rating: updateData.rating ?? existingEntry.rating,
+    dateStart: updateData.dateStart ?? existingEntry.dateStart,
+    dateEnd: updateData.dateEnd ?? existingEntry.dateEnd,
+  });
 
   await repository.updateEntryById(ownerId, collectionId, entryId, updateData);
 

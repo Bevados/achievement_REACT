@@ -26,7 +26,9 @@ Repository инкапсулирует MongoDB-запросы для коллек
 
 1. Public queries жестко фильтруют `ownerId=system_examples` и `isPublic=true`.
 2. Search-строка экранируется перед Mongo `$regex`.
-3. Для public entries используется тот же entry-filter и sort helper, что и в private list.
+3. Для entry sorting поле API `dateStart` маппится на persistence-поле `dateStart`.
+4. Entry filter поддерживает server-side диапазоны `createdAt`, `dateStart`, `priceCents` и `rating`.
+5. Для public entries используется тот же entry-filter и sort helper, что и в private list.
 
 ## Где используется
 

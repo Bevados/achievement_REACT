@@ -34,7 +34,7 @@ const entrySortFieldMap: Record<EntrySortField, keyof EntryDocument> = {
   updatedAt: 'updatedAt',
   title: 'title',
   status: 'status',
-  date: 'date',
+  dateStart: 'dateStart',
   rating: 'rating',
   price: 'priceCents',
 };
@@ -150,6 +150,48 @@ function buildEntryFilter(
     }
 
     filter.rating = ratingFilter;
+  }
+
+  if (query.minPrice !== undefined || query.maxPrice !== undefined) {
+    const priceFilter: { $gte?: number; $lte?: number } = {};
+
+    if (query.minPrice !== undefined) {
+      priceFilter.$gte = Math.round(query.minPrice * 100);
+    }
+
+    if (query.maxPrice !== undefined) {
+      priceFilter.$lte = Math.round(query.maxPrice * 100);
+    }
+
+    filter.priceCents = priceFilter;
+  }
+
+  if (query.createdAtFrom !== undefined || query.createdAtTo !== undefined) {
+    const createdAtFilter: { $gte?: Date; $lte?: Date } = {};
+
+    if (query.createdAtFrom !== undefined) {
+      createdAtFilter.$gte = new Date(query.createdAtFrom);
+    }
+
+    if (query.createdAtTo !== undefined) {
+      createdAtFilter.$lte = new Date(query.createdAtTo);
+    }
+
+    filter.createdAt = createdAtFilter;
+  }
+
+  if (query.dateStartFrom !== undefined || query.dateStartTo !== undefined) {
+    const dateStartFilter: { $gte?: Date; $lte?: Date } = {};
+
+    if (query.dateStartFrom !== undefined) {
+      dateStartFilter.$gte = new Date(query.dateStartFrom);
+    }
+
+    if (query.dateStartTo !== undefined) {
+      dateStartFilter.$lte = new Date(query.dateStartTo);
+    }
+
+    filter.dateStart = dateStartFilter;
   }
 
   return filter;

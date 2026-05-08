@@ -80,6 +80,8 @@ describe('PublicCollectionDetailPage', () => {
   });
 
   it('renders empty state for public entries', async () => {
+    const user = userEvent.setup();
+
     mockedGetPublicCollectionById.mockResolvedValue({
       id: 'collection-1',
       ownerId: 'system_examples',
@@ -103,10 +105,14 @@ describe('PublicCollectionDetailPage', () => {
     renderPage();
 
     expect(await screen.findByRole('heading', { name: 'Публичная коллекция' })).toBeInTheDocument();
-    expect(screen.getByText('В этой публичной коллекции пока нет карточек.')).toBeInTheDocument();
+    expect(screen.getByText('По выбранным фильтрам карточки не найдены.')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Показать фильтры' }));
+    expect(screen.getByLabelText('Статус')).toBeInTheDocument();
   });
 
   it('renders success state without private actions', async () => {
+    const user = userEvent.setup();
+
     mockedGetPublicCollectionById.mockResolvedValue({
       id: 'collection-1',
       ownerId: 'system_examples',
@@ -144,6 +150,8 @@ describe('PublicCollectionDetailPage', () => {
     expect(await screen.findByRole('heading', { name: 'Публичная коллекция' })).toBeInTheDocument();
     expect(screen.getByText('Токио')).toBeInTheDocument();
     expect(screen.getByText('Первый город в маршруте.')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Показать фильтры' }));
+    expect(screen.getByLabelText('Сортировка')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Редактировать' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Удалить' })).not.toBeInTheDocument();
   });

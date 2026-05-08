@@ -19,9 +19,10 @@
 2. Проверяемые контракты:
    - Корректный маппинг Document -> View.
    - Семантика ошибок Forbidden/NotFound.
-   - Конверсия price/date/tags в create/update entry.
+   - Конверсия price/dateStart/dateEnd/tags в create/update entry.
    - Оркестрация каскадного удаления коллекции.
    - Поддержка entriesCount через `changeCollectionEntriesCount`.
+   - Бизнес-правило completed-entry (`rating` и `dateStart` обязательны).
    - Rollback-сценарии: при сбое второго шага мутации вызывается abortTransaction.
 
 ## Нетривиальная логика

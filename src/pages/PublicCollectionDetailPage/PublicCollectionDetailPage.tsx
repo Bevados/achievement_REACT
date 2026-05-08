@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import type { CollectionView, EntryView, PaginationMeta } from '../../../contracts/collection.contracts';
+import type { CollectionView } from '../../../contracts/collection.contracts';
 import { getPublicCollectionById, getPublicCollectionEntries } from '../../api/collections.api';
+import EntriesFilters from '../../components/Entries/EntriesFilters';
 import EntriesGrid from '../../components/Entries/EntriesGrid';
+import EntriesPagination from '../../components/Entries/EntriesPagination';
 import { collectionCategoryLabels } from '../../config/collections.config';
+import { useEntriesListController } from '../../hooks/useEntriesListController';
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString('ru-RU', {
@@ -17,16 +20,51 @@ export default function PublicCollectionDetailPage() {
   const { collectionId } = useParams<{ collectionId: string }>();
 
   const [collection, setCollection] = useState<CollectionView | null>(null);
-  const [entries, setEntries] = useState<EntryView[]>([]);
-  const [entriesMeta, setEntriesMeta] = useState<PaginationMeta | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const {
+    entries,
+    meta: entriesMeta,
+    page,
+    sortBy,
+    sortOrder,
+    status,
+    createdAtFromInput,
+    createdAtToInput,
+    dateStartFromInput,
+    dateStartToInput,
+    minPriceInput,
+    maxPriceInput,
+    minRatingInput,
+    maxRatingInput,
+    isLoading: isEntriesLoading,
+    errorMessage: entriesErrorMessage,
+    setSortBy,
+    setSortOrder,
+    setStatus,
+    setCreatedAtFromInput,
+    setCreatedAtToInput,
+    setDateStartFromInput,
+    setDateStartToInput,
+    setMinPriceInput,
+    setMaxPriceInput,
+    setMinRatingInput,
+    setMaxRatingInput,
+    applyFilters,
+    resetFilters,
+    goToPreviousPage,
+    goToNextPage,
+    reloadEntries,
+  } = useEntriesListController({
+    collectionId: collectionId ?? '',
+    fetchEntries: getPublicCollectionEntries,
+    fallbackErrorMessage: 'Не удалось загрузить карточки публичной коллекции. Попробуйте еще раз.',
+  });
 
   const reloadPage = useCallback(async () => {
     if (!collectionId) {
       setCollection(null);
-      setEntries([]);
-      setEntriesMeta(null);
       setErrorMessage('Не удалось определить идентификатор публичной коллекции.');
       setIsLoading(false);
       return;
@@ -36,18 +74,11 @@ export default function PublicCollectionDetailPage() {
     setErrorMessage(null);
 
     try {
-      const [collectionResult, entriesResult] = await Promise.all([
-        getPublicCollectionById(collectionId),
-        getPublicCollectionEntries(collectionId),
-      ]);
+      const collectionResult = await getPublicCollectionById(collectionId);
 
       setCollection(collectionResult);
-      setEntries(entriesResult.items);
-      setEntriesMeta(entriesResult.meta);
     } catch (error) {
       setCollection(null);
-      setEntries([]);
-      setEntriesMeta(null);
       setErrorMessage(
         error instanceof Error
           ? error.message
@@ -91,6 +122,7 @@ export default function PublicCollectionDetailPage() {
             type="button"
             onClick={() => {
               void reloadPage();
+              void reloadEntries();
             }}
             className="mt-3 inline-flex rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
           >
@@ -162,11 +194,62 @@ export default function PublicCollectionDetailPage() {
           </div>
         </div>
 
-        <EntriesGrid
-          entries={entries}
-          emptyMessage="В этой публичной коллекции пока нет карточек."
-          showActions={false}
+        <EntriesFilters
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          status={status}
+          createdAtFrom={createdAtFromInput}
+          createdAtTo={createdAtToInput}
+          dateStartFrom={dateStartFromInput}
+          dateStartTo={dateStartToInput}
+          minPrice={minPriceInput}
+          maxPrice={maxPriceInput}
+          minRating={minRatingInput}
+          maxRating={maxRatingInput}
+          onSortByChange={setSortBy}
+          onSortOrderChange={setSortOrder}
+          onStatusChange={setStatus}
+          onCreatedAtFromChange={setCreatedAtFromInput}
+          onCreatedAtToChange={setCreatedAtToInput}
+          onDateStartFromChange={setDateStartFromInput}
+          onDateStartToChange={setDateStartToInput}
+          onMinPriceChange={setMinPriceInput}
+          onMaxPriceChange={setMaxPriceInput}
+          onMinRatingChange={setMinRatingInput}
+          onMaxRatingChange={setMaxRatingInput}
+          onApply={applyFilters}
+          onReset={resetFilters}
         />
+
+        {isEntriesLoading ? (
+          <div className="grid gap-4 lg:grid-cols-2" aria-live="polite">
+            {Array.from({ length: 2 }).map((_, index) => (
+              <div key={index} className="h-72 animate-pulse rounded-2xl border border-gray-200 bg-gray-50" />
+            ))}
+          </div>
+        ) : entriesErrorMessage ? (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 p-4" role="alert">
+            <p className="text-sm text-rose-700">{entriesErrorMessage}</p>
+          </div>
+        ) : (
+          <>
+            <EntriesGrid
+              entries={entries}
+              emptyMessage="По выбранным фильтрам карточки не найдены."
+              showActions={false}
+            />
+
+            {entriesMeta && entriesMeta.totalPages > 1 ? (
+              <EntriesPagination
+                meta={entriesMeta}
+                page={page}
+                isLoading={isEntriesLoading}
+                onPreviousPage={goToPreviousPage}
+                onNextPage={goToNextPage}
+              />
+            ) : null}
+          </>
+        )}
       </div>
     </section>
   );

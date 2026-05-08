@@ -59,42 +59,90 @@ export const updateCollectionSchema: z.ZodType<UpdateCollectionDto> = z
     message: 'At least one field must be provided for update',
   });
 
-export const createEntrySchema: z.ZodType<CreateEntryDto> = z
-  .object({
-    title: z.string().trim().min(1).max(160),
-    status: z.enum(ENTRY_STATUSES),
-    description: z.string().trim().min(1).max(1000).optional(),
-    imageUrl: urlSchema.optional(),
-    price: priceSchema.optional(),
-    tags: z
-      .array(tagSchema)
-      .max(10, 'No more than 10 tags are allowed')
-      .transform((tags) => Array.from(new Set(tags)))
-      .optional(),
-    rating: z.number().int().min(1).max(10).optional(),
-    date: dateIsoSchema.optional(),
-  })
-  .strict();
+function addEntryBusinessRules<
+  T extends {
+    status?: (typeof ENTRY_STATUSES)[number];
+    rating?: number;
+    dateStart?: string;
+    dateEnd?: string;
+  },
+>(schema: z.ZodType<T>) {
+  return schema.superRefine((payload, ctx) => {
+    if (payload.dateStart && payload.dateEnd) {
+      const start = new Date(payload.dateStart).getTime();
+      const end = new Date(payload.dateEnd).getTime();
 
-export const updateEntrySchema: z.ZodType<UpdateEntryDto> = z
-  .object({
-    title: z.string().trim().min(1).max(160).optional(),
-    status: z.enum(ENTRY_STATUSES).optional(),
-    description: z.string().trim().min(1).max(1000).optional(),
-    imageUrl: urlSchema.optional(),
-    price: priceSchema.optional(),
-    tags: z
-      .array(tagSchema)
-      .max(10, 'No more than 10 tags are allowed')
-      .transform((tags) => Array.from(new Set(tags)))
-      .optional(),
-    rating: z.number().int().min(1).max(10).optional(),
-    date: dateIsoSchema.optional(),
-  })
-  .strict()
-  .refine((payload) => Object.keys(payload).length > 0, {
-    message: 'At least one field must be provided for update',
+      if (end < start) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'dateEnd must be greater than or equal to dateStart',
+          path: ['dateEnd'],
+        });
+      }
+    }
+
+    if (payload.status === 'completed') {
+      if (payload.rating === undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'rating is required when status is completed',
+          path: ['rating'],
+        });
+      }
+
+      if (!payload.dateStart) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'dateStart is required when status is completed',
+          path: ['dateStart'],
+        });
+      }
+    }
   });
+}
+
+export const createEntrySchema: z.ZodType<CreateEntryDto> = addEntryBusinessRules(
+  z
+    .object({
+      title: z.string().trim().min(1).max(160),
+      status: z.enum(ENTRY_STATUSES),
+      description: z.string().trim().min(1).max(1000).optional(),
+      imageUrl: urlSchema.optional(),
+      price: priceSchema.optional(),
+      tags: z
+        .array(tagSchema)
+        .max(10, 'No more than 10 tags are allowed')
+        .transform((tags) => Array.from(new Set(tags)))
+        .optional(),
+      rating: z.number().int().min(1).max(10).optional(),
+      dateStart: dateIsoSchema.optional(),
+      dateEnd: dateIsoSchema.optional(),
+    })
+    .strict(),
+);
+
+export const updateEntrySchema: z.ZodType<UpdateEntryDto> = addEntryBusinessRules(
+  z
+    .object({
+      title: z.string().trim().min(1).max(160).optional(),
+      status: z.enum(ENTRY_STATUSES).optional(),
+      description: z.string().trim().min(1).max(1000).optional(),
+      imageUrl: urlSchema.optional(),
+      price: priceSchema.optional(),
+      tags: z
+        .array(tagSchema)
+        .max(10, 'No more than 10 tags are allowed')
+        .transform((tags) => Array.from(new Set(tags)))
+        .optional(),
+      rating: z.number().int().min(1).max(10).optional(),
+      dateStart: dateIsoSchema.optional(),
+      dateEnd: dateIsoSchema.optional(),
+    })
+    .strict()
+    .refine((payload) => Object.keys(payload).length > 0, {
+      message: 'At least one field must be provided for update',
+    }),
+);
 
 export const baseListQuerySchema = z
   .object({
@@ -117,6 +165,12 @@ export const entryListQuerySchema = baseListQuerySchema
     sortBy: z.enum(ENTRY_SORT_FIELDS).optional(),
     status: z.enum(ENTRY_STATUSES).optional(),
     tag: tagSchema.optional(),
+    createdAtFrom: dateIsoSchema.optional(),
+    createdAtTo: dateIsoSchema.optional(),
+    dateStartFrom: dateIsoSchema.optional(),
+    dateStartTo: dateIsoSchema.optional(),
+    minPrice: priceSchema.optional(),
+    maxPrice: priceSchema.optional(),
     minRating: z.coerce.number().int().min(1).max(10).optional(),
     maxRating: z.coerce.number().int().min(1).max(10).optional(),
   })
@@ -129,5 +183,35 @@ export const entryListQuerySchema = baseListQuerySchema
     {
       message: 'minRating must be less than or equal to maxRating',
       path: ['minRating'],
+    },
+  )
+  .refine(
+    (query) =>
+      query.minPrice === undefined ||
+      query.maxPrice === undefined ||
+      query.minPrice <= query.maxPrice,
+    {
+      message: 'minPrice must be less than or equal to maxPrice',
+      path: ['minPrice'],
+    },
+  )
+  .refine(
+    (query) =>
+      query.createdAtFrom === undefined ||
+      query.createdAtTo === undefined ||
+      new Date(query.createdAtFrom).getTime() <= new Date(query.createdAtTo).getTime(),
+    {
+      message: 'createdAtFrom must be less than or equal to createdAtTo',
+      path: ['createdAtFrom'],
+    },
+  )
+  .refine(
+    (query) =>
+      query.dateStartFrom === undefined ||
+      query.dateStartTo === undefined ||
+      new Date(query.dateStartFrom).getTime() <= new Date(query.dateStartTo).getTime(),
+    {
+      message: 'dateStartFrom must be less than or equal to dateStartTo',
+      path: ['dateStartFrom'],
     },
   );

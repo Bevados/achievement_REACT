@@ -128,13 +128,15 @@
 2. imageUrl - URL изображения карточки.
 3. price - стоимость (если есть).
 4. tags - массив тегов.
-5. rating - оценка от 1 до 10.
-6. date - дата события/покупки/поездки.
+5. rating - оценка от 1 до 10 (обязательна для `completed`).
+6. dateStart - дата события/начала периода (обязательна для `completed`).
+7. dateEnd - конец периода, если пользователь выбрал диапазон.
 
 Обязательные поля для отображения:
 
 1. title - название карточки.
 2. status - planned | in_progress | completed.
+3. createdAt - дата создания карточки.
 
 Необязательные поля для отображения:
 
@@ -143,7 +145,8 @@
 3. price - стоимость (если есть).
 4. tags - массив тегов.
 5. rating - оценка от 1 до 10.
-6. date - дата события/покупки/поездки.
+6. dateStart - одна дата или начало периода.
+7. dateEnd - конец периода, если карточка заполнена как диапазон.
 
 Поля в базе данных, некоторые могут быть пустыми:
 
@@ -155,11 +158,12 @@
 6. rating - оценка от 1 до 10.
 7. createdAt - дата создания.
 8. updatedAt - дата изменения.
-9. date - дата события/покупки/поездки.
-10. price - стоимость (если есть).
-11. description - краткое описание.
-12. status - planned | in_progress | completed.
-13. tags - массив тегов.
+9. dateStart - дата события или начало периода.
+10. dateEnd - конец периода (если задан).
+11. price - стоимость (если есть).
+12. description - краткое описание.
+13. status - planned | in_progress | completed.
+14. tags - массив тегов.
 
 ### 1.4 Важные решения
 
@@ -262,7 +266,7 @@
 7. `POST /api/collections/:collectionId/entries`.
    Auth: required.
    Params: `collectionId`.
-   Body: `title` и `status` обязательны; `description`, `imageUrl`, `price`, `tags`, `rating`, `date` опциональны.
+   Body: `title` и `status` обязательны; `description`, `imageUrl`, `price`, `tags`, `rating`, `dateStart`, `dateEnd` опциональны, но для `completed` обязательны `rating` и `dateStart`.
    Success: 201, `data = EntryView`.
    Errors: 401, 403, 404, 422, 500.
 
@@ -290,7 +294,7 @@
 ### 2.3.5 Контрактные инварианты
 
 1. `price` в API принимается как number в долларах (до 2 знаков), внутри БД хранится в центах.
-2. `date` в API принимается как ISO datetime string с offset.
+2. `dateStart` и `dateEnd` в API принимаются как ISO datetime string с offset.
 3. `tags` ограничены (до 10, длина тега до 20) и дедуплицируются.
 4. `rating` ограничен диапазоном 1..10.
 5. Для list query: `limit` в диапазоне 1..100, по умолчанию 10.
@@ -337,10 +341,12 @@
 ## Шаг 5. CRUD коллекций и карточек
 
 1. Сначала карточки и list UI без форм (read-only каркас для Collection и Entry).
-2. Варианты карточек: with-image/no-image, with-meta/minimal.
-3. Затем формы collection и entry.
-4. Валидация форм через react-hook-form + zod.
-5. Создание, редактирование, удаление.
+2. Адаптивные визуальные состояния карточек в зависимости от заполненности данных Entry.
+3. Бизнес-правила completed-card: обязательный rating, обязательный выбор даты и новая модель dateStart/dateEnd.
+4. Затем формы collection и entry.
+5. Валидация форм через react-hook-form + zod.
+6. Создание, редактирование, удаление.
+7. Фильтры карточек по статусу, датам, цене и рейтингу.
 
 Зачем:
 
@@ -400,6 +406,34 @@
 5. `CollectionCard` должен поддерживать контекстную навигацию: на private-странице вести в private detail, на public examples вести в public detail.
 6. Публичная detail-страница examples должна показывать саму example-коллекцию и ее entries в read-only режиме без приватных действий редактирования/удаления.
 
+## Прогресс шага 5.2
+
+1. Подпункт 5.2 уточнен: это не ручной выбор шаблона карточки, а адаптивный `EntryCard`, который сам меняет composition по реально заполненным данным `Entry`.
+2. Картинка показывается только если у карточки есть `imageUrl`; отдельного пользовательского выбора вида карточки не вводится.
+3. Optional-поля (`description`, `dateStart/dateEnd`, `price`, `rating`, `tags`) отображаются только при наличии данных, а карточка без них должна оставаться компактной и визуально аккуратной.
+4. Различие public/private в рамках 5.2 сохраняется только через `showActions`: в public detail кнопки действий скрыты, в private detail остаются видимыми как заглушки будущего CRUD.
+5. Цель шага 5.2 - чтобы минимально заполненные, частично заполненные и максимально заполненные карточки выглядели как разные естественные состояния одного и того же UI.
+
+## Прогресс подпункта после 5.2
+
+1. Для `completed`-карточек введено правило: `rating` и `dateStart` обязательны, чтобы завершенная карточка не выглядела пустой и имела минимально осмысленный набор данных.
+2. Одно поле `date` заменено на новую модель `dateStart/dateEnd`: одна дата хранится как `dateStart`, период хранится как `dateStart + dateEnd`.
+3. `EntryCard` всегда показывает `createdAt`, а дата события рендерится как одна дата или как период в зависимости от заполненности `dateEnd`.
+4. Для PATCH-обновления completed-entry бизнес-правило проверяется не только схемой, но и service-layer после merge с текущими данными записи.
+
+## Прогресс по сетке entries
+
+1. Для списка `entries` выбран masonry-подход со строчным порядком, чтобы короткие карточки не растягивались до высоты самых высоких соседей.
+2. Реализация строится поверх CSS Grid с мелкой базовой строкой (`grid-auto-rows`) и вычислением `grid-row-end: span N` по реальной DOM-высоте карточки.
+3. На desktop список получает masonry feel, а на mobile/tablet сохраняет простую и устойчивую одну колонку без лишней сложности.
+4. Для сохранения порядка массива не используется CSS columns; порядок чтения карточек остается слева направо по строкам.
+
+## Прогресс по фильтрам entries
+
+1. Для обеих detail-страниц (`private` и `public`) выбран общий server-driven набор фильтров карточек.
+2. Фильтры включают: `status`, диапазон `createdAt`, диапазон `dateStart`, диапазон `price`, диапазон `rating`.
+3. UI фильтров должен быть общим и переиспользуемым, а state/query-sync вынесен в отдельный controller hook по аналогии с коллекциями.
+
 ## Ближайшие восстановительные задачи после шага 5.1
 
 1. [done 2026-05-07] Восстановлена локальная подгрузка `/api/examples/collections` в `npm run dev` через dev-only Vite middleware. Проверено через `GET /api/examples/collections?limit=2`: endpoint вернул `200 OK`, `total=18` и реальные `system_examples` из MongoDB.
@@ -410,29 +444,30 @@
 
 ## Лог принятых решений
 
-1. Для Entry: `rating` необязательный.
-2. Для Entry: `date` необязательная.
-3. Для Entry: `status` обязательный.
-4. Категории коллекций храним как slug enum: travel, sport, shopping, learning, health_body, creativity, hobby, career, family, home, self_development, other.
-5. Цена: в API/DTO передаем в долларах (до 2 знаков после точки), в БД храним в центах (integer).
-6. Date в API/DTO передаем как ISO-строку.
-7. Пагинация фиксируется в list DTO (page, limit, sortBy, sortOrder и фильтры).
-8. Price на API принимается только как number (строковый формат, например "12.34", не принимаем).
-9. Для list query: limit по умолчанию 10, допустимый диапазон 1..100.
-10. Для tags: максимум 10 тегов, длина каждого до 20 символов.
-11. Для EntryDocument поле collectionId храним как ObjectId-ссылку.
-12. Поле `isPublic` удалено из private DTO и private Zod-схем коллекций.
-13. Публичные examples выдаются из системного ownerId `system_examples` (константа backend), а не из пользовательских данных.
-14. Для access-check в сервисе используем семантику: чужие данные -> 403, отсутствующие -> 404.
-15. Поиск коллекций в backend делаем по `title + description`.
-16. `entriesCount` поддерживается в service-оркестрации при create/delete entry.
-17. Мутации `createEntry`, `deleteEntry`, `deleteCollection` выполняются транзакционно с rollback при ошибке шага внутри операции.
-18. Индексы MongoDB инициализируются lazy при первом подключении в runtime через `api/_mongodb.ts`.
-19. Контрактный слой (DTO, enum, response envelope и контрактные Zod-схемы) вынесен в папку `contracts/` для совместного использования frontend/backend.
-20. Главная страница `/` доступна только гостям; авторизованный пользователь перенаправляется на `/collections`.
-21. Логин и регистрация на шаге 3.1 остаются модальными; отдельный route `/login` не используется.
-22. URL-область коллекций отделена от auth-путей: используются `/collections` и последующие private-routes.
-23. Deferred-intent `create-collection` устанавливается только из Hero CTA гостевой главной.
+1. Для Entry: `rating` обязателен, если `status = completed`.
+2. Для Entry: вместо одного `date` используется модель `dateStart/dateEnd`.
+3. Для Entry: `dateStart` обязателен, если `status = completed`.
+4. Для Entry: `status` обязательный.
+5. Категории коллекций храним как slug enum: travel, sport, shopping, learning, health_body, creativity, hobby, career, family, home, self_development, other.
+6. Цена: в API/DTO передаем в долларах (до 2 знаков после точки), в БД храним в центах (integer).
+7. `dateStart` и `dateEnd` в API/DTO передаем как ISO-строки.
+8. Пагинация фиксируется в list DTO (page, limit, sortBy, sortOrder и фильтры).
+9. Price на API принимается только как number (строковый формат, например "12.34", не принимаем).
+10. Для list query: limit по умолчанию 10, допустимый диапазон 1..100.
+11. Для tags: максимум 10 тегов, длина каждого до 20 символов.
+12. Для EntryDocument поле collectionId храним как ObjectId-ссылку.
+13. Поле `isPublic` удалено из private DTO и private Zod-схем коллекций.
+14. Публичные examples выдаются из системного ownerId `system_examples` (константа backend), а не из пользовательских данных.
+15. Для access-check в сервисе используем семантику: чужие данные -> 403, отсутствующие -> 404.
+16. Поиск коллекций в backend делаем по `title + description`.
+17. `entriesCount` поддерживается в service-оркестрации при create/delete entry.
+18. Мутации `createEntry`, `deleteEntry`, `deleteCollection` выполняются транзакционно с rollback при ошибке шага внутри операции.
+19. Индексы MongoDB инициализируются lazy при первом подключении в runtime через `api/_mongodb.ts`.
+20. Контрактный слой (DTO, enum, response envelope и контрактные Zod-схемы) вынесен в папку `contracts/` для совместного использования frontend/backend.
+21. Главная страница `/` доступна только гостям; авторизованный пользователь перенаправляется на `/collections`.
+22. Логин и регистрация на шаге 3.1 остаются модальными; отдельный route `/login` не используется.
+23. URL-область коллекций отделена от auth-путей: используются `/collections` и последующие private-routes.
+24. Deferred-intent `create-collection` устанавливается только из Hero CTA гостевой главной.
 
 ## Прогресс шага 2.1
 
@@ -442,7 +477,7 @@
 ## Прогресс шага 2.2
 
 1. Добавлены Zod-схемы Collection/Entry для body/query/params: `lib/validation/collection.schema.ts`.
-2. Зафиксированы ограничения price, tags, pagination, rating и date на уровне runtime-валидации.
+2. Зафиксированы ограничения price, tags, pagination, rating и `dateStart/dateEnd` на уровне runtime-валидации.
 3. Добавлена документация для нового schema-файла: `Docs/lib/validation/collection.schema.ts.md`.
 
 ## Прогресс шага 2.2.3
@@ -454,7 +489,7 @@
 ## Прогресс шага 2.2.4
 
 1. Реализован service-слой Collection/Entry: `lib/services/collection.service.ts`.
-2. Добавлены бизнес-правила конверсии `price/date/tags`, access-check 403/404 и каскад delete.
+2. Добавлены бизнес-правила конверсии `price/dateStart/dateEnd/tags`, access-check 403/404 и каскад delete.
 3. Добавлены tests-first unit-тесты сервиса: `lib/services/collection.service.test.ts`.
 4. Добавлены контрактные тесты schema для запрета `isPublic` в private API: `lib/validation/collection.schema.test.ts`.
 5. Документация синхронизирована для новых/измененных файлов в `Docs/lib/...`.
@@ -477,7 +512,7 @@
 
 1. Раздел `2.3 API-контракты MVP` расширен до полноценной спецификации endpoint-ов, статусов и форматов ответа.
 2. Зафиксированы общие правила контракта: envelope, auth, ObjectId format, структура `details` для 422.
-3. Зафиксированы инварианты: price/date/tags/rating/pagination, `minRating <= maxRating`, каскадный delete и `entriesCount`.
+3. Зафиксированы инварианты: price/dateStart/dateEnd/tags/rating/pagination, `minRating <= maxRating`, каскадный delete и `entriesCount`.
 4. Спецификация 2.3 готова как source of truth для реализации UI шага 3.
 
 ## Дополнительный рефакторинг контрактного слоя

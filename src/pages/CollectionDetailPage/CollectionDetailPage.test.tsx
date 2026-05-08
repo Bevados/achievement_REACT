@@ -78,6 +78,8 @@ describe('CollectionDetailPage', () => {
   });
 
   it('renders empty state for entries', async () => {
+    const user = userEvent.setup();
+
     mockedGetCollectionById.mockResolvedValue({
       id: 'collection-1',
       ownerId: 'user-1',
@@ -101,12 +103,14 @@ describe('CollectionDetailPage', () => {
     renderPage();
 
     expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
-    expect(
-      screen.getByText('В этой коллекции пока нет карточек. На следующем подпункте сюда подключим создание.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('По выбранным фильтрам карточки не найдены.')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Показать фильтры' }));
+    expect(screen.getByLabelText('Статус')).toBeInTheDocument();
   });
 
   it('renders success state with entries', async () => {
+    const user = userEvent.setup();
+
     mockedGetCollectionById.mockResolvedValue({
       id: 'collection-1',
       ownerId: 'user-1',
@@ -144,6 +148,8 @@ describe('CollectionDetailPage', () => {
     expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
     expect(screen.getByText('Токио')).toBeInTheDocument();
     expect(screen.getByText('Первый город в маршруте.')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Показать фильтры' }));
+    expect(screen.getByLabelText('Сортировка')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Добавить карточку' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Редактировать коллекцию' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Удалить коллекцию' })).toBeDisabled();

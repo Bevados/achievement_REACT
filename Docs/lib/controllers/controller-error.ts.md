@@ -21,7 +21,7 @@
 ## Нетривиальная логика
 
 1. ZodError маппится в 422 VALIDATION_ERROR c массивом details.
-2. Ошибки бизнес-слоя маппятся по имени: ForbiddenError -> 403, NotFoundError -> 404, TransactionError -> 500.
+2. Ошибки бизнес-слоя маппятся по имени: ForbiddenError -> 403, NotFoundError -> 404, ValidationError -> 422, TransactionError -> 500.
 3. Для неизвестных исключений возвращается 500 INTERNAL_ERROR без утечки внутреннего stack trace.
 
 ## Где используется

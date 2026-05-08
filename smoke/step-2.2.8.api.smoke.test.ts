@@ -309,7 +309,12 @@ describe('step 2.2.8 api smoke (handler/controller harness fallback)', () => {
       items: [entryView],
       meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
     });
-    serviceMocks.updateEntry.mockResolvedValue({ ...entryView, status: 'completed' });
+    serviceMocks.updateEntry.mockResolvedValue({
+      ...entryView,
+      status: 'completed',
+      rating: 9,
+      dateStart: '2026-04-25T10:00:00.000Z',
+    });
     serviceMocks.deleteEntry.mockResolvedValue(undefined);
 
     const createReq = createRequest({
@@ -340,7 +345,11 @@ describe('step 2.2.8 api smoke (handler/controller harness fallback)', () => {
         collectionId: '507f1f77bcf86cd799439011',
         entryId: '507f1f77bcf86cd799439012',
       },
-      body: { status: 'completed' },
+      body: {
+        status: 'completed',
+        rating: 9,
+        dateStart: '2026-04-25T10:00:00.000Z',
+      },
     });
     const patchRes = createResponse();
     await entryByIdHandler(patchReq as any, patchRes as any);

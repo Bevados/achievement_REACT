@@ -27,7 +27,8 @@ export interface EntryDocument {
   priceCents?: number;
   tags?: string[];
   rating?: number;
-  date?: Date;
+  dateStart?: Date;
+  dateEnd?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
