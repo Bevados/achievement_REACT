@@ -16,11 +16,12 @@
 2. Пропсы:
    - `entry: EntryView`
    - `showActions?: boolean`
+   - `onEdit?: (entry: EntryView) => void`
 
 ## Нетривиальная логика
 
-1. `showActions` управляет отображением disabled-кнопок `Редактировать` / `Удалить`.
-2. Это позволяет использовать один и тот же UI и для private detail, и для public examples detail.
+1. `showActions` управляет отображением private action-кнопок и позволяет использовать один и тот же UI и для private detail, и для public examples detail.
+2. `onEdit` включает рабочую кнопку `Редактировать` только в private-режиме, чтобы карточка могла открывать modal-форму без знания о page-state.
 3. `formatDateRange` превращает `dateStart/dateEnd` в одну дату или период для UI.
 4. `hasSupplementaryContent` определяет, нужно ли карточке expanded-spacing и строка `Обновлено`, чтобы минимальная карточка оставалась компактной.
 5. Rating отображается как 10-звёздная шкала с жёлтым заполнением плюс числовое значение `N / 10`, чтобы карточка была и визуальной, и однозначно читаемой.

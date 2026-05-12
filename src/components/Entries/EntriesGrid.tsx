@@ -6,13 +6,19 @@ interface EntriesGridProps {
   entries: EntryView[];
   emptyMessage: string;
   showActions?: boolean;
+  onEditEntry?: (entry: EntryView) => void;
 }
 
 const DESKTOP_MEDIA_QUERY = '(min-width: 1024px)';
 const DESKTOP_ROW_HEIGHT = 8;
 const DESKTOP_ROW_GAP = 16;
 
-export default function EntriesGrid({ entries, emptyMessage, showActions = true }: EntriesGridProps) {
+export default function EntriesGrid({
+  entries,
+  emptyMessage,
+  showActions = true,
+  onEditEntry,
+}: EntriesGridProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef(new Map<string, HTMLDivElement>());
   const [rowSpans, setRowSpans] = useState<Record<string, number>>({});
@@ -109,7 +115,7 @@ export default function EntriesGrid({ entries, emptyMessage, showActions = true 
           data-testid="entry-grid-item"
           style={rowSpans[entry.id] ? { gridRowEnd: `span ${rowSpans[entry.id]}` } : undefined}
         >
-          <EntryCard entry={entry} showActions={showActions} />
+          <EntryCard entry={entry} showActions={showActions} onEdit={showActions ? onEditEntry : undefined} />
         </div>
       ))}
     </div>

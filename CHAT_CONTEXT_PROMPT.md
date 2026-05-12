@@ -206,4 +206,21 @@ Private API:
 - avoid solutions depending on WSL unless explicitly requested
 - если CLI-проверка проходит, а VS Code показывает старую ошибку, сначала проверить, не editor cache ли это
 - если backend не стартует, частая причина — занят порт `3000`
+
+---
+
+# 11. Обновление По Шагу 5.4
+
+- В private-зоне уже есть modal-формы `CollectionForm` и `EntryForm`.
+- Формы подключены только как UI-слой:
+  - без API-submit;
+  - без `react-hook-form`;
+  - без Zod-валидации.
+- `CollectionsPage` открывает modal создания коллекции.
+- `CollectionDetailPage` открывает:
+  - modal редактирования коллекции;
+  - modal создания карточки;
+  - modal редактирования карточки из `EntryCard`.
+- Состояние этих модалок хранится локально в страницах и не смешивается с auth `modal.store`.
+- Следующий логический подпункт после этого — подключение `react-hook-form + zod` к уже существующим формам.
 ```

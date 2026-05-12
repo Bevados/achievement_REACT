@@ -150,8 +150,86 @@ describe('CollectionDetailPage', () => {
     expect(screen.getByText('Первый город в маршруте.')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Показать фильтры' }));
     expect(screen.getByLabelText('Сортировка')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Добавить карточку' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Редактировать коллекцию' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Добавить карточку' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Редактировать коллекцию' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Удалить коллекцию' })).toBeDisabled();
+  });
+
+  it('opens collection and entry modals in private mode', async () => {
+    const user = userEvent.setup();
+
+    mockedGetCollectionById.mockResolvedValue({
+      id: 'collection-1',
+      ownerId: 'user-1',
+      title: 'Моя коллекция',
+      category: 'travel',
+      description: 'Описание коллекции.',
+      coverImageUrl: 'https://example.com/cover.jpg',
+      isPublic: false,
+      entriesCount: 1,
+      createdAt: '2026-05-01T08:00:00.000Z',
+      updatedAt: '2026-05-02T08:00:00.000Z',
+    });
+    mockedGetCollectionEntries.mockResolvedValue({
+      items: [
+        {
+          id: 'entry-1',
+          collectionId: 'collection-1',
+          ownerId: 'user-1',
+          title: 'Токио',
+          status: 'completed',
+          description: 'Первый город в маршруте.',
+          price: 24.5,
+          tags: ['travel', 'japan'],
+          rating: 9,
+          dateStart: '2026-05-01T00:00:00.000Z',
+          dateEnd: '2026-05-03T00:00:00.000Z',
+          createdAt: '2026-05-01T08:00:00.000Z',
+          updatedAt: '2026-05-02T08:00:00.000Z',
+        },
+      ],
+      meta: {
+        page: 1,
+        limit: 10,
+        total: 1,
+        totalPages: 1,
+      },
+    });
+
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Редактировать коллекцию' }));
+    expect(screen.getByRole('dialog', { name: 'Редактирование коллекции' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Название коллекции')).toHaveValue('Моя коллекция');
+    expect(screen.getByRole('button', { name: 'Сохранить изменения' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Отмена' }));
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('dialog', { name: 'Редактирование коллекции' }),
+      ).not.toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Добавить карточку' }));
+    expect(screen.getByRole('dialog', { name: 'Новая карточка' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Название карточки')).toHaveValue('');
+    expect(screen.getByRole('button', { name: 'Сохранить карточку' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Отмена' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Новая карточка' })).not.toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Редактировать' }));
+    expect(screen.getByRole('dialog', { name: 'Редактирование карточки' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Название карточки')).toHaveValue('Токио');
+    expect(screen.getByLabelText('Статус')).toHaveValue('completed');
+    expect(screen.getByLabelText('Описание')).toHaveValue('Первый город в маршруте.');
+    expect(screen.getByLabelText('Цена')).toHaveValue(24.5);
+    expect(screen.getByLabelText('Рейтинг')).toHaveValue(9);
+    expect(screen.getByLabelText('Теги')).toHaveValue('travel, japan');
+    expect(screen.getByLabelText('Дата начала')).toHaveValue('2026-05-01');
+    expect(screen.getByLabelText('Дата окончания')).toHaveValue('2026-05-03');
+    expect(screen.getByRole('button', { name: 'Сохранить изменения' })).toBeDisabled();
   });
 });

@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import EntryCard from './EntryCard';
 import type { EntryView } from '../../../contracts/collection.contracts';
 
@@ -22,6 +23,18 @@ describe('EntryCard', () => {
     expect(screen.getByText(/Создано:/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Редактировать' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Удалить' })).toBeDisabled();
+  });
+
+  it('calls onEdit when private edit action is enabled', async () => {
+    const user = userEvent.setup();
+    const onEdit = vi.fn();
+
+    render(<EntryCard entry={baseEntry} onEdit={onEdit} />);
+
+    await user.click(screen.getByRole('button', { name: 'Редактировать' }));
+
+    expect(onEdit).toHaveBeenCalledTimes(1);
+    expect(onEdit).toHaveBeenCalledWith(baseEntry);
   });
 
   it('renders optional fields when provided', () => {
@@ -51,7 +64,9 @@ describe('EntryCard', () => {
     expect(screen.getByText('28.04.2026 - 03.05.2026')).toBeInTheDocument();
     expect(screen.getByText('#travel')).toBeInTheDocument();
     expect(screen.getByText('#japan')).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'Изображение карточки Первая поездка' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('img', { name: 'Изображение карточки Первая поездка' }),
+    ).toBeInTheDocument();
   });
 
   it('stays compact when optional fields are missing', () => {

@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import EntriesGrid from './EntriesGrid';
 import type { EntryView } from '../../../contracts/collection.contracts';
 
@@ -48,5 +49,17 @@ describe('EntriesGrid', () => {
 
     expect(screen.queryByRole('button', { name: 'Редактировать' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Удалить' })).not.toBeInTheDocument();
+  });
+
+  it('forwards edit action to entry cards in private mode', async () => {
+    const user = userEvent.setup();
+    const onEditEntry = vi.fn();
+
+    render(<EntriesGrid entries={entries} emptyMessage="Пусто" onEditEntry={onEditEntry} />);
+
+    await user.click(screen.getAllByRole('button', { name: 'Редактировать' })[0]);
+
+    expect(onEditEntry).toHaveBeenCalledTimes(1);
+    expect(onEditEntry).toHaveBeenCalledWith(entries[0]);
   });
 });

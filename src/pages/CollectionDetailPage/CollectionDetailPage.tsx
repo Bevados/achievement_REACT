@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import type { CollectionView } from '../../../contracts/collection.contracts';
+import type { CollectionView, EntryView } from '../../../contracts/collection.contracts';
 import { getCollectionById, getCollectionEntries } from '../../api/collections.api';
+import CollectionForm from '../../components/Collections/CollectionForm';
+import BaseModal from '../../components/Modal/BaseModal';
+import EntryForm from '../../components/Entries/EntryForm';
 import EntriesFilters from '../../components/Entries/EntriesFilters';
 import EntriesGrid from '../../components/Entries/EntriesGrid';
 import EntriesPagination from '../../components/Entries/EntriesPagination';
@@ -22,6 +25,11 @@ export default function CollectionDetailPage() {
   const [collection, setCollection] = useState<CollectionView | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isCollectionFormOpen, setIsCollectionFormOpen] = useState(false);
+  const [entryFormState, setEntryFormState] = useState<
+    | { isOpen: false; entry: null; mode: 'create' | 'edit' }
+    | { isOpen: true; entry: EntryView | null; mode: 'create' | 'edit' }
+  >({ isOpen: false, entry: null, mode: 'create' });
 
   const {
     entries,
@@ -183,15 +191,19 @@ export default function CollectionDetailPage() {
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                disabled
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white opacity-60 disabled:cursor-not-allowed"
+                onClick={() => {
+                  setEntryFormState({ isOpen: true, entry: null, mode: 'create' });
+                }}
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
               >
                 Добавить карточку
               </button>
               <button
                 type="button"
-                disabled
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-400 disabled:cursor-not-allowed"
+                onClick={() => {
+                  setIsCollectionFormOpen(true);
+                }}
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
               >
                 Редактировать коллекцию
               </button>
@@ -261,6 +273,9 @@ export default function CollectionDetailPage() {
             <EntriesGrid
               entries={entries}
               emptyMessage="По выбранным фильтрам карточки не найдены."
+              onEditEntry={(entry) => {
+                setEntryFormState({ isOpen: true, entry, mode: 'edit' });
+              }}
             />
 
             {entriesMeta && entriesMeta.totalPages > 1 ? (
@@ -275,6 +290,67 @@ export default function CollectionDetailPage() {
           </>
         )}
       </div>
+
+      <BaseModal
+        isOpen={isCollectionFormOpen}
+        title="Редактирование коллекции"
+        onClose={() => {
+          setIsCollectionFormOpen(false);
+        }}
+      >
+        <CollectionForm
+          key={collection.id}
+          mode="edit"
+          initialValues={{
+            title: collection.title,
+            category: collection.category,
+            description: collection.description ?? '',
+            coverImageUrl: collection.coverImageUrl ?? '',
+          }}
+          onCancel={() => {
+            setIsCollectionFormOpen(false);
+          }}
+        />
+      </BaseModal>
+
+      <BaseModal
+        isOpen={entryFormState.isOpen}
+        title={entryFormState.mode === 'create' ? 'Новая карточка' : 'Редактирование карточки'}
+        onClose={() => {
+          setEntryFormState({ isOpen: false, entry: null, mode: 'create' });
+        }}
+      >
+        <EntryForm
+          key={entryFormState.entry?.id ?? entryFormState.mode}
+          mode={entryFormState.mode}
+          initialValues={
+            entryFormState.entry
+              ? {
+                  title: entryFormState.entry.title,
+                  status: entryFormState.entry.status,
+                  description: entryFormState.entry.description ?? '',
+                  imageUrl: entryFormState.entry.imageUrl ?? '',
+                  price:
+                    entryFormState.entry.price !== undefined ? String(entryFormState.entry.price) : '',
+                  tags: entryFormState.entry.tags?.join(', ') ?? '',
+                  rating:
+                    entryFormState.entry.rating !== undefined
+                      ? String(entryFormState.entry.rating)
+                      : '',
+                  dateStart: entryFormState.entry.dateStart
+                    ? entryFormState.entry.dateStart.slice(0, 10)
+                    : '',
+                  dateEnd: entryFormState.entry.dateEnd
+                    ? entryFormState.entry.dateEnd.slice(0, 10)
+                    : '',
+                }
+              : undefined
+          }
+          onCancel={() => {
+            setEntryFormState({ isOpen: false, entry: null, mode: 'create' });
+          }}
+        />
+      </BaseModal>
     </section>
   );
 }

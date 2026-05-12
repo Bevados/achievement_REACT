@@ -2,35 +2,36 @@
 
 ## Что делает файл
 
-Файл тестирует detail-страницу private-коллекции.
-Покрывает состояния `loading`, `error`, `empty` и `success`, а также retry-поведение после ошибки загрузки.
+Тестирует private detail-страницу коллекции.
+Покрывает состояния `loading/error/empty/success`, retry загрузки и новый modal-flow шага 5.4 для создания/редактирования коллекции и карточек.
 
 ## Импорты и зависимости
 
-1. `vitest` используется как тестовый раннер и система моков.
-2. `@testing-library/react` и `@testing-library/user-event` нужны для рендера и пользовательского retry-клика.
-3. `react-router-dom` (`MemoryRouter`, `Routes`, `Route`) задает router-контекст с параметром `collectionId`.
-4. `src/pages/CollectionDetailPage/CollectionDetailPage.tsx` — тестируемая страница.
-5. `src/api/collections.api.ts` мокается, чтобы изолировать страницу от реального backend.
+1. `vitest` — тестовый раннер и моки API.
+2. `@testing-library/react` — рендер, DOM-assertions и `waitFor`.
+3. `@testing-library/user-event` — клики по фильтрам и modal-entrypoint кнопкам.
+4. `react-router-dom` (`MemoryRouter`, `Routes`, `Route`) — изолированное тестирование route `/collections/:collectionId`.
+5. `./CollectionDetailPage` — тестируемая страница.
+6. `../../api/collections.api` — замоканные методы `getCollectionById` и `getCollectionEntries`.
 
 ## Экспорты и контракты
 
 1. Runtime-экспортов нет.
 2. Проверяемые контракты:
-   - страница показывает loading skeleton во время ожидания;
-   - при ошибке выводит alert и позволяет повторить загрузку;
-   - при пустом списке `entries` выводит empty-state;
-   - при успешной загрузке показывает общий блок фильтров карточек;
-   - при успешной загрузке показывает заголовок коллекции, карточки и disabled action-кнопки.
+   - page корректно показывает `loading/error/empty/success`;
+   - кнопка retry повторяет загрузку и коллекции, и списка карточек;
+   - private action-кнопки активны в success-сценарии;
+   - `Редактировать коллекцию` открывает `CollectionForm`;
+   - `Добавить карточку` открывает `EntryForm` в create-режиме;
+   - `Редактировать` на карточке открывает `EntryForm` в edit-режиме с initial values;
+   - save-кнопки в формах пока disabled.
 
 ## Нетривиальная логика
 
-1. `renderPage()` поднимает минимальный router с путем `/collections/:collectionId`, чтобы `useParams` работал так же, как в реальном приложении.
-2. Retry-тест проверяет повторный вызов обеих API-функций, потому что detail-screen должен заново запросить и саму коллекцию, и список карточек через controller.
-3. Тесты на empty/success дополнительно раскрывают панель по кнопке `Показать фильтры` и проверяют наличие полей `Статус` и `Сортировка`, чтобы зафиксировать новый collapsible UX.
-4. Loading-сценарий моделируется незавершающимися Promise, чтобы зафиксировать поведение страницы до получения ответа.
+1. Тесты не мокают модалки отдельно: они проходят весь пользовательский сценарий на уровне страницы и тем самым подтверждают, что local modal state wired correctly.
+2. Отдельная проверка retry защищает уже исправленную регрессию, где ранее перезагружалась только коллекция или только entries, но не весь экран целиком.
 
 ## Где используется
 
-1. Запускается в наборе `npm run test`.
-2. Защищает от регрессий `src/pages/CollectionDetailPage/CollectionDetailPage.tsx`.
+1. Запускается в `npm.cmd run test`.
+2. Защищает `src/pages/CollectionDetailPage/CollectionDetailPage.tsx` от регрессий при дальнейшем подключении реального submit.

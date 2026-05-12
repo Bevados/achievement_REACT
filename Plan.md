@@ -450,6 +450,14 @@
 4. Для Entry: `status` обязательный.
 5. Категории коллекций храним как slug enum: travel, sport, shopping, learning, health_body, creativity, hobby, career, family, home, self_development, other.
 6. Цена: в API/DTO передаем в долларах (до 2 знаков после точки), в БД храним в центах (integer).
+
+## Прогресс шага 5.4
+
+1. Для private CRUD выбран modal UX без изменения auth `modal.store`: состояние форм коллекции и карточки хранится локально в страницах.
+2. Добавлены отдельные UI-формы `CollectionForm` и `EntryForm`, но без API-submit, без `react-hook-form` и без Zod, потому что это осознанно следующий подпункт.
+3. `CollectionForm` уже подключена как modal create/edit UI на `/collections` и `/collections/:collectionId`.
+4. `EntryForm` уже подключена на `/collections/:collectionId` как modal create/edit UI, включая локальный переключатель даты `Одна дата / Период`.
+5. Private `EntryCard` и `EntriesGrid` больше не просто показывают заглушку `Редактировать`: они умеют поднимать edit-модалку карточки через callback, но реальные мутации и удаление ещё не включены.
 7. `dateStart` и `dateEnd` в API/DTO передаем как ISO-строки.
 8. Пагинация фиксируется в list DTO (page, limit, sortBy, sortOrder и фильтры).
 9. Price на API принимается только как number (строковый формат, например "12.34", не принимаем).

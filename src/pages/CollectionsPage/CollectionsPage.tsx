@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import BaseModal from '../../components/Modal/BaseModal';
+import CollectionForm from '../../components/Collections/CollectionForm';
 import { getOwnerCollections } from '../../api/collections.api';
 import CollectionsGrid from '../../components/Collections/CollectionsGrid';
 import CollectionsFilters from '../../components/Collections/CollectionsFilters';
@@ -5,6 +8,7 @@ import CollectionsPagination from '../../components/Collections/CollectionsPagin
 import { useCollectionsListController } from '../../hooks/useCollectionsListController';
 
 export default function CollectionsPage() {
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const {
     collections,
     meta,
@@ -32,11 +36,25 @@ export default function CollectionsPage() {
 
   return (
     <section className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-8">
-      <h1 className="text-2xl font-bold text-primary sm:text-3xl">Мои коллекции</h1>
-      <p className="mt-3 max-w-2xl text-sm text-gray-700 sm:text-base">
-        Этот экран доступен только авторизованному пользователю и загружает коллекции через
-        приватный API.
-      </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-primary sm:text-3xl">Мои коллекции</h1>
+          <p className="mt-3 max-w-2xl text-sm text-gray-700 sm:text-base">
+            Этот экран доступен только авторизованному пользователю и загружает коллекции через
+            приватный API.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setIsCreateModalOpen(true);
+          }}
+          className="inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+        >
+          Создать коллекцию
+        </button>
+      </div>
 
       <CollectionsFilters
         sortBy={sortBy}
@@ -90,6 +108,22 @@ export default function CollectionsPage() {
           />
         </>
       )}
+
+      <BaseModal
+        isOpen={isCreateModalOpen}
+        title="Новая коллекция"
+        onClose={() => {
+          setIsCreateModalOpen(false);
+        }}
+      >
+        <CollectionForm
+          key="collection-create"
+          mode="create"
+          onCancel={() => {
+            setIsCreateModalOpen(false);
+          }}
+        />
+      </BaseModal>
     </section>
   );
 }

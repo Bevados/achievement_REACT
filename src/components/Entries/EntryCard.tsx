@@ -3,6 +3,7 @@ import type { EntryStatus, EntryView } from '../../../contracts/collection.contr
 interface EntryCardProps {
   entry: EntryView;
   showActions?: boolean;
+  onEdit?: (entry: EntryView) => void;
 }
 
 const statusLabels: Record<EntryStatus, string> = {
@@ -61,7 +62,7 @@ function renderRatingStars(rating: number) {
   });
 }
 
-export default function EntryCard({ entry, showActions = true }: EntryCardProps) {
+export default function EntryCard({ entry, showActions = true, onEdit }: EntryCardProps) {
   const hasImage = Boolean(entry.imageUrl);
   const hasDescription = Boolean(entry.description);
   const hasMeta = Boolean(
@@ -97,8 +98,11 @@ export default function EntryCard({ entry, showActions = true }: EntryCardProps)
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                disabled
-                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-400 disabled:cursor-not-allowed"
+                onClick={() => {
+                  onEdit?.(entry);
+                }}
+                disabled={!onEdit}
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 disabled:cursor-not-allowed disabled:text-gray-400"
               >
                 Редактировать
               </button>
