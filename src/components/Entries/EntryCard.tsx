@@ -4,6 +4,7 @@ interface EntryCardProps {
   entry: EntryView;
   showActions?: boolean;
   onEdit?: (entry: EntryView) => void;
+  onDelete?: (entry: EntryView) => void;
 }
 
 const statusLabels: Record<EntryStatus, string> = {
@@ -62,7 +63,12 @@ function renderRatingStars(rating: number) {
   });
 }
 
-export default function EntryCard({ entry, showActions = true, onEdit }: EntryCardProps) {
+export default function EntryCard({
+  entry,
+  showActions = true,
+  onEdit,
+  onDelete,
+}: EntryCardProps) {
   const hasImage = Boolean(entry.imageUrl);
   const hasDescription = Boolean(entry.description);
   const hasMeta = Boolean(
@@ -108,8 +114,11 @@ export default function EntryCard({ entry, showActions = true, onEdit }: EntryCa
               </button>
               <button
                 type="button"
-                disabled
-                className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-300 disabled:cursor-not-allowed"
+                onClick={() => {
+                  onDelete?.(entry);
+                }}
+                disabled={!onDelete}
+                className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-600 disabled:cursor-not-allowed disabled:text-rose-300"
               >
                 Удалить
               </button>

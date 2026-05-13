@@ -2,13 +2,13 @@
 
 ## Что делает файл
 
-Компонент рендерит список карточек `EntryView` и отвечает за layout списка.
-На desktop он строит masonry feel поверх CSS Grid, а на mobile/tablet остаётся простым и устойчивым. Также он служит общей точкой проброса private edit callback в отдельные карточки.
+Рендерит список карточек `EntryView` и отвечает за layout списка.
+На desktop использует masonry feel поверх CSS Grid, а на mobile/tablet остаётся простой одноколонной или двухколоночной сеткой без лишней сложности.
 
 ## Импорты и зависимости
 
-1. `react` (`useEffect`, `useRef`, `useState`) — измерение высоты карточек и хранение `rowSpans`.
-2. `contracts/collection.contracts.ts` — тип `EntryView`.
+1. `react` — `useEffect`, `useRef`, `useState` для измерения высоты карточек и хранения `rowSpans`.
+2. `contracts/collection.contracts.ts` — `EntryView`.
 3. `./EntryCard` — отдельная карточка списка.
 
 ## Экспорты и контракты
@@ -19,13 +19,13 @@
    - `emptyMessage: string`
    - `showActions?: boolean`
    - `onEditEntry?: (entry: EntryView) => void`
+   - `onDeleteEntry?: (entry: EntryView) => void`
 
 ## Нетривиальная логика
 
-1. На desktop grid получает `auto-rows` и объект `rowSpans`, который вычисляется на основе реальной DOM-высоты карточек.
-2. `ResizeObserver` следит и за контейнером, и за отдельными item-wrapper-элементами, чтобы masonry корректно пересчитывался после resize и после появления изображения.
-3. Для сохранения строчного порядка используется обычный `entries.map(...)`, а не CSS columns.
-4. `onEditEntry` пробрасывается в `EntryCard` только в private-режиме, поэтому сам grid остаётся общим для private/public detail без логики modal-state.
+1. На desktop `ResizeObserver` пересчитывает `gridRowEnd: span N` по реальной высоте карточки.
+2. Порядок карточек остаётся порядком исходного массива `entries.map(...)`.
+3. Private edit/delete callbacks только пробрасываются вниз в `EntryCard`; modal-state и confirm-flow grid на себя не берёт.
 
 ## Где используется
 

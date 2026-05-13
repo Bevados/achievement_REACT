@@ -2,8 +2,8 @@
 
 ## Что делает файл
 
-Тестирует private detail-страницу коллекции: loading/error/empty/success состояния, private action-entrypoints и modal UX.
-После шага `5.6.2` файл покрывает реальные submit-flow для create/update и коллекции, и карточек.
+Тестирует private detail-страницу коллекции.
+Покрывает loading/error/empty/success состояния, modal UX, реальные create/update submit-flow и delete flow для коллекции и карточек.
 
 ## Импорты и зависимости
 
@@ -17,25 +17,21 @@
 ## Экспорты и контракты
 
 1. Runtime-экспортов нет.
-2. Проверяются сценарии:
-   - loading;
-   - error + retry;
-   - empty entries;
-   - success state;
-   - private modal entrypoints;
-   - успешное редактирование коллекции;
-   - показ submit-ошибки коллекции;
-   - успешное создание карточки;
-   - успешное редактирование карточки;
-   - показ submit-ошибки карточки.
+2. Проверяется private detail-экран коллекции с CRUD-flow карточек и самой коллекции.
 
 ## Нетривиальная логика
 
-1. Тест мокает и detail, и list API, потому что страница загружает коллекцию и карточки независимо.
-2. Проверка create-entry flow убеждается, что после `POST` detail-страница и перезагружает список карточек, и локально обновляет `entriesCount`.
-3. Проверка update-entry flow убеждается, что `PATCH` уходит с правильным `entryId`, а затем вызывается `reloadEntries`.
-4. Error-path для карточки проверяет, что сообщение о провале submit остаётся внутри entry-модалки.
+1. Loading и error + retry.
+2. Empty-state и success-state списка карточек.
+3. Открытие private modal-form для коллекции и карточки.
+4. Успешное редактирование коллекции и показ submit-ошибки коллекции.
+5. Успешное создание и редактирование карточки и показ submit-ошибки карточки.
+6. Успешное удаление коллекции с навигацией обратно на `/collections`.
+7. Ошибка удаления коллекции.
+8. Успешное удаление карточки с reload списка и обновлением `entriesCount`.
+9. Ошибка удаления карточки.
 
 ## Где используется
 
 1. Запускается в `npm.cmd run test`.
+2. Защищает `src/pages/CollectionDetailPage/CollectionDetailPage.tsx` от регрессий CRUD-flow.

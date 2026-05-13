@@ -5,6 +5,8 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import CollectionDetailPage from './CollectionDetailPage';
 import {
   createEntry,
+  deleteCollection,
+  deleteEntry,
   getCollectionById,
   getCollectionEntries,
   updateCollection,
@@ -14,6 +16,8 @@ import type { EntryView } from '../../../contracts/collection.contracts';
 
 vi.mock('../../api/collections.api', () => ({
   createEntry: vi.fn(),
+  deleteCollection: vi.fn(),
+  deleteEntry: vi.fn(),
   getCollectionById: vi.fn(),
   getCollectionEntries: vi.fn(),
   updateCollection: vi.fn(),
@@ -21,6 +25,8 @@ vi.mock('../../api/collections.api', () => ({
 }));
 
 const mockedCreateEntry = vi.mocked(createEntry);
+const mockedDeleteCollection = vi.mocked(deleteCollection);
+const mockedDeleteEntry = vi.mocked(deleteEntry);
 const mockedGetCollectionById = vi.mocked(getCollectionById);
 const mockedGetCollectionEntries = vi.mocked(getCollectionEntries);
 const mockedUpdateCollection = vi.mocked(updateCollection);
@@ -30,6 +36,7 @@ function renderPage(initialPath = '/collections/collection-1') {
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
       <Routes>
+        <Route path="/collections" element={<div>Список коллекций</div>} />
         <Route path="/collections/:collectionId" element={<CollectionDetailPage />} />
       </Routes>
     </MemoryRouter>,
@@ -142,7 +149,7 @@ describe('CollectionDetailPage', () => {
     expect(screen.getByLabelText('Сортировка')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Добавить карточку' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Редактировать коллекцию' })).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Удалить коллекцию' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Удалить коллекцию' })).toBeEnabled();
   });
 
   it('opens collection and entry modals in private mode', async () => {
@@ -213,7 +220,7 @@ describe('CollectionDetailPage', () => {
     mockedGetCollectionEntries.mockResolvedValue(makeEntriesResult([]));
     mockedUpdateCollection.mockResolvedValue(
       makeCollection({
-        title: 'Обновлённая коллекция',
+        title: 'Обновленная коллекция',
         description: 'Новое описание.',
         updatedAt: '2026-05-03T08:00:00.000Z',
       }),
@@ -225,14 +232,14 @@ describe('CollectionDetailPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Редактировать коллекцию' }));
     await user.clear(screen.getByLabelText('Название коллекции'));
-    await user.type(screen.getByLabelText('Название коллекции'), 'Обновлённая коллекция');
+    await user.type(screen.getByLabelText('Название коллекции'), 'Обновленная коллекция');
     await user.clear(screen.getByLabelText('Описание'));
     await user.type(screen.getByLabelText('Описание'), 'Новое описание.');
     await user.click(screen.getByRole('button', { name: 'Сохранить изменения' }));
 
     await waitFor(() => {
       expect(mockedUpdateCollection).toHaveBeenCalledWith('collection-1', {
-        title: 'Обновлённая коллекция',
+        title: 'Обновленная коллекция',
         category: 'travel',
         customCategory: undefined,
         description: 'Новое описание.',
@@ -241,7 +248,7 @@ describe('CollectionDetailPage', () => {
     });
 
     expect(screen.queryByRole('dialog', { name: 'Редактирование коллекции' })).not.toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Обновлённая коллекция' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Обновленная коллекция' })).toBeInTheDocument();
     expect(screen.getByText('Новое описание.')).toBeInTheDocument();
   });
 
@@ -258,11 +265,52 @@ describe('CollectionDetailPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Редактировать коллекцию' }));
     await user.clear(screen.getByLabelText('Название коллекции'));
-    await user.type(screen.getByLabelText('Название коллекции'), 'Обновлённая коллекция');
+    await user.type(screen.getByLabelText('Название коллекции'), 'Обновленная коллекция');
     await user.click(screen.getByRole('button', { name: 'Сохранить изменения' }));
 
     expect(await screen.findByText('Изменения сохранить не удалось.')).toBeInTheDocument();
     expect(screen.getByRole('dialog', { name: 'Редактирование коллекции' })).toBeInTheDocument();
+  });
+
+  it('deletes collection after confirmation and navigates back to list', async () => {
+    const user = userEvent.setup();
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    mockedGetCollectionById.mockResolvedValue(makeCollection());
+    mockedGetCollectionEntries.mockResolvedValue(makeEntriesResult([]));
+    mockedDeleteCollection.mockResolvedValue(null);
+
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Удалить коллекцию' }));
+
+    await waitFor(() => {
+      expect(confirmSpy).toHaveBeenCalledWith(
+        'Удалить коллекцию "Моя коллекция" вместе со всеми карточками? Это действие нельзя отменить.',
+      );
+      expect(mockedDeleteCollection).toHaveBeenCalledWith('collection-1');
+    });
+
+    expect(await screen.findByText('Список коллекций')).toBeInTheDocument();
+  });
+
+  it('shows collection delete error when deletion fails', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    mockedGetCollectionById.mockResolvedValue(makeCollection());
+    mockedGetCollectionEntries.mockResolvedValue(makeEntriesResult([]));
+    mockedDeleteCollection.mockRejectedValue(new Error('Удалить коллекцию не удалось.'));
+
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Удалить коллекцию' }));
+
+    expect(await screen.findByText('Удалить коллекцию не удалось.')).toBeInTheDocument();
   });
 
   it('submits create entry form, reloads entries and updates count', async () => {
@@ -332,7 +380,7 @@ describe('CollectionDetailPage', () => {
       ownerId: 'user-1',
       title: 'Osaka',
       status: 'planned',
-      description: 'Обновлённая карточка.',
+      description: 'Обновленная карточка.',
       createdAt: '2026-05-01T08:00:00.000Z',
       updatedAt: '2026-05-03T08:00:00.000Z',
     });
@@ -345,14 +393,14 @@ describe('CollectionDetailPage', () => {
     await user.clear(screen.getByLabelText('Название карточки'));
     await user.type(screen.getByLabelText('Название карточки'), 'Osaka');
     await user.clear(screen.getByLabelText('Описание'));
-    await user.type(screen.getByLabelText('Описание'), 'Обновлённая карточка.');
+    await user.type(screen.getByLabelText('Описание'), 'Обновленная карточка.');
     await user.click(screen.getByRole('button', { name: 'Сохранить изменения' }));
 
     await waitFor(() => {
       expect(mockedUpdateEntry).toHaveBeenCalledWith('collection-1', 'entry-1', {
         title: 'Osaka',
         status: 'planned',
-        description: 'Обновлённая карточка.',
+        description: 'Обновленная карточка.',
         imageUrl: undefined,
         price: undefined,
         tags: undefined,
@@ -383,5 +431,72 @@ describe('CollectionDetailPage', () => {
 
     expect(await screen.findByText('Карточку сохранить не удалось.')).toBeInTheDocument();
     expect(screen.getByRole('dialog', { name: 'Новая карточка' })).toBeInTheDocument();
+  });
+
+  it('deletes entry after confirmation, reloads list and updates count', async () => {
+    const user = userEvent.setup();
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    mockedGetCollectionById.mockResolvedValue(makeCollection());
+    mockedGetCollectionEntries.mockResolvedValue(
+      makeEntriesResult([
+        {
+          id: 'entry-1',
+          collectionId: 'collection-1',
+          ownerId: 'user-1',
+          title: 'Токио',
+          status: 'planned',
+          createdAt: '2026-05-01T08:00:00.000Z',
+          updatedAt: '2026-05-02T08:00:00.000Z',
+        },
+      ]),
+    );
+    mockedDeleteEntry.mockResolvedValue(null);
+
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
+    expect(screen.getByText('1 карточек')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Удалить' }));
+
+    await waitFor(() => {
+      expect(confirmSpy).toHaveBeenCalledWith(
+        'Удалить карточку "Токио"? Это действие нельзя отменить.',
+      );
+      expect(mockedDeleteEntry).toHaveBeenCalledWith('collection-1', 'entry-1');
+      expect(mockedGetCollectionEntries).toHaveBeenCalledTimes(2);
+    });
+
+    expect(screen.getByText('0 карточек')).toBeInTheDocument();
+  });
+
+  it('shows entry delete error when deletion fails', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    mockedGetCollectionById.mockResolvedValue(makeCollection());
+    mockedGetCollectionEntries.mockResolvedValue(
+      makeEntriesResult([
+        {
+          id: 'entry-1',
+          collectionId: 'collection-1',
+          ownerId: 'user-1',
+          title: 'Токио',
+          status: 'planned',
+          createdAt: '2026-05-01T08:00:00.000Z',
+          updatedAt: '2026-05-02T08:00:00.000Z',
+        },
+      ]),
+    );
+    mockedDeleteEntry.mockRejectedValue(new Error('Удалить карточку не удалось.'));
+
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Удалить' }));
+
+    expect(await screen.findByText('Удалить карточку не удалось.')).toBeInTheDocument();
   });
 });

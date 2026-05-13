@@ -62,4 +62,16 @@ describe('EntriesGrid', () => {
     expect(onEditEntry).toHaveBeenCalledTimes(1);
     expect(onEditEntry).toHaveBeenCalledWith(entries[0]);
   });
+
+  it('forwards delete action to entry cards in private mode', async () => {
+    const user = userEvent.setup();
+    const onDeleteEntry = vi.fn();
+
+    render(<EntriesGrid entries={entries} emptyMessage="РџСѓСЃС‚Рѕ" onDeleteEntry={onDeleteEntry} />);
+
+    await user.click(screen.getAllByRole('button', { name: 'Удалить' })[0]);
+
+    expect(onDeleteEntry).toHaveBeenCalledTimes(1);
+    expect(onDeleteEntry).toHaveBeenCalledWith(entries[0]);
+  });
 });

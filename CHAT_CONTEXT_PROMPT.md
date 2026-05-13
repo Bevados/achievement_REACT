@@ -240,3 +240,15 @@ Private API:
   - пользовательский текст хранится в `customCategory`
 - `CollectionForm` показывает отдельное поле `Своя категория` только при выборе `other`.
 - Отображение категории в карточках и detail-страницах идёт через helper `getCollectionCategoryLabel`, поэтому UI показывает либо стандартный label, либо пользовательский текст.
+## Обновление по delete flow
+
+- Для private detail-страницы коллекции уже подключены реальные delete-мутации.
+- `CollectionDetailPage` теперь умеет:
+  - удалять коллекцию через confirm-flow;
+  - после успешного удаления уводить пользователя обратно на `/collections`;
+  - удалять карточку через confirm-flow;
+  - после удаления карточки перезагружать server-driven список и локально уменьшать `entriesCount`.
+- `src/api/collections.api.ts` уже содержит клиентские методы `deleteCollection` и `deleteEntry`.
+- `EntryCard` и `EntriesGrid` в private-режиме умеют пробрасывать не только edit-callback, но и delete-callback.
+- Для ошибок удаления на detail-странице есть отдельный error UX, не смешанный с modal submit-ошибками create/update.
+- Следующий логичный подпункт после этого — улучшения delete UX или переход к следующему крупному шагу плана, если отдельные правки удаления не требуются.

@@ -7,6 +7,7 @@ interface EntriesGridProps {
   emptyMessage: string;
   showActions?: boolean;
   onEditEntry?: (entry: EntryView) => void;
+  onDeleteEntry?: (entry: EntryView) => void;
 }
 
 const DESKTOP_MEDIA_QUERY = '(min-width: 1024px)';
@@ -18,6 +19,7 @@ export default function EntriesGrid({
   emptyMessage,
   showActions = true,
   onEditEntry,
+  onDeleteEntry,
 }: EntriesGridProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef(new Map<string, HTMLDivElement>());
@@ -115,7 +117,12 @@ export default function EntriesGrid({
           data-testid="entry-grid-item"
           style={rowSpans[entry.id] ? { gridRowEnd: `span ${rowSpans[entry.id]}` } : undefined}
         >
-          <EntryCard entry={entry} showActions={showActions} onEdit={showActions ? onEditEntry : undefined} />
+          <EntryCard
+            entry={entry}
+            showActions={showActions}
+            onEdit={showActions ? onEditEntry : undefined}
+            onDelete={showActions ? onDeleteEntry : undefined}
+          />
         </div>
       ))}
     </div>

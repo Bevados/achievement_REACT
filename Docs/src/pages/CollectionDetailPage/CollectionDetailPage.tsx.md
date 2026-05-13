@@ -2,15 +2,15 @@
 
 ## Что делает файл
 
-Файл реализует private detail-страницу одной коллекции.
-Страница загружает саму коллекцию, подключает общий controller карточек, показывает данные коллекции, блок фильтров `entries`, список карточек и private modal-entrypoints. После шагов `5.6.1` и `5.6.2` здесь уже работают реальные create/update мутации и для коллекции, и для карточек.
+Private detail-страница одной коллекции.
+Страница загружает саму коллекцию, подключает общий controller списка карточек, показывает фильтры, серверный список `entries` и private modal-entrypoints для CRUD.
 
 ## Импорты и зависимости
 
-1. `react` (`useCallback`, `useEffect`, `useState`) — нужен для загрузки коллекции, локального async-state и modal-state форм.
-2. `react-router-dom` (`Link`, `useParams`) — даёт навигацию и `collectionId` из URL.
-3. `contracts/collection.contracts.ts` — типы `CollectionView`, `EntryView`, `CreateEntryDto`, `UpdateEntryDto`.
-4. `src/api/collections.api.ts` — даёт `getCollectionById`, `getCollectionEntries`, `updateCollection`, `createEntry`, `updateEntry`.
+1. `react`
+2. `react-router-dom` — `Link`, `useNavigate`, `useParams`
+3. `contracts/collection.contracts.ts`
+4. `src/api/collections.api.ts`
 5. `src/components/Collections/CollectionForm.tsx`
 6. `src/components/Entries/EntryForm.tsx`
 7. `src/components/Entries/EntriesFilters.tsx`
@@ -23,16 +23,17 @@
 ## Экспорты и контракты
 
 1. Экспортируется default-компонент `CollectionDetailPage`.
-2. Компонент не принимает пропсы.
-3. Ожидает наличие route-param `collectionId`.
+2. Компонент не принимает props.
+3. Ожидает route-param `collectionId`.
 
 ## Нетривиальная логика
 
-1. Категория коллекции отображается через `getCollectionCategoryLabel`.
-2. Edit-модалка коллекции вызывает `PATCH /api/collections/:collectionId`, обновляет локальный `collection` state и закрывает форму без полного page reload.
-3. Create-модалка карточки вызывает `POST /api/collections/:collectionId/entries`, после успеха закрывает форму, перезагружает server-driven список карточек и локально увеличивает `entriesCount`.
-4. Edit-модалка карточки вызывает `PATCH /api/collections/:collectionId/entries/:entryId` и после успеха перезагружает текущий список карточек.
-5. Submit-ошибки для коллекции и карточки хранятся локально на странице и пробрасываются в соответствующие формы.
+1. Edit коллекции вызывает `PATCH /api/collections/:collectionId` и обновляет локальный `collection` state без полного reload.
+2. Create/edit карточки вызывают `POST/PATCH /api/collections/:collectionId/entries`, затем перезагружают server-driven список карточек.
+3. Create карточки дополнительно локально увеличивает `entriesCount`.
+4. Delete коллекции теперь работает через confirm-flow и после успеха переводит пользователя обратно на `/collections`.
+5. Delete карточки теперь работает через confirm-flow, перезагружает список карточек и локально уменьшает `entriesCount`.
+6. Ошибки create/update и ошибки delete хранятся раздельно, чтобы modal submit UX не смешивался с page-level alert-блоками.
 
 ## Где используется
 

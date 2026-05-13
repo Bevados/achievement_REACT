@@ -2,47 +2,43 @@
 
 ## Что делает файл
 
-Файл содержит клиентский API-слой для public/private коллекций и карточек.
-После шагов `5.6.1` и `5.6.2` он обслуживает не только read-only загрузку, но и реальные create/update мутации для коллекций и карточек.
+Клиентский API-слой для публичных и приватных коллекций и карточек.
+Файл инкапсулирует HTTP-вызовы, auth-token для private endpoints, разбор общего response envelope и fallback-ошибки для локальной разработки.
 
 ## Импорты и зависимости
 
-1. `contracts/collection.contracts.ts` — DTO, query и response-типизация.
-2. `src/firebase.ts` (`getIdToken`) — токен для private-запросов.
+1. `contracts/collection.contracts.ts` — DTO, query-типы и response-типы.
+2. `src/firebase.ts` — `getIdToken()` для приватных запросов.
 
 ## Экспорты и контракты
 
-1. `getPublicCollections(query?)`
-2. `getOwnerCollections(query?)`
-3. `createCollection(payload)`
-4. `getPublicCollectionById(collectionId)`
-5. `getCollectionById(collectionId)`
-6. `updateCollection(collectionId, payload)`
-7. `getPublicCollectionEntries(collectionId, query?)`
-8. `getCollectionEntries(collectionId, query?)`
-9. `createEntry(collectionId, payload)`
-10. `updateEntry(collectionId, entryId, payload)`
-11. `EntriesQuery` поддерживает:
-   - `page`, `limit`
-   - `sortBy`, `sortOrder`
-   - `status`
-   - `tag`
-   - `createdAtFrom`, `createdAtTo`
-   - `dateStartFrom`, `dateStartTo`
-   - `minPrice`, `maxPrice`
-   - `minRating`, `maxRating`
+1. Public collection API:
+   - `getPublicCollections(query?)`
+   - `getPublicCollectionById(collectionId)`
+   - `getPublicCollectionEntries(collectionId, query?)`
+2. Private collection API:
+   - `getOwnerCollections(query?)`
+   - `createCollection(payload)`
+   - `getCollectionById(collectionId)`
+   - `updateCollection(collectionId, payload)`
+   - `deleteCollection(collectionId)`
+3. Private entry API:
+   - `getCollectionEntries(collectionId, query?)`
+   - `createEntry(collectionId, payload)`
+   - `updateEntry(collectionId, entryId, payload)`
+   - `deleteEntry(collectionId, entryId)`
+4. `EntriesQuery` поддерживает сортировку, пагинацию и диапазонные фильтры карточек.
 
 ## Нетривиальная логика
 
-1. Общий `requestApi` распаковывает единый envelope `{ ok, data/error }` и одинаково обслуживает read-only и mutation-запросы.
-2. При сетевой недоступности local runtime модуль явно советует запустить `npm run dev:api`.
-3. `createCollection`, `updateCollection`, `createEntry` и `updateEntry` используют тот же auth-token flow, что и private list/detail endpoints.
-4. Public и private detail используют одинаковый helper, но с разными endpoint и auth-требованиями.
-5. `toQueryString` пропускает пустые строки, поэтому неактивные фильтры не попадают в URL запроса.
+1. `requestApi()` одинаково обслуживает read и mutation-запросы, включая валидные delete-ответы вида `ok: true` + `data: null`.
+2. Private methods автоматически добавляют `Authorization: Bearer <token>`.
+3. При сетевой недоступности локального backend файл подсказывает запустить `npm run dev:api`.
+4. `toQueryString()` не отправляет пустые строки, поэтому неактивные фильтры не засоряют URL.
 
 ## Где используется
 
 1. `src/pages/ExamplesPage/ExamplesPage.tsx`
-2. `src/pages/CollectionsPage/CollectionsPage.tsx`
-3. `src/pages/CollectionDetailPage/CollectionDetailPage.tsx`
-4. `src/pages/PublicCollectionDetailPage/PublicCollectionDetailPage.tsx`
+2. `src/pages/PublicCollectionDetailPage/PublicCollectionDetailPage.tsx`
+3. `src/pages/CollectionsPage/CollectionsPage.tsx`
+4. `src/pages/CollectionDetailPage/CollectionDetailPage.tsx`

@@ -685,3 +685,12 @@
 ## Лог принятых решений
 
 7. Пользовательская категория коллекции хранится как `category = 'other'` + `customCategory`, а не как свободная замена enum.
+## Прогресс шага 5.6.3
+
+1. Delete flow для private CRUD теперь реально подключен и не остаётся заглушкой.
+2. Клиентский API получил рабочие методы `deleteCollection` и `deleteEntry` для private endpoints.
+3. На `/collections/:collectionId` кнопка удаления коллекции теперь открывает confirm-flow, вызывает `DELETE /api/collections/:collectionId` и после успеха переводит пользователя обратно на `/collections`.
+4. На той же detail-странице удаление карточки теперь работает через confirm-flow, вызывает `DELETE /api/collections/:collectionId/entries/:entryId`, затем перезагружает server-driven список карточек и локально уменьшает `entriesCount`.
+5. Для delete-сценариев добавлен отдельный error UX: ошибки удаления коллекции и карточки показываются на detail-странице в явных alert-блоках и не смешиваются с modal submit-ошибками create/update.
+6. `EntryCard` и `EntriesGrid` теперь пробрасывают не только edit-callback, но и delete-callback в private-режиме, сохраняя общий public/private контракт через `showActions`.
+7. Тесты `CollectionDetailPage`, `EntryCard` и `EntriesGrid` расширены под happy-path и error-path удаления коллекции и карточки.

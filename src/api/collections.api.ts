@@ -35,24 +35,21 @@ type EntriesQuery = Pick<
   | 'maxRating'
 >;
 
-const FALLBACK_FETCH_ERROR =
-  'Не удалось загрузить публичные коллекции. Попробуйте еще раз.';
-const FALLBACK_PRIVATE_FETCH_ERROR =
-  'Не удалось загрузить ваши коллекции. Попробуйте еще раз.';
-const FALLBACK_COLLECTION_CREATE_ERROR =
-  'Не удалось создать коллекцию. Попробуйте еще раз.';
-const FALLBACK_COLLECTION_DETAIL_ERROR =
-  'Не удалось загрузить коллекцию. Попробуйте еще раз.';
+const FALLBACK_FETCH_ERROR = 'Не удалось загрузить публичные коллекции. Попробуйте еще раз.';
+const FALLBACK_PRIVATE_FETCH_ERROR = 'Не удалось загрузить ваши коллекции. Попробуйте еще раз.';
+const FALLBACK_COLLECTION_CREATE_ERROR = 'Не удалось создать коллекцию. Попробуйте еще раз.';
+const FALLBACK_COLLECTION_DETAIL_ERROR = 'Не удалось загрузить коллекцию. Попробуйте еще раз.';
 const FALLBACK_COLLECTION_UPDATE_ERROR =
   'Не удалось сохранить изменения коллекции. Попробуйте еще раз.';
+const FALLBACK_COLLECTION_DELETE_ERROR = 'Не удалось удалить коллекцию. Попробуйте еще раз.';
 const FALLBACK_PUBLIC_COLLECTION_DETAIL_ERROR =
   'Не удалось загрузить публичную коллекцию. Попробуйте еще раз.';
 const FALLBACK_COLLECTION_ENTRIES_ERROR =
   'Не удалось загрузить карточки коллекции. Попробуйте еще раз.';
-const FALLBACK_ENTRY_CREATE_ERROR =
-  'Не удалось создать карточку. Попробуйте еще раз.';
+const FALLBACK_ENTRY_CREATE_ERROR = 'Не удалось создать карточку. Попробуйте еще раз.';
 const FALLBACK_ENTRY_UPDATE_ERROR =
   'Не удалось сохранить изменения карточки. Попробуйте еще раз.';
+const FALLBACK_ENTRY_DELETE_ERROR = 'Не удалось удалить карточку. Попробуйте еще раз.';
 const FALLBACK_PUBLIC_COLLECTION_ENTRIES_ERROR =
   'Не удалось загрузить карточки публичной коллекции. Попробуйте еще раз.';
 const LOCAL_BACKEND_UNAVAILABLE_ERROR =
@@ -84,17 +81,31 @@ function getMessageFromErrorPayload(payload: unknown): string | null {
   return null;
 }
 
-function getSingleDataFromSuccessPayload<T>(payload: unknown): T | null {
+function getSingleDataFromSuccessPayload<T>(
+  payload: unknown,
+): {
+  hasData: boolean;
+  data: T | null;
+} {
   if (!payload || typeof payload !== 'object') {
-    return null;
+    return {
+      hasData: false,
+      data: null,
+    };
   }
 
-  const maybeEnvelope = payload as ApiResponse<T>;
+  const maybeEnvelope = payload as ApiResponse<T> & { data?: T | null };
   if (maybeEnvelope.ok !== true) {
-    return null;
+    return {
+      hasData: false,
+      data: null,
+    };
   }
 
-  return maybeEnvelope.data;
+  return {
+    hasData: Object.prototype.hasOwnProperty.call(maybeEnvelope, 'data'),
+    data: maybeEnvelope.data ?? null,
+  };
 }
 
 async function requestApi<T>(
@@ -157,12 +168,12 @@ async function requestApi<T>(
     throw new Error(getMessageFromErrorPayload(payload) ?? fallbackError);
   }
 
-  const data = getSingleDataFromSuccessPayload<T>(payload);
-  if (!data) {
+  const { hasData, data } = getSingleDataFromSuccessPayload<T>(payload);
+  if (!hasData && payload !== null) {
     throw new Error('Сервер вернул неожиданный формат ответа.');
   }
 
-  return data;
+  return data as T;
 }
 
 async function requestCollections(
@@ -230,6 +241,14 @@ export async function updateCollection(
   });
 }
 
+export async function deleteCollection(collectionId: string): Promise<null> {
+  return requestApi<null>(`/api/collections/${encodeURIComponent(collectionId)}`, {
+    method: 'DELETE',
+    fallbackError: FALLBACK_COLLECTION_DELETE_ERROR,
+    requireAuth: true,
+  });
+}
+
 export async function getPublicCollectionEntries(
   collectionId: string,
   query: EntriesQuery = {},
@@ -281,6 +300,17 @@ export async function updateEntry(
       method: 'PATCH',
       body: payload,
       fallbackError: FALLBACK_ENTRY_UPDATE_ERROR,
+      requireAuth: true,
+    },
+  );
+}
+
+export async function deleteEntry(collectionId: string, entryId: string): Promise<null> {
+  return requestApi<null>(
+    `/api/collections/${encodeURIComponent(collectionId)}/entries/${encodeURIComponent(entryId)}`,
+    {
+      method: 'DELETE',
+      fallbackError: FALLBACK_ENTRY_DELETE_ERROR,
       requireAuth: true,
     },
   );

@@ -37,6 +37,18 @@ describe('EntryCard', () => {
     expect(onEdit).toHaveBeenCalledWith(baseEntry);
   });
 
+  it('calls onDelete when private delete action is enabled', async () => {
+    const user = userEvent.setup();
+    const onDelete = vi.fn();
+
+    render(<EntryCard entry={baseEntry} onDelete={onDelete} />);
+
+    await user.click(screen.getByRole('button', { name: 'Удалить' }));
+
+    expect(onDelete).toHaveBeenCalledTimes(1);
+    expect(onDelete).toHaveBeenCalledWith(baseEntry);
+  });
+
   it('renders optional fields when provided', () => {
     render(
       <EntryCard

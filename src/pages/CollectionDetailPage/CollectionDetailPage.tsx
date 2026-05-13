@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import type {
   CollectionView,
   CreateEntryDto,
@@ -8,6 +8,8 @@ import type {
 } from '../../../contracts/collection.contracts';
 import {
   createEntry,
+  deleteCollection,
+  deleteEntry,
   getCollectionById,
   getCollectionEntries,
   updateCollection,
@@ -54,13 +56,16 @@ function getEntryFormInitialValues(entry: EntryView | null) {
 
 export default function CollectionDetailPage() {
   const { collectionId } = useParams<{ collectionId: string }>();
+  const navigate = useNavigate();
 
   const [collection, setCollection] = useState<CollectionView | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isCollectionFormOpen, setIsCollectionFormOpen] = useState(false);
   const [collectionSubmitError, setCollectionSubmitError] = useState<string | null>(null);
+  const [collectionDeleteError, setCollectionDeleteError] = useState<string | null>(null);
   const [entrySubmitError, setEntrySubmitError] = useState<string | null>(null);
+  const [entryDeleteError, setEntryDeleteError] = useState<string | null>(null);
   const [entryFormState, setEntryFormState] = useState<EntryFormState>({
     isOpen: false,
     entry: null,
@@ -147,6 +152,7 @@ export default function CollectionDetailPage() {
     }
 
     setEntrySubmitError(null);
+    setEntryDeleteError(null);
 
     try {
       if (entryFormState.mode === 'create') {
@@ -172,6 +178,68 @@ export default function CollectionDetailPage() {
           : entryFormState.mode === 'create'
             ? 'Не удалось создать карточку. Попробуйте еще раз.'
             : 'Не удалось сохранить изменения карточки. Попробуйте еще раз.',
+      );
+    }
+  }
+
+  async function handleCollectionDelete() {
+    if (!collection) {
+      return;
+    }
+
+    const shouldDelete = window.confirm(
+      `Удалить коллекцию "${collection.title}" вместе со всеми карточками? Это действие нельзя отменить.`,
+    );
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    setCollectionDeleteError(null);
+
+    try {
+      await deleteCollection(collection.id);
+      navigate('/collections');
+    } catch (error) {
+      setCollectionDeleteError(
+        error instanceof Error
+          ? error.message
+          : 'Не удалось удалить коллекцию. Попробуйте еще раз.',
+      );
+    }
+  }
+
+  async function handleEntryDelete(entry: EntryView) {
+    if (!collection) {
+      return;
+    }
+
+    const shouldDelete = window.confirm(
+      `Удалить карточку "${entry.title}"? Это действие нельзя отменить.`,
+    );
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    setEntryDeleteError(null);
+
+    try {
+      await deleteEntry(collection.id, entry.id);
+      setCollection((currentCollection) =>
+        currentCollection
+          ? {
+              ...currentCollection,
+              entriesCount: Math.max(0, currentCollection.entriesCount - 1),
+            }
+          : currentCollection,
+      );
+      await reloadEntries();
+    } catch (error) {
+      setEntryDeleteError(
+        error instanceof Error
+          ? error.message
+          : 'Не удалось удалить карточку. Попробуйте еще раз.',
       );
     }
   }
@@ -268,6 +336,7 @@ export default function CollectionDetailPage() {
                 type="button"
                 onClick={() => {
                   setEntrySubmitError(null);
+                  setEntryDeleteError(null);
                   setEntryFormState({ isOpen: true, entry: null, mode: 'create' });
                 }}
                 className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
@@ -278,6 +347,7 @@ export default function CollectionDetailPage() {
                 type="button"
                 onClick={() => {
                   setCollectionSubmitError(null);
+                  setCollectionDeleteError(null);
                   setIsCollectionFormOpen(true);
                 }}
                 className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
@@ -286,13 +356,21 @@ export default function CollectionDetailPage() {
               </button>
               <button
                 type="button"
-                disabled
-                className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-300 disabled:cursor-not-allowed"
+                onClick={() => {
+                  void handleCollectionDelete();
+                }}
+                className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
               >
                 Удалить коллекцию
               </button>
             </div>
           </div>
+
+          {collectionDeleteError ? (
+            <div className="rounded-xl border border-rose-200 bg-rose-50 p-4" role="alert">
+              <p className="text-sm text-rose-700">{collectionDeleteError}</p>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -347,12 +425,22 @@ export default function CollectionDetailPage() {
           </div>
         ) : (
           <>
+            {entryDeleteError ? (
+              <div className="rounded-xl border border-rose-200 bg-rose-50 p-4" role="alert">
+                <p className="text-sm text-rose-700">{entryDeleteError}</p>
+              </div>
+            ) : null}
+
             <EntriesGrid
               entries={entries}
               emptyMessage="По выбранным фильтрам карточки не найдены."
               onEditEntry={(entry) => {
                 setEntrySubmitError(null);
+                setEntryDeleteError(null);
                 setEntryFormState({ isOpen: true, entry, mode: 'edit' });
+              }}
+              onDeleteEntry={(entry) => {
+                void handleEntryDelete(entry);
               }}
             />
 

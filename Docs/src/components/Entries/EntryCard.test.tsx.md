@@ -2,33 +2,32 @@
 
 ## Что делает файл
 
-Файл тестирует UI-контракт отдельной карточки `EntryCard`.
-Покрывает обязательный рендер, optional-поля, компактное состояние, public read-only режим и private edit callback.
+Тестирует UI-контракт отдельной карточки `EntryCard`.
+Покрывает обязательные поля, optional-поля, компактное состояние, public read-only режим и private callbacks редактирования/удаления.
 
 ## Импорты и зависимости
 
-1. `vitest` — тестовый раннер, assertions и mock-функции.
-2. `@testing-library/react` — рендер и проверки DOM.
-3. `@testing-library/user-event` — клик по кнопке `Редактировать`.
-4. `./EntryCard` — тестируемый компонент.
-5. `contracts/collection.contracts.ts` — тип `EntryView` для тестовых данных.
+1. `vitest`
+2. `@testing-library/react`
+3. `@testing-library/user-event`
+4. `./EntryCard`
+5. `contracts/collection.contracts.ts`
 
 ## Экспорты и контракты
 
 1. Runtime-экспортов нет.
-2. Проверяемые инварианты:
-   - обязательные поля всегда видимы;
-   - optional image/meta/tags рендерятся только по данным;
-   - минимальная карточка остаётся компактной;
-   - public режим скрывает action-кнопки;
-   - private режим вызывает `onEdit(entry)` при клике на `Редактировать`.
+2. Проверяются UI-инварианты `EntryCard` в private/public режимах.
 
 ## Нетривиальная логика
 
-1. Тест на `onEdit` важен для шага 5.4: теперь `EntryCard` не просто показывает заглушку, а выступает точкой открытия edit-модалки из private detail.
-2. Отдельные сценарии “полностью заполненная” и “частично заполненная” карточка защищают адаптивную композицию шага 5.2.
+1. Обязательные поля всегда рендерятся.
+2. Optional image/meta/tags появляются только при наличии данных.
+3. Минимальная карточка остаётся компактной.
+4. `showActions={false}` скрывает private action-кнопки.
+5. `onEdit(entry)` вызывается по клику на `Редактировать`.
+6. `onDelete(entry)` вызывается по клику на `Удалить`.
 
 ## Где используется
 
 1. Запускается в `npm.cmd run test`.
-2. Защищает `src/components/Entries/EntryCard.tsx` от регрессий в private/public поведении.
+2. Защищает `src/components/Entries/EntryCard.tsx` от регрессий.
