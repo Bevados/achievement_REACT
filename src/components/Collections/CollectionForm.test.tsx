@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import CollectionForm from './CollectionForm';
 
@@ -15,26 +15,26 @@ describe('CollectionForm', () => {
     const descriptionInput = screen.getByLabelText('Описание');
     const coverInput = screen.getByLabelText('Обложка (URL)');
 
-    await user.type(titleInput, 'Поездки 2026');
+    fireEvent.change(titleInput, { target: { value: 'Trips' } });
     await user.selectOptions(categorySelect, 'travel');
 
     expect(screen.queryByLabelText('Своя категория')).not.toBeInTheDocument();
 
     await user.selectOptions(categorySelect, 'other');
-    await user.type(screen.getByLabelText('Своя категория'), 'Гастротуры');
-    await user.type(descriptionInput, 'Коллекция маршрутов и стран.');
-    await user.type(coverInput, 'https://example.com/cover.jpg');
+    fireEvent.change(screen.getByLabelText('Своя категория'), {
+      target: { value: 'Food tours' },
+    });
+    fireEvent.change(descriptionInput, { target: { value: 'Routes and places.' } });
+    fireEvent.change(coverInput, { target: { value: 'https://example.com/cover.jpg' } });
 
-    expect(titleInput).toHaveValue('Поездки 2026');
+    expect(titleInput).toHaveValue('Trips');
     expect(categorySelect).toHaveValue('other');
-    expect(screen.getByLabelText('Своя категория')).toHaveValue('Гастротуры');
-    expect(descriptionInput).toHaveValue('Коллекция маршрутов и стран.');
+    expect(screen.getByLabelText('Своя категория')).toHaveValue('Food tours');
+    expect(descriptionInput).toHaveValue('Routes and places.');
     expect(coverInput).toHaveValue('https://example.com/cover.jpg');
+    expect(screen.getByRole('button', { name: 'Сохранить коллекцию' })).toBeEnabled();
     expect(
-      screen.getByRole('button', { name: 'Сохранить коллекцию' }),
-    ).toBeEnabled();
-    expect(
-      screen.getByText(/Сохранение коллекции в API будет подключено/),
+      screen.getByText(/Создание и редактирование коллекции уже подключены/),
     ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Отмена' }));
@@ -68,7 +68,9 @@ describe('CollectionForm', () => {
 
     render(<CollectionForm mode="create" onCancel={() => undefined} />);
 
-    await user.type(screen.getByLabelText('Название коллекции'), 'Нишевая коллекция');
+    fireEvent.change(screen.getByLabelText('Название коллекции'), {
+      target: { value: 'Нишевая коллекция' },
+    });
     await user.click(screen.getByRole('button', { name: 'Сохранить коллекцию' }));
 
     expect(await screen.findByText('Введите свою категорию')).toBeInTheDocument();
@@ -80,26 +82,32 @@ describe('CollectionForm', () => {
 
     render(<CollectionForm mode="create" onCancel={() => undefined} onSubmit={onSubmit} />);
 
-    await user.type(screen.getByLabelText('Название коллекции'), 'Поездки 2026');
+    const coverInput = screen.getByLabelText(/Обложка \(URL\)/);
+
+    fireEvent.change(screen.getByLabelText('Название коллекции'), {
+      target: { value: 'Trips 2026' },
+    });
     await user.selectOptions(screen.getByLabelText('Категория'), 'other');
-    await user.type(screen.getByLabelText('Своя категория'), 'Гастротуры');
-    await user.type(screen.getByLabelText('Обложка (URL)'), 'not-a-url');
+    fireEvent.change(screen.getByLabelText('Своя категория'), {
+      target: { value: 'Food tours' },
+    });
+    fireEvent.change(coverInput, {
+      target: { value: 'not-a-url' },
+    });
     await user.click(screen.getByRole('button', { name: 'Сохранить коллекцию' }));
 
     expect(await screen.findByText(/Invalid URL|Invalid input/i)).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
 
-    await user.clear(screen.getByLabelText(/Обложка \(URL\)/));
-    await user.type(
-      screen.getByLabelText(/Обложка \(URL\)/),
-      'https://example.com/cover.jpg',
-    );
+    fireEvent.change(coverInput, {
+      target: { value: 'https://example.com/cover.jpg' },
+    });
     await user.click(screen.getByRole('button', { name: 'Сохранить коллекцию' }));
 
     expect(onSubmit).toHaveBeenCalledWith({
-      title: 'Поездки 2026',
+      title: 'Trips 2026',
       category: 'other',
-      customCategory: 'Гастротуры',
+      customCategory: 'Food tours',
       description: undefined,
       coverImageUrl: 'https://example.com/cover.jpg',
     });

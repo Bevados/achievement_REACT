@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import type { CollectionView, EntryView } from '../../../contracts/collection.contracts';
-import { getCollectionById, getCollectionEntries } from '../../api/collections.api';
+import {
+  getCollectionById,
+  getCollectionEntries,
+  updateCollection,
+} from '../../api/collections.api';
 import CollectionForm from '../../components/Collections/CollectionForm';
 import BaseModal from '../../components/Modal/BaseModal';
 import EntryForm from '../../components/Entries/EntryForm';
@@ -26,6 +30,7 @@ export default function CollectionDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isCollectionFormOpen, setIsCollectionFormOpen] = useState(false);
+  const [collectionSubmitError, setCollectionSubmitError] = useState<string | null>(null);
   const [entryFormState, setEntryFormState] = useState<
     | { isOpen: false; entry: null; mode: 'create' | 'edit' }
     | { isOpen: true; entry: EntryView | null; mode: 'create' | 'edit' }
@@ -201,6 +206,7 @@ export default function CollectionDetailPage() {
               <button
                 type="button"
                 onClick={() => {
+                  setCollectionSubmitError(null);
                   setIsCollectionFormOpen(true);
                 }}
                 className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
@@ -295,12 +301,14 @@ export default function CollectionDetailPage() {
         isOpen={isCollectionFormOpen}
         title="Редактирование коллекции"
         onClose={() => {
+          setCollectionSubmitError(null);
           setIsCollectionFormOpen(false);
         }}
       >
         <CollectionForm
           key={collection.id}
           mode="edit"
+          submitError={collectionSubmitError}
           initialValues={{
             title: collection.title,
             category: collection.category,
@@ -309,7 +317,23 @@ export default function CollectionDetailPage() {
             coverImageUrl: collection.coverImageUrl ?? '',
           }}
           onCancel={() => {
+            setCollectionSubmitError(null);
             setIsCollectionFormOpen(false);
+          }}
+          onSubmit={async (values) => {
+            setCollectionSubmitError(null);
+
+            try {
+              const updatedCollection = await updateCollection(collection.id, values);
+              setCollection(updatedCollection);
+              setIsCollectionFormOpen(false);
+            } catch (error) {
+              setCollectionSubmitError(
+                error instanceof Error
+                  ? error.message
+                  : 'Не удалось сохранить изменения коллекции. Попробуйте еще раз.',
+              );
+            }
           }}
         />
       </BaseModal>

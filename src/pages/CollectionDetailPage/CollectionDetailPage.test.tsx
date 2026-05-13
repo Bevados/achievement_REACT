@@ -3,15 +3,21 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import CollectionDetailPage from './CollectionDetailPage';
-import { getCollectionById, getCollectionEntries } from '../../api/collections.api';
+import {
+  getCollectionById,
+  getCollectionEntries,
+  updateCollection,
+} from '../../api/collections.api';
 
 vi.mock('../../api/collections.api', () => ({
   getCollectionById: vi.fn(),
   getCollectionEntries: vi.fn(),
+  updateCollection: vi.fn(),
 }));
 
 const mockedGetCollectionById = vi.mocked(getCollectionById);
 const mockedGetCollectionEntries = vi.mocked(getCollectionEntries);
+const mockedUpdateCollection = vi.mocked(updateCollection);
 
 function renderPage(initialPath = '/collections/collection-1') {
   return render(
@@ -103,9 +109,7 @@ describe('CollectionDetailPage', () => {
     renderPage();
 
     expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
-    expect(
-      screen.getByText('По выбранным фильтрам карточки не найдены.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('По выбранным фильтрам карточки не найдены.')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Показать фильтры' }));
     expect(screen.getByLabelText('Статус')).toBeInTheDocument();
   });
@@ -203,9 +207,7 @@ describe('CollectionDetailPage', () => {
     expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Редактировать коллекцию' }));
-    expect(
-      screen.getByRole('dialog', { name: 'Редактирование коллекции' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Редактирование коллекции' })).toBeInTheDocument();
     expect(screen.getByLabelText('Название коллекции')).toHaveValue('Моя коллекция');
     expect(screen.getByRole('button', { name: 'Сохранить изменения' })).toBeEnabled();
     await user.click(screen.getByRole('button', { name: 'Отмена' }));
@@ -225,9 +227,7 @@ describe('CollectionDetailPage', () => {
     });
 
     await user.click(screen.getByRole('button', { name: 'Редактировать' }));
-    expect(
-      screen.getByRole('dialog', { name: 'Редактирование карточки' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Редактирование карточки' })).toBeInTheDocument();
     expect(screen.getByLabelText('Название карточки')).toHaveValue('Токио');
     expect(screen.getByLabelText('Статус')).toHaveValue('completed');
     expect(screen.getByLabelText('Описание')).toHaveValue('Первый город в маршруте.');
@@ -237,5 +237,104 @@ describe('CollectionDetailPage', () => {
     expect(screen.getByLabelText('Дата начала')).toHaveValue('2026-05-01');
     expect(screen.getByLabelText('Дата окончания')).toHaveValue('2026-05-03');
     expect(screen.getByRole('button', { name: 'Сохранить изменения' })).toBeEnabled();
+  });
+
+  it('submits collection edit form and updates detail card', async () => {
+    const user = userEvent.setup();
+
+    mockedGetCollectionById.mockResolvedValue({
+      id: 'collection-1',
+      ownerId: 'user-1',
+      title: 'Моя коллекция',
+      category: 'travel',
+      description: 'Описание коллекции.',
+      isPublic: false,
+      entriesCount: 1,
+      createdAt: '2026-05-01T08:00:00.000Z',
+      updatedAt: '2026-05-02T08:00:00.000Z',
+    });
+    mockedGetCollectionEntries.mockResolvedValue({
+      items: [],
+      meta: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 1,
+      },
+    });
+    mockedUpdateCollection.mockResolvedValue({
+      id: 'collection-1',
+      ownerId: 'user-1',
+      title: 'Обновлённая коллекция',
+      category: 'travel',
+      description: 'Новое описание.',
+      isPublic: false,
+      entriesCount: 1,
+      createdAt: '2026-05-01T08:00:00.000Z',
+      updatedAt: '2026-05-03T08:00:00.000Z',
+    });
+
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Редактировать коллекцию' }));
+    await user.clear(screen.getByLabelText('Название коллекции'));
+    await user.type(screen.getByLabelText('Название коллекции'), 'Обновлённая коллекция');
+    await user.clear(screen.getByLabelText('Описание'));
+    await user.type(screen.getByLabelText('Описание'), 'Новое описание.');
+    await user.click(screen.getByRole('button', { name: 'Сохранить изменения' }));
+
+    await waitFor(() => {
+      expect(mockedUpdateCollection).toHaveBeenCalledWith('collection-1', {
+        title: 'Обновлённая коллекция',
+        category: 'travel',
+        customCategory: undefined,
+        description: 'Новое описание.',
+        coverImageUrl: undefined,
+      });
+    });
+
+    expect(screen.queryByRole('dialog', { name: 'Редактирование коллекции' })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Обновлённая коллекция' })).toBeInTheDocument();
+    expect(screen.getByText('Новое описание.')).toBeInTheDocument();
+  });
+
+  it('shows collection submit error inside modal', async () => {
+    const user = userEvent.setup();
+
+    mockedGetCollectionById.mockResolvedValue({
+      id: 'collection-1',
+      ownerId: 'user-1',
+      title: 'Моя коллекция',
+      category: 'travel',
+      description: 'Описание коллекции.',
+      isPublic: false,
+      entriesCount: 1,
+      createdAt: '2026-05-01T08:00:00.000Z',
+      updatedAt: '2026-05-02T08:00:00.000Z',
+    });
+    mockedGetCollectionEntries.mockResolvedValue({
+      items: [],
+      meta: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 1,
+      },
+    });
+    mockedUpdateCollection.mockRejectedValue(new Error('Изменения сохранить не удалось.'));
+
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Редактировать коллекцию' }));
+    await user.clear(screen.getByLabelText('Название коллекции'));
+    await user.type(screen.getByLabelText('Название коллекции'), 'Обновлённая коллекция');
+    await user.click(screen.getByRole('button', { name: 'Сохранить изменения' }));
+
+    expect(await screen.findByText('Изменения сохранить не удалось.')).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Редактирование коллекции' })).toBeInTheDocument();
   });
 });

@@ -478,6 +478,15 @@
 15. Для access-check в сервисе используем семантику: чужие данные -> 403, отсутствующие -> 404.
 16. Поиск коллекций в backend делаем по `title + description`.
 17. `entriesCount` поддерживается в service-оркестрации при create/delete entry.
+
+## Прогресс шага 5.6.1
+
+1. Первый реальный CRUD-подпункт после форм ограничен только коллекциями: create/update для `CollectionForm` подключены, а entry-мутации и delete остаются следующими отдельными шагами.
+2. Клиентский API получил рабочие методы `createCollection` и `updateCollection` с тем же envelope-подходом, auth-token flow и fallback-ошибками, что и read-only методы списка и detail.
+3. На `/collections` modal создания коллекции теперь реально вызывает `POST /api/collections`, закрывает форму после успеха и перезагружает private list через `reloadCollections()`.
+4. На `/collections/:collectionId` modal редактирования коллекции теперь реально вызывает `PATCH /api/collections/:collectionId`, обновляет локальный detail-state и закрывает форму после успеха без полного page reload.
+5. Для create/edit формы коллекции введён явный submit error UX: ошибка запроса показывается внутри `CollectionForm`, а не теряется на уровне страницы.
+6. Тесты страницы списка, detail-страницы и самой `CollectionForm` расширены под реальный submit-flow коллекций, включая happy-path и error-path.
 18. Мутации `createEntry`, `deleteEntry`, `deleteCollection` выполняются транзакционно с rollback при ошибке шага внутри операции.
 19. Индексы MongoDB инициализируются lazy при первом подключении в runtime через `api/_mongodb.ts`.
 20. Контрактный слой (DTO, enum, response envelope и контрактные Zod-схемы) вынесен в папку `contracts/` для совместного использования frontend/backend.

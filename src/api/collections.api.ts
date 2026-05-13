@@ -2,9 +2,11 @@ import type {
   ApiResponse,
   CollectionListQueryDto,
   CollectionView,
+  CreateCollectionDto,
   EntryListQueryDto,
   EntryView,
   PaginatedResult,
+  UpdateCollectionDto,
 } from '../../contracts/collection.contracts';
 import { getIdToken } from '../firebase';
 
@@ -33,7 +35,9 @@ type EntriesQuery = Pick<
 
 const FALLBACK_FETCH_ERROR = 'Не удалось загрузить публичные коллекции. Попробуйте еще раз.';
 const FALLBACK_PRIVATE_FETCH_ERROR = 'Не удалось загрузить ваши коллекции. Попробуйте еще раз.';
+const FALLBACK_COLLECTION_CREATE_ERROR = 'Не удалось создать коллекцию. Попробуйте еще раз.';
 const FALLBACK_COLLECTION_DETAIL_ERROR = 'Не удалось загрузить коллекцию. Попробуйте еще раз.';
+const FALLBACK_COLLECTION_UPDATE_ERROR = 'Не удалось сохранить изменения коллекции. Попробуйте еще раз.';
 const FALLBACK_PUBLIC_COLLECTION_DETAIL_ERROR =
   'Не удалось загрузить публичную коллекцию. Попробуйте еще раз.';
 const FALLBACK_COLLECTION_ENTRIES_ERROR =
@@ -84,8 +88,17 @@ function getSingleDataFromSuccessPayload<T>(payload: unknown): T | null {
 
 async function requestApi<T>(
   url: string,
-  fallbackError: string,
-  requireAuth: boolean,
+  {
+    method = 'GET',
+    body,
+    fallbackError,
+    requireAuth,
+  }: {
+    method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
+    body?: unknown;
+    fallbackError: string;
+    requireAuth: boolean;
+  },
 ): Promise<T> {
   const headers: Record<string, string> = {};
 
@@ -98,11 +111,16 @@ async function requestApi<T>(
     headers.Authorization = `Bearer ${token}`;
   }
 
+  if (body !== undefined) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   let response: Response;
   try {
     response = await fetch(url, {
-      method: 'GET',
+      method,
       headers: Object.keys(headers).length ? headers : undefined,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch {
     throw new Error(LOCAL_BACKEND_UNAVAILABLE_ERROR);
@@ -145,7 +163,10 @@ async function requestCollections(
   const queryString = toQueryString(query);
   const url = queryString ? `${endpoint}?${queryString}` : endpoint;
 
-  return requestApi<PaginatedResult<CollectionView>>(url, fallbackError, requireAuth);
+  return requestApi<PaginatedResult<CollectionView>>(url, {
+    fallbackError,
+    requireAuth,
+  });
 }
 
 export async function getPublicCollections(
@@ -160,20 +181,42 @@ export async function getOwnerCollections(
   return requestCollections('/api/collections', query, FALLBACK_PRIVATE_FETCH_ERROR, true);
 }
 
+export async function createCollection(payload: CreateCollectionDto): Promise<CollectionView> {
+  return requestApi<CollectionView>('/api/collections', {
+    method: 'POST',
+    body: payload,
+    fallbackError: FALLBACK_COLLECTION_CREATE_ERROR,
+    requireAuth: true,
+  });
+}
+
 export async function getPublicCollectionById(collectionId: string): Promise<CollectionView> {
   return requestApi<CollectionView>(
     `/api/examples/collections/${encodeURIComponent(collectionId)}`,
-    FALLBACK_PUBLIC_COLLECTION_DETAIL_ERROR,
-    false,
+    {
+      fallbackError: FALLBACK_PUBLIC_COLLECTION_DETAIL_ERROR,
+      requireAuth: false,
+    },
   );
 }
 
 export async function getCollectionById(collectionId: string): Promise<CollectionView> {
-  return requestApi<CollectionView>(
-    `/api/collections/${encodeURIComponent(collectionId)}`,
-    FALLBACK_COLLECTION_DETAIL_ERROR,
-    true,
-  );
+  return requestApi<CollectionView>(`/api/collections/${encodeURIComponent(collectionId)}`, {
+    fallbackError: FALLBACK_COLLECTION_DETAIL_ERROR,
+    requireAuth: true,
+  });
+}
+
+export async function updateCollection(
+  collectionId: string,
+  payload: UpdateCollectionDto,
+): Promise<CollectionView> {
+  return requestApi<CollectionView>(`/api/collections/${encodeURIComponent(collectionId)}`, {
+    method: 'PATCH',
+    body: payload,
+    fallbackError: FALLBACK_COLLECTION_UPDATE_ERROR,
+    requireAuth: true,
+  });
 }
 
 export async function getPublicCollectionEntries(
@@ -184,7 +227,10 @@ export async function getPublicCollectionEntries(
   const baseUrl = `/api/examples/collections/${encodeURIComponent(collectionId)}/entries`;
   const url = queryString ? `${baseUrl}?${queryString}` : baseUrl;
 
-  return requestApi<PaginatedResult<EntryView>>(url, FALLBACK_PUBLIC_COLLECTION_ENTRIES_ERROR, false);
+  return requestApi<PaginatedResult<EntryView>>(url, {
+    fallbackError: FALLBACK_PUBLIC_COLLECTION_ENTRIES_ERROR,
+    requireAuth: false,
+  });
 }
 
 export async function getCollectionEntries(
@@ -195,5 +241,8 @@ export async function getCollectionEntries(
   const baseUrl = `/api/collections/${encodeURIComponent(collectionId)}/entries`;
   const url = queryString ? `${baseUrl}?${queryString}` : baseUrl;
 
-  return requestApi<PaginatedResult<EntryView>>(url, FALLBACK_COLLECTION_ENTRIES_ERROR, true);
+  return requestApi<PaginatedResult<EntryView>>(url, {
+    fallbackError: FALLBACK_COLLECTION_ENTRIES_ERROR,
+    requireAuth: true,
+  });
 }

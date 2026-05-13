@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import BaseModal from '../../components/Modal/BaseModal';
 import CollectionForm from '../../components/Collections/CollectionForm';
-import { getOwnerCollections } from '../../api/collections.api';
+import { createCollection, getOwnerCollections } from '../../api/collections.api';
 import CollectionsGrid from '../../components/Collections/CollectionsGrid';
 import CollectionsFilters from '../../components/Collections/CollectionsFilters';
 import CollectionsPagination from '../../components/Collections/CollectionsPagination';
@@ -9,6 +9,7 @@ import { useCollectionsListController } from '../../hooks/useCollectionsListCont
 
 export default function CollectionsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createSubmitError, setCreateSubmitError] = useState<string | null>(null);
   const {
     collections,
     meta,
@@ -48,6 +49,7 @@ export default function CollectionsPage() {
         <button
           type="button"
           onClick={() => {
+            setCreateSubmitError(null);
             setIsCreateModalOpen(true);
           }}
           className="inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
@@ -113,14 +115,32 @@ export default function CollectionsPage() {
         isOpen={isCreateModalOpen}
         title="Новая коллекция"
         onClose={() => {
+          setCreateSubmitError(null);
           setIsCreateModalOpen(false);
         }}
       >
         <CollectionForm
           key="collection-create"
           mode="create"
+          submitError={createSubmitError}
           onCancel={() => {
+            setCreateSubmitError(null);
             setIsCreateModalOpen(false);
+          }}
+          onSubmit={async (values) => {
+            setCreateSubmitError(null);
+
+            try {
+              await createCollection(values);
+              setIsCreateModalOpen(false);
+              await reloadCollections();
+            } catch (error) {
+              setCreateSubmitError(
+                error instanceof Error
+                  ? error.message
+                  : 'Не удалось создать коллекцию. Попробуйте еще раз.',
+              );
+            }
           }}
         />
       </BaseModal>

@@ -212,7 +212,12 @@ Private API:
 # 11. Обновление По Шагу 5.4
 
 - В private-зоне уже есть modal-формы `CollectionForm` и `EntryForm`.
-- Формы теперь подключены через `react-hook-form` и Zod-валидацию, но всё ещё без реального API-submit.
+- Формы теперь подключены через `react-hook-form` и Zod-валидацию.
+- Для коллекций уже подключены реальные create/update мутации:
+  - `/collections` умеет создавать коллекцию через API;
+  - `/collections/:collectionId` умеет редактировать коллекцию через API;
+  - submit-ошибки отображаются прямо внутри `CollectionForm`.
+- `EntryForm` всё ещё без реальных API-мутаций: это следующий CRUD-подпункт.
 - `CollectionsPage` открывает modal создания коллекции.
 - `CollectionDetailPage` открывает:
   - modal редактирования коллекции;
@@ -221,7 +226,7 @@ Private API:
 - Состояние этих модалок хранится локально в страницах и не смешивается с auth `modal.store`.
 - `CollectionForm` требует `customCategory`, если выбрана категория `other`.
 - `EntryForm` валидирует правила completed-entry (`rating` и `dateStart` обязательны) и готовит нормализованный payload (`price`, `tags`, `dateStart/dateEnd`) для следующего CRUD-подпункта.
-- Следующий логический подпункт после этого — реальные create/edit/delete мутации.
+- Следующий логический подпункт после этого — реальные create/update для `EntryForm`, а затем delete flow.
 ```
 ## Обновление по пользовательской категории коллекции
 

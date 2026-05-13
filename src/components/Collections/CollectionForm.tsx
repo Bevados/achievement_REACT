@@ -14,6 +14,7 @@ interface CollectionFormProps {
   initialValues?: Partial<CollectionFormValues>;
   onCancel: () => void;
   onSubmit?: (values: CreateCollectionDto) => void | Promise<void>;
+  submitError?: string | null;
 }
 
 function getInitialValues(initialValues?: Partial<CollectionFormValues>): CollectionFormValues {
@@ -31,6 +32,7 @@ export default function CollectionForm({
   initialValues,
   onCancel,
   onSubmit,
+  submitError = null,
 }: CollectionFormProps) {
   const {
     control,
@@ -137,9 +139,15 @@ export default function CollectionForm({
       </label>
 
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-        Сохранение коллекции в API будет подключено на следующем подпункте. Сейчас форма уже
-        валидирует данные и готовит корректный payload для будущего CRUD.
+        Создание и редактирование коллекции уже подключены. Удаление и CRUD для карточек будут
+        добавлены на следующих подпунктах.
       </div>
+
+      {submitError ? (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+          {submitError}
+        </div>
+      ) : null}
 
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <button

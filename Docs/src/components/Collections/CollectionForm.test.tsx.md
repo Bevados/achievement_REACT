@@ -2,8 +2,8 @@
 
 ## Что делает файл
 
-Тестирует `CollectionForm` после перевода на `react-hook-form + zod`.
-Покрывает create/edit режимы, обязательность `customCategory` для `other`, URL-валидацию и нормализованный submit.
+Тестирует `CollectionForm` в create/edit режимах, клиентскую валидацию и нормализованный submit payload.
+После шага `5.6.1` тесты также фиксируют, что helper-text и submit-flow формы соответствуют уже подключённым create/update мутациям коллекций.
 
 ## Импорты и зависимости
 
@@ -15,19 +15,20 @@
 ## Экспорты и контракты
 
 1. Runtime-экспортов нет.
-2. Проверяемые инварианты:
-   - create-форма редактирует поля и закрывается по `Отмена`;
-   - edit-форма корректно подставляет initial values;
-   - `customCategory` обязательно при `category='other'`;
-   - невалидный `coverImageUrl` даёт ошибку;
-   - валидный submit вызывает `onSubmit` с нормализованным payload.
+2. Проверяются сценарии:
+   - create-mode;
+   - edit-mode;
+   - обязательный `customCategory` для `other`;
+   - валидация `coverImageUrl`;
+   - нормализованный `onSubmit` payload;
+   - отмена через `onCancel`.
 
 ## Нетривиальная логика
 
-1. Тест на `other + customCategory` страхует принятое бизнес-решение о пользовательской категории как `category='other' + customCategory`, а не свободной замене enum.
-2. Submit-проверка подтверждает, что форма уже готовит DTO-совместимый payload до подключения реального API.
+1. Поле `customCategory` появляется только для `category='other'`.
+2. Submit проверяется на нормализованном DTO-подобном payload, а не на сыром UI-state.
+3. Helper-text подтверждает текущее состояние UX: create/edit коллекции уже подключены, а не отложены как заглушка.
 
 ## Где используется
 
 1. Запускается в `npm.cmd run test`.
-2. Страхует `src/components/Collections/CollectionForm.tsx`.

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import EntryForm from './EntryForm';
 
@@ -10,18 +10,22 @@ describe('EntryForm', () => {
 
     render(<EntryForm mode="create" onCancel={onCancel} />);
 
-    await user.type(screen.getByLabelText('Название карточки'), 'Поездка в Токио');
+    fireEvent.change(screen.getByLabelText('Название карточки'), {
+      target: { value: 'Tokyo trip' },
+    });
     await user.selectOptions(screen.getByLabelText('Статус'), 'completed');
-    await user.type(screen.getByLabelText('Описание'), 'Проверка формы карточки.');
-    await user.type(screen.getByLabelText('Изображение (URL)'), 'https://example.com/tokyo.jpg');
-    await user.type(screen.getByLabelText('Цена'), '120');
-    await user.type(screen.getByLabelText('Рейтинг'), '9');
-    await user.type(screen.getByLabelText('Теги'), 'travel, japan');
-    await user.type(screen.getByLabelText('Дата'), '2026-05-12');
+    fireEvent.change(screen.getByLabelText('Описание'), { target: { value: 'Form check.' } });
+    fireEvent.change(screen.getByLabelText('Изображение (URL)'), {
+      target: { value: 'https://example.com/tokyo.jpg' },
+    });
+    fireEvent.change(screen.getByLabelText('Цена'), { target: { value: '120' } });
+    fireEvent.change(screen.getByLabelText('Рейтинг'), { target: { value: '9' } });
+    fireEvent.change(screen.getByLabelText('Теги'), { target: { value: 'travel, japan' } });
+    fireEvent.change(screen.getByLabelText('Дата'), { target: { value: '2026-05-12' } });
 
-    expect(screen.getByLabelText('Название карточки')).toHaveValue('Поездка в Токио');
+    expect(screen.getByLabelText('Название карточки')).toHaveValue('Tokyo trip');
     expect(screen.getByLabelText('Статус')).toHaveValue('completed');
-    expect(screen.getByLabelText('Описание')).toHaveValue('Проверка формы карточки.');
+    expect(screen.getByLabelText('Описание')).toHaveValue('Form check.');
     expect(screen.getByLabelText('Изображение (URL)')).toHaveValue('https://example.com/tokyo.jpg');
     expect(screen.getByLabelText('Цена')).toHaveValue(120);
     expect(screen.getByLabelText('Рейтинг')).toHaveValue(9);
@@ -33,7 +37,9 @@ describe('EntryForm', () => {
 
     expect(screen.getByLabelText('Дата начала')).toHaveValue('2026-05-12');
     expect(screen.getByLabelText('Дата окончания')).toHaveValue('');
-    expect(screen.getByText(/Сохранение карточки в API будет подключено/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Сохранение карточки в API будет подключено/),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Отмена' }));
     expect(onCancel).toHaveBeenCalledTimes(1);
@@ -75,7 +81,9 @@ describe('EntryForm', () => {
 
     render(<EntryForm mode="create" onCancel={() => undefined} />);
 
-    await user.type(screen.getByLabelText('Название карточки'), 'Токио');
+    fireEvent.change(screen.getByLabelText('Название карточки'), {
+      target: { value: 'Tokyo' },
+    });
     await user.selectOptions(screen.getByLabelText('Статус'), 'completed');
     await user.click(screen.getByRole('button', { name: 'Сохранить карточку' }));
 
@@ -89,25 +97,39 @@ describe('EntryForm', () => {
 
     render(<EntryForm mode="create" onCancel={() => undefined} onSubmit={onSubmit} />);
 
-    await user.type(screen.getByLabelText('Название карточки'), 'Токио');
+    fireEvent.change(screen.getByLabelText('Название карточки'), {
+      target: { value: 'Tokyo' },
+    });
     await user.selectOptions(screen.getByLabelText('Статус'), 'completed');
-    await user.type(screen.getByLabelText('Цена'), '120.50');
-    await user.type(screen.getByLabelText('Рейтинг'), '9');
-    await user.type(screen.getByLabelText('Теги'), 'travel, japan, travel');
+    fireEvent.change(screen.getByLabelText('Цена'), { target: { value: '120.50' } });
+    fireEvent.change(screen.getByLabelText('Рейтинг'), { target: { value: '9' } });
+    fireEvent.change(screen.getByLabelText('Теги'), {
+      target: { value: 'travel, japan, travel' },
+    });
     await user.click(screen.getByRole('button', { name: 'Период' }));
-    await user.type(screen.getByLabelText('Дата начала'), '2026-05-10');
-    await user.type(screen.getByLabelText('Дата окончания'), '2026-05-05');
+    const dateStartInput = screen.getByLabelText('Дата начала');
+    const dateEndInput = screen.getByLabelText('Дата окончания');
+
+    fireEvent.change(dateStartInput, {
+      target: { value: '2026-05-10' },
+    });
+    fireEvent.change(dateEndInput, {
+      target: { value: '2026-05-05' },
+    });
     await user.click(screen.getByRole('button', { name: 'Сохранить карточку' }));
 
-    expect(await screen.findByText('dateEnd must be greater than or equal to dateStart')).toBeInTheDocument();
+    expect(
+      await screen.findByText('dateEnd must be greater than or equal to dateStart'),
+    ).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
 
-    await user.clear(screen.getByLabelText(/Дата окончания/));
-    await user.type(screen.getByLabelText(/Дата окончания/), '2026-05-12');
+    fireEvent.change(dateEndInput, {
+      target: { value: '2026-05-12' },
+    });
     await user.click(screen.getByRole('button', { name: 'Сохранить карточку' }));
 
     expect(onSubmit).toHaveBeenCalledWith({
-      title: 'Токио',
+      title: 'Tokyo',
       status: 'completed',
       description: undefined,
       imageUrl: undefined,
