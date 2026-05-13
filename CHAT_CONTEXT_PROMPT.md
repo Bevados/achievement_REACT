@@ -217,7 +217,11 @@ Private API:
   - `/collections` умеет создавать коллекцию через API;
   - `/collections/:collectionId` умеет редактировать коллекцию через API;
   - submit-ошибки отображаются прямо внутри `CollectionForm`.
-- `EntryForm` всё ещё без реальных API-мутаций: это следующий CRUD-подпункт.
+- Для карточек тоже уже подключены реальные create/update мутации:
+  - `/collections/:collectionId` умеет создавать карточки через API;
+  - `/collections/:collectionId` умеет редактировать карточки через API;
+  - submit-ошибки отображаются прямо внутри `EntryForm`;
+  - после создания карточки detail-страница перезагружает список и локально обновляет `entriesCount`.
 - `CollectionsPage` открывает modal создания коллекции.
 - `CollectionDetailPage` открывает:
   - modal редактирования коллекции;
@@ -226,7 +230,7 @@ Private API:
 - Состояние этих модалок хранится локально в страницах и не смешивается с auth `modal.store`.
 - `CollectionForm` требует `customCategory`, если выбрана категория `other`.
 - `EntryForm` валидирует правила completed-entry (`rating` и `dateStart` обязательны) и готовит нормализованный payload (`price`, `tags`, `dateStart/dateEnd`) для следующего CRUD-подпункта.
-- Следующий логический подпункт после этого — реальные create/update для `EntryForm`, а затем delete flow.
+- Следующий логический подпункт после этого — delete flow для collection и entry.
 ```
 ## Обновление по пользовательской категории коллекции
 

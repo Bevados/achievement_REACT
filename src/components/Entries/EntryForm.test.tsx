@@ -38,7 +38,7 @@ describe('EntryForm', () => {
     expect(screen.getByLabelText('Дата начала')).toHaveValue('2026-05-12');
     expect(screen.getByLabelText('Дата окончания')).toHaveValue('');
     expect(
-      screen.getByText(/Сохранение карточки в API будет подключено/),
+      screen.getByText(/Создание и редактирование карточки уже подключены/),
     ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Отмена' }));
@@ -91,11 +91,13 @@ describe('EntryForm', () => {
     expect(screen.getByText('dateStart is required when status is completed')).toBeInTheDocument();
   });
 
-  it('validates date range and submits normalized payload', async () => {
+  it('validates date range, submits normalized payload and renders submit error', async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
 
-    render(<EntryForm mode="create" onCancel={() => undefined} onSubmit={onSubmit} />);
+    const { rerender } = render(
+      <EntryForm mode="create" onCancel={() => undefined} onSubmit={onSubmit} />,
+    );
 
     fireEvent.change(screen.getByLabelText('Название карточки'), {
       target: { value: 'Tokyo' },
@@ -110,12 +112,8 @@ describe('EntryForm', () => {
     const dateStartInput = screen.getByLabelText('Дата начала');
     const dateEndInput = screen.getByLabelText('Дата окончания');
 
-    fireEvent.change(dateStartInput, {
-      target: { value: '2026-05-10' },
-    });
-    fireEvent.change(dateEndInput, {
-      target: { value: '2026-05-05' },
-    });
+    fireEvent.change(dateStartInput, { target: { value: '2026-05-10' } });
+    fireEvent.change(dateEndInput, { target: { value: '2026-05-05' } });
     await user.click(screen.getByRole('button', { name: 'Сохранить карточку' }));
 
     expect(
@@ -123,9 +121,7 @@ describe('EntryForm', () => {
     ).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
 
-    fireEvent.change(dateEndInput, {
-      target: { value: '2026-05-12' },
-    });
+    fireEvent.change(dateEndInput, { target: { value: '2026-05-12' } });
     await user.click(screen.getByRole('button', { name: 'Сохранить карточку' }));
 
     expect(onSubmit).toHaveBeenCalledWith({
@@ -139,5 +135,16 @@ describe('EntryForm', () => {
       dateStart: '2026-05-10T00:00:00.000Z',
       dateEnd: '2026-05-12T00:00:00.000Z',
     });
+
+    rerender(
+      <EntryForm
+        mode="create"
+        onCancel={() => undefined}
+        onSubmit={onSubmit}
+        submitError="Не удалось сохранить карточку."
+      />,
+    );
+
+    expect(screen.getByText('Не удалось сохранить карточку.')).toBeInTheDocument();
   });
 });

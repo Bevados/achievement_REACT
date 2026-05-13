@@ -4,20 +4,27 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import CollectionDetailPage from './CollectionDetailPage';
 import {
+  createEntry,
   getCollectionById,
   getCollectionEntries,
   updateCollection,
+  updateEntry,
 } from '../../api/collections.api';
+import type { EntryView } from '../../../contracts/collection.contracts';
 
 vi.mock('../../api/collections.api', () => ({
+  createEntry: vi.fn(),
   getCollectionById: vi.fn(),
   getCollectionEntries: vi.fn(),
   updateCollection: vi.fn(),
+  updateEntry: vi.fn(),
 }));
 
+const mockedCreateEntry = vi.mocked(createEntry);
 const mockedGetCollectionById = vi.mocked(getCollectionById);
 const mockedGetCollectionEntries = vi.mocked(getCollectionEntries);
 const mockedUpdateCollection = vi.mocked(updateCollection);
+const mockedUpdateEntry = vi.mocked(updateEntry);
 
 function renderPage(initialPath = '/collections/collection-1') {
   return render(
@@ -27,6 +34,33 @@ function renderPage(initialPath = '/collections/collection-1') {
       </Routes>
     </MemoryRouter>,
   );
+}
+
+function makeCollection(overrides: Partial<Awaited<ReturnType<typeof getCollectionById>>> = {}) {
+  return {
+    id: 'collection-1',
+    ownerId: 'user-1',
+    title: 'Моя коллекция',
+    category: 'travel' as const,
+    description: 'Описание коллекции.',
+    isPublic: false,
+    entriesCount: 1,
+    createdAt: '2026-05-01T08:00:00.000Z',
+    updatedAt: '2026-05-02T08:00:00.000Z',
+    ...overrides,
+  };
+}
+
+function makeEntriesResult(items: EntryView[]) {
+  return {
+    items,
+    meta: {
+      page: 1,
+      limit: 10,
+      total: items.length,
+      totalPages: 1,
+    },
+  };
 }
 
 describe('CollectionDetailPage', () => {
@@ -51,25 +85,8 @@ describe('CollectionDetailPage', () => {
     const user = userEvent.setup();
     mockedGetCollectionById.mockRejectedValueOnce(new Error('Не удалось загрузить коллекцию.'));
     mockedGetCollectionEntries.mockRejectedValueOnce(new Error('Не удалось загрузить карточки.'));
-    mockedGetCollectionById.mockResolvedValueOnce({
-      id: 'collection-1',
-      ownerId: 'user-1',
-      title: 'Путешествия',
-      category: 'travel',
-      isPublic: false,
-      entriesCount: 0,
-      createdAt: '2026-05-01T08:00:00.000Z',
-      updatedAt: '2026-05-02T08:00:00.000Z',
-    });
-    mockedGetCollectionEntries.mockResolvedValueOnce({
-      items: [],
-      meta: {
-        page: 1,
-        limit: 10,
-        total: 0,
-        totalPages: 1,
-      },
-    });
+    mockedGetCollectionById.mockResolvedValueOnce(makeCollection());
+    mockedGetCollectionEntries.mockResolvedValueOnce(makeEntriesResult([]));
 
     renderPage();
 
@@ -86,25 +103,8 @@ describe('CollectionDetailPage', () => {
   it('renders empty state for entries', async () => {
     const user = userEvent.setup();
 
-    mockedGetCollectionById.mockResolvedValue({
-      id: 'collection-1',
-      ownerId: 'user-1',
-      title: 'Моя коллекция',
-      category: 'travel',
-      isPublic: false,
-      entriesCount: 0,
-      createdAt: '2026-05-01T08:00:00.000Z',
-      updatedAt: '2026-05-02T08:00:00.000Z',
-    });
-    mockedGetCollectionEntries.mockResolvedValue({
-      items: [],
-      meta: {
-        page: 1,
-        limit: 10,
-        total: 0,
-        totalPages: 1,
-      },
-    });
+    mockedGetCollectionById.mockResolvedValue(makeCollection({ entriesCount: 0 }));
+    mockedGetCollectionEntries.mockResolvedValue(makeEntriesResult([]));
 
     renderPage();
 
@@ -117,19 +117,9 @@ describe('CollectionDetailPage', () => {
   it('renders success state with entries', async () => {
     const user = userEvent.setup();
 
-    mockedGetCollectionById.mockResolvedValue({
-      id: 'collection-1',
-      ownerId: 'user-1',
-      title: 'Моя коллекция',
-      category: 'travel',
-      description: 'Описание коллекции.',
-      isPublic: false,
-      entriesCount: 1,
-      createdAt: '2026-05-01T08:00:00.000Z',
-      updatedAt: '2026-05-02T08:00:00.000Z',
-    });
-    mockedGetCollectionEntries.mockResolvedValue({
-      items: [
+    mockedGetCollectionById.mockResolvedValue(makeCollection());
+    mockedGetCollectionEntries.mockResolvedValue(
+      makeEntriesResult([
         {
           id: 'entry-1',
           collectionId: 'collection-1',
@@ -140,14 +130,8 @@ describe('CollectionDetailPage', () => {
           createdAt: '2026-05-01T08:00:00.000Z',
           updatedAt: '2026-05-02T08:00:00.000Z',
         },
-      ],
-      meta: {
-        page: 1,
-        limit: 10,
-        total: 1,
-        totalPages: 1,
-      },
-    });
+      ]),
+    );
 
     renderPage();
 
@@ -164,20 +148,11 @@ describe('CollectionDetailPage', () => {
   it('opens collection and entry modals in private mode', async () => {
     const user = userEvent.setup();
 
-    mockedGetCollectionById.mockResolvedValue({
-      id: 'collection-1',
-      ownerId: 'user-1',
-      title: 'Моя коллекция',
-      category: 'travel',
-      description: 'Описание коллекции.',
-      coverImageUrl: 'https://example.com/cover.jpg',
-      isPublic: false,
-      entriesCount: 1,
-      createdAt: '2026-05-01T08:00:00.000Z',
-      updatedAt: '2026-05-02T08:00:00.000Z',
-    });
-    mockedGetCollectionEntries.mockResolvedValue({
-      items: [
+    mockedGetCollectionById.mockResolvedValue(
+      makeCollection({ coverImageUrl: 'https://example.com/cover.jpg' }),
+    );
+    mockedGetCollectionEntries.mockResolvedValue(
+      makeEntriesResult([
         {
           id: 'entry-1',
           collectionId: 'collection-1',
@@ -193,14 +168,8 @@ describe('CollectionDetailPage', () => {
           createdAt: '2026-05-01T08:00:00.000Z',
           updatedAt: '2026-05-02T08:00:00.000Z',
         },
-      ],
-      meta: {
-        page: 1,
-        limit: 10,
-        total: 1,
-        totalPages: 1,
-      },
-    });
+      ]),
+    );
 
     renderPage();
 
@@ -212,9 +181,7 @@ describe('CollectionDetailPage', () => {
     expect(screen.getByRole('button', { name: 'Сохранить изменения' })).toBeEnabled();
     await user.click(screen.getByRole('button', { name: 'Отмена' }));
     await waitFor(() => {
-      expect(
-        screen.queryByRole('dialog', { name: 'Редактирование коллекции' }),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole('dialog', { name: 'Редактирование коллекции' })).not.toBeInTheDocument();
     });
 
     await user.click(screen.getByRole('button', { name: 'Добавить карточку' }));
@@ -242,37 +209,15 @@ describe('CollectionDetailPage', () => {
   it('submits collection edit form and updates detail card', async () => {
     const user = userEvent.setup();
 
-    mockedGetCollectionById.mockResolvedValue({
-      id: 'collection-1',
-      ownerId: 'user-1',
-      title: 'Моя коллекция',
-      category: 'travel',
-      description: 'Описание коллекции.',
-      isPublic: false,
-      entriesCount: 1,
-      createdAt: '2026-05-01T08:00:00.000Z',
-      updatedAt: '2026-05-02T08:00:00.000Z',
-    });
-    mockedGetCollectionEntries.mockResolvedValue({
-      items: [],
-      meta: {
-        page: 1,
-        limit: 10,
-        total: 0,
-        totalPages: 1,
-      },
-    });
-    mockedUpdateCollection.mockResolvedValue({
-      id: 'collection-1',
-      ownerId: 'user-1',
-      title: 'Обновлённая коллекция',
-      category: 'travel',
-      description: 'Новое описание.',
-      isPublic: false,
-      entriesCount: 1,
-      createdAt: '2026-05-01T08:00:00.000Z',
-      updatedAt: '2026-05-03T08:00:00.000Z',
-    });
+    mockedGetCollectionById.mockResolvedValue(makeCollection());
+    mockedGetCollectionEntries.mockResolvedValue(makeEntriesResult([]));
+    mockedUpdateCollection.mockResolvedValue(
+      makeCollection({
+        title: 'Обновлённая коллекция',
+        description: 'Новое описание.',
+        updatedAt: '2026-05-03T08:00:00.000Z',
+      }),
+    );
 
     renderPage();
 
@@ -303,26 +248,8 @@ describe('CollectionDetailPage', () => {
   it('shows collection submit error inside modal', async () => {
     const user = userEvent.setup();
 
-    mockedGetCollectionById.mockResolvedValue({
-      id: 'collection-1',
-      ownerId: 'user-1',
-      title: 'Моя коллекция',
-      category: 'travel',
-      description: 'Описание коллекции.',
-      isPublic: false,
-      entriesCount: 1,
-      createdAt: '2026-05-01T08:00:00.000Z',
-      updatedAt: '2026-05-02T08:00:00.000Z',
-    });
-    mockedGetCollectionEntries.mockResolvedValue({
-      items: [],
-      meta: {
-        page: 1,
-        limit: 10,
-        total: 0,
-        totalPages: 1,
-      },
-    });
+    mockedGetCollectionById.mockResolvedValue(makeCollection());
+    mockedGetCollectionEntries.mockResolvedValue(makeEntriesResult([]));
     mockedUpdateCollection.mockRejectedValue(new Error('Изменения сохранить не удалось.'));
 
     renderPage();
@@ -336,5 +263,125 @@ describe('CollectionDetailPage', () => {
 
     expect(await screen.findByText('Изменения сохранить не удалось.')).toBeInTheDocument();
     expect(screen.getByRole('dialog', { name: 'Редактирование коллекции' })).toBeInTheDocument();
+  });
+
+  it('submits create entry form, reloads entries and updates count', async () => {
+    const user = userEvent.setup();
+
+    mockedGetCollectionById.mockResolvedValue(makeCollection());
+    mockedGetCollectionEntries.mockResolvedValue(makeEntriesResult([]));
+    mockedCreateEntry.mockResolvedValue({
+      id: 'entry-2',
+      collectionId: 'collection-1',
+      ownerId: 'user-1',
+      title: 'Kyoto',
+      status: 'planned',
+      createdAt: '2026-05-03T08:00:00.000Z',
+      updatedAt: '2026-05-03T08:00:00.000Z',
+    });
+
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
+    expect(screen.getByText('1 карточек')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Добавить карточку' }));
+    await user.type(screen.getByLabelText('Название карточки'), 'Kyoto');
+    await user.click(screen.getByRole('button', { name: 'Сохранить карточку' }));
+
+    await waitFor(() => {
+      expect(mockedCreateEntry).toHaveBeenCalledWith('collection-1', {
+        title: 'Kyoto',
+        status: 'planned',
+        description: undefined,
+        imageUrl: undefined,
+        price: undefined,
+        tags: undefined,
+        rating: undefined,
+        dateStart: undefined,
+        dateEnd: undefined,
+      });
+      expect(mockedGetCollectionEntries).toHaveBeenCalledTimes(2);
+    });
+
+    expect(screen.queryByRole('dialog', { name: 'Новая карточка' })).not.toBeInTheDocument();
+    expect(screen.getByText('2 карточек')).toBeInTheDocument();
+  });
+
+  it('submits edit entry form and reloads entries', async () => {
+    const user = userEvent.setup();
+
+    mockedGetCollectionById.mockResolvedValue(makeCollection());
+    mockedGetCollectionEntries.mockResolvedValue(
+      makeEntriesResult([
+        {
+          id: 'entry-1',
+          collectionId: 'collection-1',
+          ownerId: 'user-1',
+          title: 'Токио',
+          status: 'planned',
+          description: 'Первый город в маршруте.',
+          createdAt: '2026-05-01T08:00:00.000Z',
+          updatedAt: '2026-05-02T08:00:00.000Z',
+        },
+      ]),
+    );
+    mockedUpdateEntry.mockResolvedValue({
+      id: 'entry-1',
+      collectionId: 'collection-1',
+      ownerId: 'user-1',
+      title: 'Osaka',
+      status: 'planned',
+      description: 'Обновлённая карточка.',
+      createdAt: '2026-05-01T08:00:00.000Z',
+      updatedAt: '2026-05-03T08:00:00.000Z',
+    });
+
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Редактировать' }));
+    await user.clear(screen.getByLabelText('Название карточки'));
+    await user.type(screen.getByLabelText('Название карточки'), 'Osaka');
+    await user.clear(screen.getByLabelText('Описание'));
+    await user.type(screen.getByLabelText('Описание'), 'Обновлённая карточка.');
+    await user.click(screen.getByRole('button', { name: 'Сохранить изменения' }));
+
+    await waitFor(() => {
+      expect(mockedUpdateEntry).toHaveBeenCalledWith('collection-1', 'entry-1', {
+        title: 'Osaka',
+        status: 'planned',
+        description: 'Обновлённая карточка.',
+        imageUrl: undefined,
+        price: undefined,
+        tags: undefined,
+        rating: undefined,
+        dateStart: undefined,
+        dateEnd: undefined,
+      });
+      expect(mockedGetCollectionEntries).toHaveBeenCalledTimes(2);
+    });
+
+    expect(screen.queryByRole('dialog', { name: 'Редактирование карточки' })).not.toBeInTheDocument();
+  });
+
+  it('shows entry submit error inside modal', async () => {
+    const user = userEvent.setup();
+
+    mockedGetCollectionById.mockResolvedValue(makeCollection());
+    mockedGetCollectionEntries.mockResolvedValue(makeEntriesResult([]));
+    mockedCreateEntry.mockRejectedValue(new Error('Карточку сохранить не удалось.'));
+
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Добавить карточку' }));
+    await user.type(screen.getByLabelText('Название карточки'), 'Kyoto');
+    await user.click(screen.getByRole('button', { name: 'Сохранить карточку' }));
+
+    expect(await screen.findByText('Карточку сохранить не удалось.')).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Новая карточка' })).toBeInTheDocument();
   });
 });

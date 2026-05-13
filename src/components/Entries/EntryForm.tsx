@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import type { CreateEntryDto } from '../../../contracts/collection.contracts';
+import type { CreateEntryDto, UpdateEntryDto } from '../../../contracts/collection.contracts';
 import { ENTRY_STATUSES } from '../../../contracts/collection.contracts';
 import { entryStatusLabels } from '../../config/entries.config';
 import {
@@ -14,7 +14,8 @@ interface EntryFormProps {
   mode: 'create' | 'edit';
   initialValues?: Partial<EntryFormValues>;
   onCancel: () => void;
-  onSubmit?: (values: CreateEntryDto) => void | Promise<void>;
+  onSubmit?: (values: CreateEntryDto | UpdateEntryDto) => void | Promise<void>;
+  submitError?: string | null;
 }
 
 function getInitialValues(initialValues?: Partial<EntryFormValues>): EntryFormValues {
@@ -31,7 +32,13 @@ function getInitialValues(initialValues?: Partial<EntryFormValues>): EntryFormVa
   };
 }
 
-export default function EntryForm({ mode, initialValues, onCancel, onSubmit }: EntryFormProps) {
+export default function EntryForm({
+  mode,
+  initialValues,
+  onCancel,
+  onSubmit,
+  submitError = null,
+}: EntryFormProps) {
   const [dateMode, setDateMode] = useState<EntryDateMode>(() =>
     initialValues?.dateEnd ? 'range' : 'single',
   );
@@ -222,9 +229,15 @@ export default function EntryForm({ mode, initialValues, onCancel, onSubmit }: E
       </fieldset>
 
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-        Сохранение карточки в API будет подключено на следующем подпункте. Сейчас форма уже
-        валидирует данные и подготавливает корректный payload для будущего CRUD.
+        Создание и редактирование карточки уже подключены. Удаление и остальные CRUD-действия будут
+        добавлены на следующих подпунктах.
       </div>
+
+      {submitError ? (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+          {submitError}
+        </div>
+      ) : null}
 
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <button

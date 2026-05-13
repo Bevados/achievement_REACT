@@ -3,7 +3,7 @@
 ## Что делает файл
 
 Файл содержит клиентский API-слой для public/private коллекций и карточек.
-После шага `5.6.1` он обслуживает не только read-only загрузку, но и реальные create/update мутации для коллекций.
+После шагов `5.6.1` и `5.6.2` он обслуживает не только read-only загрузку, но и реальные create/update мутации для коллекций и карточек.
 
 ## Импорты и зависимости
 
@@ -20,7 +20,9 @@
 6. `updateCollection(collectionId, payload)`
 7. `getPublicCollectionEntries(collectionId, query?)`
 8. `getCollectionEntries(collectionId, query?)`
-9. `EntriesQuery` поддерживает:
+9. `createEntry(collectionId, payload)`
+10. `updateEntry(collectionId, entryId, payload)`
+11. `EntriesQuery` поддерживает:
    - `page`, `limit`
    - `sortBy`, `sortOrder`
    - `status`
@@ -32,9 +34,9 @@
 
 ## Нетривиальная логика
 
-1. Общий `requestApi` распаковывает единый envelope `{ ok, data/error }` и одинаково обслуживает как read-only, так и mutation-запросы.
+1. Общий `requestApi` распаковывает единый envelope `{ ok, data/error }` и одинаково обслуживает read-only и mutation-запросы.
 2. При сетевой недоступности local runtime модуль явно советует запустить `npm run dev:api`.
-3. `createCollection` и `updateCollection` используют тот же auth-token flow, что и private list/detail endpoints, поэтому страницы не дублируют token-логику.
+3. `createCollection`, `updateCollection`, `createEntry` и `updateEntry` используют тот же auth-token flow, что и private list/detail endpoints.
 4. Public и private detail используют одинаковый helper, но с разными endpoint и auth-требованиями.
 5. `toQueryString` пропускает пустые строки, поэтому неактивные фильтры не попадают в URL запроса.
 

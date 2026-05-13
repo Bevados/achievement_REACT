@@ -487,6 +487,15 @@
 4. На `/collections/:collectionId` modal редактирования коллекции теперь реально вызывает `PATCH /api/collections/:collectionId`, обновляет локальный detail-state и закрывает форму после успеха без полного page reload.
 5. Для create/edit формы коллекции введён явный submit error UX: ошибка запроса показывается внутри `CollectionForm`, а не теряется на уровне страницы.
 6. Тесты страницы списка, detail-страницы и самой `CollectionForm` расширены под реальный submit-flow коллекций, включая happy-path и error-path.
+
+## Прогресс шага 5.6.2
+
+1. Следующий CRUD-подпункт ограничен карточками: `EntryForm` теперь подключена к реальным create/update мутациям, а delete flow остаётся отдельным следующим шагом.
+2. Клиентский API получил рабочие методы `createEntry` и `updateEntry` для private endpoints `/api/collections/:collectionId/entries` и `/api/collections/:collectionId/entries/:entryId`.
+3. На `/collections/:collectionId` modal создания карточки теперь реально вызывает `POST /api/collections/:collectionId/entries`, закрывает форму после успеха, перезагружает список карточек и локально увеличивает `entriesCount` коллекции.
+4. На той же detail-странице modal редактирования карточки теперь реально вызывает `PATCH /api/collections/:collectionId/entries/:entryId` и после успеха перезагружает текущий server-driven список карточек.
+5. Для `EntryForm` введён submit error UX по аналогии с `CollectionForm`: ошибка create/update запроса показывается прямо внутри модалки, а helper-text обновлён под текущее состояние CRUD.
+6. Тесты `EntryForm` и `CollectionDetailPage` расширены под реальные happy-path и error-path сценарии создания/редактирования карточек.
 18. Мутации `createEntry`, `deleteEntry`, `deleteCollection` выполняются транзакционно с rollback при ошибке шага внутри операции.
 19. Индексы MongoDB инициализируются lazy при первом подключении в runtime через `api/_mongodb.ts`.
 20. Контрактный слой (DTO, enum, response envelope и контрактные Zod-схемы) вынесен в папку `contracts/` для совместного использования frontend/backend.

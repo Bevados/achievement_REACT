@@ -1,17 +1,24 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import type { CollectionView, EntryView } from '../../../contracts/collection.contracts';
+import type {
+  CollectionView,
+  CreateEntryDto,
+  EntryView,
+  UpdateEntryDto,
+} from '../../../contracts/collection.contracts';
 import {
+  createEntry,
   getCollectionById,
   getCollectionEntries,
   updateCollection,
+  updateEntry,
 } from '../../api/collections.api';
 import CollectionForm from '../../components/Collections/CollectionForm';
-import BaseModal from '../../components/Modal/BaseModal';
 import EntryForm from '../../components/Entries/EntryForm';
 import EntriesFilters from '../../components/Entries/EntriesFilters';
 import EntriesGrid from '../../components/Entries/EntriesGrid';
 import EntriesPagination from '../../components/Entries/EntriesPagination';
+import BaseModal from '../../components/Modal/BaseModal';
 import { getCollectionCategoryLabel } from '../../config/collections.config';
 import { useEntriesListController } from '../../hooks/useEntriesListController';
 
@@ -23,6 +30,28 @@ function formatDate(value: string): string {
   });
 }
 
+type EntryFormState =
+  | { isOpen: false; entry: null; mode: 'create' | 'edit' }
+  | { isOpen: true; entry: EntryView | null; mode: 'create' | 'edit' };
+
+function getEntryFormInitialValues(entry: EntryView | null) {
+  if (!entry) {
+    return undefined;
+  }
+
+  return {
+    title: entry.title,
+    status: entry.status,
+    description: entry.description ?? '',
+    imageUrl: entry.imageUrl ?? '',
+    price: entry.price !== undefined ? String(entry.price) : '',
+    tags: entry.tags?.join(', ') ?? '',
+    rating: entry.rating !== undefined ? String(entry.rating) : '',
+    dateStart: entry.dateStart ? entry.dateStart.slice(0, 10) : '',
+    dateEnd: entry.dateEnd ? entry.dateEnd.slice(0, 10) : '',
+  };
+}
+
 export default function CollectionDetailPage() {
   const { collectionId } = useParams<{ collectionId: string }>();
 
@@ -31,10 +60,12 @@ export default function CollectionDetailPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isCollectionFormOpen, setIsCollectionFormOpen] = useState(false);
   const [collectionSubmitError, setCollectionSubmitError] = useState<string | null>(null);
-  const [entryFormState, setEntryFormState] = useState<
-    | { isOpen: false; entry: null; mode: 'create' | 'edit' }
-    | { isOpen: true; entry: EntryView | null; mode: 'create' | 'edit' }
-  >({ isOpen: false, entry: null, mode: 'create' });
+  const [entrySubmitError, setEntrySubmitError] = useState<string | null>(null);
+  const [entryFormState, setEntryFormState] = useState<EntryFormState>({
+    isOpen: false,
+    entry: null,
+    mode: 'create',
+  });
 
   const {
     entries,
@@ -75,6 +106,11 @@ export default function CollectionDetailPage() {
     fallbackErrorMessage: 'Не удалось загрузить карточки коллекции. Попробуйте еще раз.',
   });
 
+  const closeEntryModal = useCallback(() => {
+    setEntrySubmitError(null);
+    setEntryFormState({ isOpen: false, entry: null, mode: 'create' });
+  }, []);
+
   const reloadPage = useCallback(async () => {
     if (!collectionId) {
       setCollection(null);
@@ -88,7 +124,6 @@ export default function CollectionDetailPage() {
 
     try {
       const collectionResult = await getCollectionById(collectionId);
-
       setCollection(collectionResult);
     } catch (error) {
       setCollection(null);
@@ -105,6 +140,41 @@ export default function CollectionDetailPage() {
   useEffect(() => {
     void reloadPage();
   }, [reloadPage]);
+
+  async function handleEntrySubmit(values: CreateEntryDto | UpdateEntryDto) {
+    if (!collection) {
+      return;
+    }
+
+    setEntrySubmitError(null);
+
+    try {
+      if (entryFormState.mode === 'create') {
+        await createEntry(collection.id, values as CreateEntryDto);
+        setCollection((currentCollection) =>
+          currentCollection
+            ? {
+                ...currentCollection,
+                entriesCount: currentCollection.entriesCount + 1,
+              }
+            : currentCollection,
+        );
+      } else if (entryFormState.entry) {
+        await updateEntry(collection.id, entryFormState.entry.id, values as UpdateEntryDto);
+      }
+
+      closeEntryModal();
+      await reloadEntries();
+    } catch (error) {
+      setEntrySubmitError(
+        error instanceof Error
+          ? error.message
+          : entryFormState.mode === 'create'
+            ? 'Не удалось создать карточку. Попробуйте еще раз.'
+            : 'Не удалось сохранить изменения карточки. Попробуйте еще раз.',
+      );
+    }
+  }
 
   if (isLoading) {
     return (
@@ -197,6 +267,7 @@ export default function CollectionDetailPage() {
               <button
                 type="button"
                 onClick={() => {
+                  setEntrySubmitError(null);
                   setEntryFormState({ isOpen: true, entry: null, mode: 'create' });
                 }}
                 className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
@@ -280,6 +351,7 @@ export default function CollectionDetailPage() {
               entries={entries}
               emptyMessage="По выбранным фильтрам карточки не найдены."
               onEditEntry={(entry) => {
+                setEntrySubmitError(null);
                 setEntryFormState({ isOpen: true, entry, mode: 'edit' });
               }}
             />
@@ -341,39 +413,15 @@ export default function CollectionDetailPage() {
       <BaseModal
         isOpen={entryFormState.isOpen}
         title={entryFormState.mode === 'create' ? 'Новая карточка' : 'Редактирование карточки'}
-        onClose={() => {
-          setEntryFormState({ isOpen: false, entry: null, mode: 'create' });
-        }}
+        onClose={closeEntryModal}
       >
         <EntryForm
           key={entryFormState.entry?.id ?? entryFormState.mode}
           mode={entryFormState.mode}
-          initialValues={
-            entryFormState.entry
-              ? {
-                  title: entryFormState.entry.title,
-                  status: entryFormState.entry.status,
-                  description: entryFormState.entry.description ?? '',
-                  imageUrl: entryFormState.entry.imageUrl ?? '',
-                  price:
-                    entryFormState.entry.price !== undefined ? String(entryFormState.entry.price) : '',
-                  tags: entryFormState.entry.tags?.join(', ') ?? '',
-                  rating:
-                    entryFormState.entry.rating !== undefined
-                      ? String(entryFormState.entry.rating)
-                      : '',
-                  dateStart: entryFormState.entry.dateStart
-                    ? entryFormState.entry.dateStart.slice(0, 10)
-                    : '',
-                  dateEnd: entryFormState.entry.dateEnd
-                    ? entryFormState.entry.dateEnd.slice(0, 10)
-                    : '',
-                }
-              : undefined
-          }
-          onCancel={() => {
-            setEntryFormState({ isOpen: false, entry: null, mode: 'create' });
-          }}
+          submitError={entrySubmitError}
+          initialValues={getEntryFormInitialValues(entryFormState.entry)}
+          onCancel={closeEntryModal}
+          onSubmit={handleEntrySubmit}
         />
       </BaseModal>
     </section>

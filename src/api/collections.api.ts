@@ -3,10 +3,12 @@ import type {
   CollectionListQueryDto,
   CollectionView,
   CreateCollectionDto,
+  CreateEntryDto,
   EntryListQueryDto,
   EntryView,
   PaginatedResult,
   UpdateCollectionDto,
+  UpdateEntryDto,
 } from '../../contracts/collection.contracts';
 import { getIdToken } from '../firebase';
 
@@ -33,15 +35,24 @@ type EntriesQuery = Pick<
   | 'maxRating'
 >;
 
-const FALLBACK_FETCH_ERROR = 'Не удалось загрузить публичные коллекции. Попробуйте еще раз.';
-const FALLBACK_PRIVATE_FETCH_ERROR = 'Не удалось загрузить ваши коллекции. Попробуйте еще раз.';
-const FALLBACK_COLLECTION_CREATE_ERROR = 'Не удалось создать коллекцию. Попробуйте еще раз.';
-const FALLBACK_COLLECTION_DETAIL_ERROR = 'Не удалось загрузить коллекцию. Попробуйте еще раз.';
-const FALLBACK_COLLECTION_UPDATE_ERROR = 'Не удалось сохранить изменения коллекции. Попробуйте еще раз.';
+const FALLBACK_FETCH_ERROR =
+  'Не удалось загрузить публичные коллекции. Попробуйте еще раз.';
+const FALLBACK_PRIVATE_FETCH_ERROR =
+  'Не удалось загрузить ваши коллекции. Попробуйте еще раз.';
+const FALLBACK_COLLECTION_CREATE_ERROR =
+  'Не удалось создать коллекцию. Попробуйте еще раз.';
+const FALLBACK_COLLECTION_DETAIL_ERROR =
+  'Не удалось загрузить коллекцию. Попробуйте еще раз.';
+const FALLBACK_COLLECTION_UPDATE_ERROR =
+  'Не удалось сохранить изменения коллекции. Попробуйте еще раз.';
 const FALLBACK_PUBLIC_COLLECTION_DETAIL_ERROR =
   'Не удалось загрузить публичную коллекцию. Попробуйте еще раз.';
 const FALLBACK_COLLECTION_ENTRIES_ERROR =
   'Не удалось загрузить карточки коллекции. Попробуйте еще раз.';
+const FALLBACK_ENTRY_CREATE_ERROR =
+  'Не удалось создать карточку. Попробуйте еще раз.';
+const FALLBACK_ENTRY_UPDATE_ERROR =
+  'Не удалось сохранить изменения карточки. Попробуйте еще раз.';
 const FALLBACK_PUBLIC_COLLECTION_ENTRIES_ERROR =
   'Не удалось загрузить карточки публичной коллекции. Попробуйте еще раз.';
 const LOCAL_BACKEND_UNAVAILABLE_ERROR =
@@ -245,4 +256,32 @@ export async function getCollectionEntries(
     fallbackError: FALLBACK_COLLECTION_ENTRIES_ERROR,
     requireAuth: true,
   });
+}
+
+export async function createEntry(
+  collectionId: string,
+  payload: CreateEntryDto,
+): Promise<EntryView> {
+  return requestApi<EntryView>(`/api/collections/${encodeURIComponent(collectionId)}/entries`, {
+    method: 'POST',
+    body: payload,
+    fallbackError: FALLBACK_ENTRY_CREATE_ERROR,
+    requireAuth: true,
+  });
+}
+
+export async function updateEntry(
+  collectionId: string,
+  entryId: string,
+  payload: UpdateEntryDto,
+): Promise<EntryView> {
+  return requestApi<EntryView>(
+    `/api/collections/${encodeURIComponent(collectionId)}/entries/${encodeURIComponent(entryId)}`,
+    {
+      method: 'PATCH',
+      body: payload,
+      fallbackError: FALLBACK_ENTRY_UPDATE_ERROR,
+      requireAuth: true,
+    },
+  );
 }
