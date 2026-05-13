@@ -61,4 +61,21 @@ describe('CollectionCard', () => {
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
+
+  it('renders custom category label when collection uses other + customCategory', () => {
+    render(
+      <MemoryRouter>
+        <CollectionCard
+          collection={{
+            ...baseCollection,
+            category: 'other',
+            customCategory: 'Гастротуры',
+          }}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText('Гастротуры')).toBeInTheDocument();
+    expect(screen.queryByText('Другое')).not.toBeInTheDocument();
+  });
 });

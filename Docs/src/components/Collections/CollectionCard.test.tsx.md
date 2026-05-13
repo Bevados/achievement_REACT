@@ -2,27 +2,31 @@
 
 ## Что делает файл
 
-Тестирует рендер и навигационное поведение `CollectionCard`.
+Тестирует контракт отображения `CollectionCard`.
+Покрывает основной рендер, fallback по optional-полям, ссылку на detail и отображение пользовательской категории.
 
 ## Импорты и зависимости
 
-1. `vitest` — test runner и assertions.
-2. `@testing-library/react` — рендер компонента.
-3. `react-router-dom` (`MemoryRouter`) — окружение для `Link`.
+1. `vitest`
+2. `@testing-library/react`
+3. `react-router-dom` (`MemoryRouter`)
+4. `./CollectionCard`
+5. `contracts/collection.contracts.ts`
 
 ## Экспорты и контракты
 
-1. Файл не экспортирует production-сущности.
-2. Проверяет:
-   - базовый рендер карточки,
-   - корректный `href` из пропса `to`,
-   - fallback для опциональных полей,
-   - отсутствие `Link`, если `to` не передан.
+1. Runtime-экспортов нет.
+2. Проверяемые инварианты:
+   - базовые поля коллекции рендерятся корректно
+   - optional-поля имеют fallback
+   - ссылка ведёт по переданному маршруту
+   - custom category показывается вместо стандартного `Другое`
 
 ## Нетривиальная логика
 
-1. Тесты подтверждают, что одна и та же карточка может использоваться и для private, и для public route.
+1. Отдельный тест на `customCategory` защищает display-логику helper-а `getCollectionCategoryLabel`.
 
 ## Где используется
 
-1. `npm test` — покрытие `CollectionCard`.
+1. Запускается в `npm.cmd run test`.
+2. Защищает `src/components/Collections/CollectionCard.tsx`.

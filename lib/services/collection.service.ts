@@ -85,6 +85,15 @@ function normalizeTags(tags?: string[]): string[] | undefined {
   return normalized;
 }
 
+function normalizeOptionalString(value?: string): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : undefined;
+}
+
 function parseOptionalDate(value?: string): Date | undefined {
   if (!value) {
     return undefined;
@@ -129,6 +138,7 @@ function toCollectionView(doc: CollectionDocument): CollectionView {
     ownerId: doc.ownerId,
     title: doc.title,
     category: doc.category,
+    customCategory: doc.customCategory,
     description: doc.description,
     coverImageUrl: doc.coverImageUrl,
     isPublic: doc.isPublic,
@@ -256,6 +266,7 @@ export async function createCollection(
     ownerId,
     title: data.title,
     category: data.category,
+    customCategory: data.category === 'other' ? normalizeOptionalString(data.customCategory) : undefined,
     description: data.description,
     coverImageUrl: data.coverImageUrl,
     isPublic: false,
@@ -279,13 +290,39 @@ export async function updateCollection(
   collectionId: string,
   data: UpdateCollectionDto,
 ): Promise<CollectionView> {
-  await assertCollectionAccess(ownerId, collectionId);
+  const existingCollection = await assertCollectionAccess(ownerId, collectionId);
 
-  await repository.updateCollectionById(ownerId, collectionId, {
-    ...data,
+  const updateData: Partial<CollectionDocument> & { isPublic: false; updatedAt: Date } = {
     isPublic: false,
     updatedAt: new Date(),
-  });
+  };
+  const nextCategory = data.category ?? existingCollection.category;
+
+  if (data.title !== undefined) {
+    updateData.title = data.title;
+  }
+
+  if (data.category !== undefined) {
+    updateData.category = data.category;
+  }
+
+  if (nextCategory === 'other') {
+    if (data.customCategory !== undefined) {
+      updateData.customCategory = normalizeOptionalString(data.customCategory);
+    }
+  } else {
+    updateData.customCategory = undefined;
+  }
+
+  if (data.description !== undefined) {
+    updateData.description = data.description;
+  }
+
+  if (data.coverImageUrl !== undefined) {
+    updateData.coverImageUrl = data.coverImageUrl;
+  }
+
+  await repository.updateCollectionById(ownerId, collectionId, updateData);
 
   const updatedCollection = await repository.findCollectionById(ownerId, collectionId);
   if (!updatedCollection) {

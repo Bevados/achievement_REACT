@@ -2,41 +2,43 @@
 
 ## Что делает файл
 
-Файл хранит общие Zod-схемы контрактного слоя Collection/Entry.
-Схемы валидируют params/query/body по тем же правилам, что и backend-контроллеры, и могут использоваться как единый runtime-контракт.
+Файл хранит Zod-схемы для runtime-валидации контрактов коллекций и карточек.
+Он проверяет create/update payloads, route params и query-объекты для списков.
 
 ## Импорты и зависимости
 
-1. `zod` - runtime-валидация и нормализация входных данных.
-2. `./collection.contracts` - enum-константы и DTO-типы, чтобы схема и TypeScript-контракты были согласованы.
+1. `zod` — runtime-валидация.
+2. `./collection.contracts` — enum-константы и DTO-типы, над которыми строятся схемы.
 
 ## Экспорты и контракты
 
-1. Базовые схемы идентификаторов:
-   - `objectIdSchema`.
-   - `collectionIdParamSchema`.
-   - `collectionAndEntryIdsParamSchema`.
-2. Body-схемы:
-   - `createCollectionSchema`, `updateCollectionSchema`.
-   - `createEntrySchema`, `updateEntrySchema`.
-3. Query-схемы:
-   - `baseListQuerySchema`.
-   - `collectionListQuerySchema`.
-   - `entryListQuerySchema`.
+1. Схемы params:
+   - `objectIdSchema`
+   - `collectionIdParamSchema`
+   - `collectionAndEntryIdsParamSchema`
+2. Схемы коллекций:
+   - `createCollectionSchema`
+   - `updateCollectionSchema`
+3. Схемы карточек:
+   - `createEntrySchema`
+   - `updateEntrySchema`
+4. Схемы query:
+   - `baseListQuerySchema`
+   - `collectionListQuerySchema`
+   - `entryListQuerySchema`
 
 ## Нетривиальная логика
 
-1. `price` проверяется как number >= 0 с максимум 2 знаками после точки.
-2. `tags` ограничены по размеру и дедуплицируются на уровне схемы.
-3. Для entry-схем действует межполевая логика: `completed` требует `rating` и `dateStart`.
-4. `dateEnd`, если передан, не может быть раньше `dateStart`.
-5. Entry list query дополнительно валидирует диапазоны `createdAt`, `dateStart`, `price` и `rating`.
-6. PATCH-схемы требуют непустой payload (минимум одно поле).
-7. Для query действует `z.coerce.number`, чтобы корректно читать строковые query-параметры.
-8. Для entry list есть межполевая проверка `minRating <= maxRating`.
+1. Для коллекций введена поддержка `customCategory`, но без отказа от enum `category`.
+2. `customCategory` валидируется как аккуратная пользовательская строка длиной до 60 символов.
+3. Схемы карточек сохраняют уже принятые бизнес-правила:
+   - `rating` обязателен для `completed`
+   - `dateStart` обязателен для `completed`
+   - `dateEnd >= dateStart`
+4. Query-схемы продолжают проверять диапазоны рейтинга, цены и дат.
 
 ## Где используется
 
-1. `lib/controllers/collection.controller.ts` - основная валидация входа в API.
-2. `lib/validation/collection.schema.ts` - compatibility re-export для обратной совместимости импортов.
-3. `lib/validation/collection.schema.test.ts` - контрактные тесты private schema-правил.
+1. API-handlers в `api/*`
+2. Backend-валидация через compatibility-реэкспорт
+3. Тесты `lib/validation/collection.schema.test.ts`

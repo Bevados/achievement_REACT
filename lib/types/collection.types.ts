@@ -8,6 +8,7 @@ export interface CollectionDocument {
   ownerId: string;
   title: string;
   category: CollectionCategory;
+  customCategory?: string;
   description?: string;
   coverImageUrl?: string;
   isPublic: boolean;

@@ -42,6 +42,7 @@ export interface CollectionView {
   ownerId: string;
   title: string;
   category: CollectionCategory;
+  customCategory?: string;
   description?: string;
   coverImageUrl?: string;
   isPublic: boolean;
@@ -70,6 +71,7 @@ export interface EntryView {
 export interface CreateCollectionDto {
   title: string;
   category: CollectionCategory;
+  customCategory?: string;
   description?: string;
   coverImageUrl?: string;
 }
@@ -77,6 +79,7 @@ export interface CreateCollectionDto {
 export interface UpdateCollectionDto {
   title?: string;
   category?: CollectionCategory;
+  customCategory?: string;
   description?: string;
   coverImageUrl?: string;
 }

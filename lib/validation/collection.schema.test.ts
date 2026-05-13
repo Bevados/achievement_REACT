@@ -26,6 +26,16 @@ describe('collection.schema private contract', () => {
     ).toThrow();
   });
 
+  it('accepts customCategory for collection when category is other', () => {
+    expect(() =>
+      createCollectionSchema.parse({
+        title: 'Custom Collection',
+        category: 'other',
+        customCategory: 'Гастротуры',
+      }),
+    ).not.toThrow();
+  });
+
   it('requires rating and dateStart for completed entry creation', () => {
     expect(() =>
       createEntrySchema.parse({

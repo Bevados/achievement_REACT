@@ -17,11 +17,17 @@ describe('CollectionForm', () => {
 
     await user.type(titleInput, 'Поездки 2026');
     await user.selectOptions(categorySelect, 'travel');
+
+    expect(screen.queryByLabelText('Своя категория')).not.toBeInTheDocument();
+
+    await user.selectOptions(categorySelect, 'other');
+    await user.type(screen.getByLabelText('Своя категория'), 'Гастротуры');
     await user.type(descriptionInput, 'Коллекция маршрутов и стран.');
     await user.type(coverInput, 'https://example.com/cover.jpg');
 
     expect(titleInput).toHaveValue('Поездки 2026');
-    expect(categorySelect).toHaveValue('travel');
+    expect(categorySelect).toHaveValue('other');
+    expect(screen.getByLabelText('Своя категория')).toHaveValue('Гастротуры');
     expect(descriptionInput).toHaveValue('Коллекция маршрутов и стран.');
     expect(coverInput).toHaveValue('https://example.com/cover.jpg');
     expect(screen.getByRole('button', { name: 'Сохранить коллекцию' })).toBeDisabled();
@@ -38,6 +44,7 @@ describe('CollectionForm', () => {
         initialValues={{
           title: 'Избранные рестораны',
           category: 'shopping',
+          customCategory: '',
           description: 'Лучшие места для ужина.',
           coverImageUrl: 'https://example.com/food.jpg',
         }}
@@ -50,5 +57,22 @@ describe('CollectionForm', () => {
     expect(screen.getByLabelText('Описание')).toHaveValue('Лучшие места для ужина.');
     expect(screen.getByLabelText('Обложка (URL)')).toHaveValue('https://example.com/food.jpg');
     expect(screen.getByRole('button', { name: 'Сохранить изменения' })).toBeDisabled();
+  });
+
+  it('renders custom category field in edit mode when category is other', () => {
+    render(
+      <CollectionForm
+        mode="edit"
+        initialValues={{
+          title: 'Нишевая коллекция',
+          category: 'other',
+          customCategory: 'Гастротуры',
+        }}
+        onCancel={() => undefined}
+      />,
+    );
+
+    expect(screen.getByLabelText('Категория')).toHaveValue('other');
+    expect(screen.getByLabelText('Своя категория')).toHaveValue('Гастротуры');
   });
 });

@@ -6,6 +6,7 @@ import { collectionCategoryLabels } from '../../config/collections.config';
 interface CollectionFormValues {
   title: string;
   category: CollectionCategory;
+  customCategory: string;
   description: string;
   coverImageUrl: string;
 }
@@ -21,6 +22,7 @@ function getInitialValues(initialValues?: Partial<CollectionFormValues>): Collec
   return {
     title: initialValues?.title ?? '',
     category: initialValues?.category ?? 'other',
+    customCategory: initialValues?.customCategory ?? '',
     description: initialValues?.description ?? '',
     coverImageUrl: initialValues?.coverImageUrl ?? '',
   };
@@ -63,17 +65,34 @@ export default function CollectionForm({
             setValues((current) => ({
               ...current,
               category: event.target.value as CollectionCategory,
+              customCategory:
+                event.target.value === 'other' ? current.customCategory : '',
             }));
           }}
           className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
         >
           {COLLECTION_CATEGORIES.map((category) => (
             <option key={category} value={category}>
-              {collectionCategoryLabels[category]}
+              {category === 'other' ? 'Своя категория' : collectionCategoryLabels[category]}
             </option>
           ))}
         </select>
       </label>
+
+      {values.category === 'other' ? (
+        <label className="flex flex-col gap-1 text-sm text-gray-700">
+          Своя категория
+          <input
+            type="text"
+            value={values.customCategory}
+            onChange={(event) => {
+              setValues((current) => ({ ...current, customCategory: event.target.value }));
+            }}
+            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+            placeholder="Например, Гастротуры"
+          />
+        </label>
+      ) : null}
 
       <label className="flex flex-col gap-1 text-sm text-gray-700">
         Описание

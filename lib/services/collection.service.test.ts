@@ -58,6 +58,7 @@ import {
   deleteEntry,
   getCollectionById,
   getOwnerCollections,
+  updateCollection,
   updateEntry,
 } from './collection.service';
 
@@ -67,6 +68,7 @@ function buildCollectionDoc(ownerId = 'user-1', id = new ObjectId()) {
     ownerId,
     title: 'Travel Plans',
     category: 'travel' as const,
+    customCategory: undefined,
     description: 'Trips ideas',
     coverImageUrl: 'https://example.com/cover.jpg',
     isPublic: false,
@@ -139,6 +141,21 @@ describe('collection.service', () => {
     expect(repositoryMocks.findCollectionByIdRaw).not.toHaveBeenCalled();
   });
 
+  it('maps customCategory to collection view', async () => {
+    const doc = {
+      ...buildCollectionDoc(),
+      category: 'other' as const,
+      customCategory: 'Гастротуры',
+    };
+
+    repositoryMocks.findCollectionById.mockResolvedValue(doc);
+
+    const result = await getCollectionById('user-1', doc._id.toHexString());
+
+    expect(result.category).toBe('other');
+    expect(result.customCategory).toBe('Гастротуры');
+  });
+
   it('throws ForbiddenError when collection exists but belongs to another owner', async () => {
     const doc = buildCollectionDoc('user-2');
 
@@ -171,7 +188,8 @@ describe('collection.service', () => {
 
     const result = await createCollection('user-1', {
       title: 'My New Collection',
-      category: 'travel',
+      category: 'other',
+      customCategory: 'Гастротуры',
       description: 'Personal notes',
       coverImageUrl: 'https://example.com/new.jpg',
     });
@@ -179,11 +197,52 @@ describe('collection.service', () => {
     expect(repositoryMocks.createCollection).toHaveBeenCalledWith(
       expect.objectContaining({
         ownerId: 'user-1',
+        category: 'other',
+        customCategory: 'Гастротуры',
         isPublic: false,
         entriesCount: 0,
       }),
     );
     expect(result.isPublic).toBe(false);
+  });
+
+  it('clears customCategory when collection category changes from other to preset', async () => {
+    const collectionId = new ObjectId().toHexString();
+    const existing = {
+      ...buildCollectionDoc('user-1', new ObjectId(collectionId)),
+      category: 'other' as const,
+      customCategory: 'Гастротуры',
+    };
+    const updated = {
+      ...existing,
+      category: 'travel' as const,
+      customCategory: undefined,
+    };
+
+    repositoryMocks.findCollectionById
+      .mockResolvedValueOnce(existing)
+      .mockResolvedValueOnce(updated);
+    repositoryMocks.updateCollectionById.mockResolvedValue({
+      acknowledged: true,
+      matchedCount: 1,
+      modifiedCount: 1,
+      upsertedCount: 0,
+      upsertedId: null,
+    });
+
+    const result = await updateCollection('user-1', collectionId, {
+      category: 'travel',
+    });
+
+    expect(repositoryMocks.updateCollectionById).toHaveBeenCalledWith(
+      'user-1',
+      collectionId,
+      expect.objectContaining({
+        category: 'travel',
+        customCategory: undefined,
+      }),
+    );
+    expect(result.customCategory).toBeUndefined();
   });
 
   it('createEntry converts dto fields and increments entriesCount', async () => {

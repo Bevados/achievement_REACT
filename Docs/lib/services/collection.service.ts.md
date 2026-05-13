@@ -2,33 +2,38 @@
 
 ## Что делает файл
 
-Service слой содержит бизнес-логику коллекций и карточек между controller и repository.
+Файл хранит бизнес-логику коллекций и карточек.
+Сервис проверяет доступ, преобразует DTO в document-модель, валидирует доменные правила и возвращает `View`-модели для API.
 
 ## Импорты и зависимости
 
-1. `mongodb` (`ObjectId`) — связь с entry documents.
-2. `api/_mongodb.ts` — транзакции.
-3. `lib/repositories/collection.repository.ts` — чтение и мутации Mongo.
+1. `mongodb` — транзакции и `ObjectId`.
+2. `api/_mongodb` — подключение к базе.
+3. `../repositories/collection.repository` — низкоуровневые операции с MongoDB.
+4. `../types/collection.types` — document- и contract-типы.
 
 ## Экспорты и контракты
 
-1. Public API:
-   - `getPublicCollections`
-   - `getPublicCollectionById`
-   - `getPublicCollectionEntries`
-2. Private API:
-   - `getOwnerCollections`
-   - `getCollectionById`
-   - `getCollectionEntries`
-   - CRUD коллекций и entries
+1. Ошибки доменного слоя:
+   - `ForbiddenError`
+   - `NotFoundError`
+   - `TransactionError`
+   - `ValidationError`
+2. CRUD-методы для коллекций и карточек.
+3. Методы публичных и приватных read-only выборок.
 
 ## Нетривиальная логика
 
-1. Public detail читает только коллекции из `system_examples` и бросает `NotFoundError`, если example недоступен.
-2. Private access по-прежнему проходит через access-check и `ForbiddenError`.
-3. Для entry действует service-level бизнес-валидация: completed-entry обязан иметь `rating` и `dateStart`, а `dateEnd` не может быть раньше `dateStart`.
-4. Мутации entries и collection delete сохраняют транзакционный сценарий.
+1. `toCollectionView` теперь пробрасывает `customCategory` в `CollectionView`.
+2. При создании коллекции “своя категория” сохраняется как:
+   - `category: 'other'`
+   - `customCategory: normalized string | undefined`
+3. `updateCollection` вычисляет итоговую категорию после merge с текущим состоянием коллекции.
+4. Если итоговая категория не `other`, сервис принудительно очищает `customCategory`, чтобы не хранить противоречивые данные.
+5. Для карточек сохраняются уже введённые инварианты completed-status и `dateStart/dateEnd`.
 
 ## Где используется
 
-1. `lib/controllers/collection.controller.ts`
+1. `api/collections/*`
+2. `api/examples/collections/*`
+3. Тесты `lib/services/collection.service.test.ts`

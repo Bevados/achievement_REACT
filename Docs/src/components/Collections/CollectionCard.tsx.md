@@ -2,30 +2,27 @@
 
 ## Что делает файл
 
-Компонент рендерит одну карточку коллекции в общем grid-списке.
-Он показывает обложку, категорию, количество карточек, описание, дату обновления и умеет работать как с private, так и с public навигацией.
+Компонент рендерит одну карточку коллекции для public/private списков.
+Он показывает обложку, категорию, количество карточек, описание и ссылку на detail-страницу, если маршрут передан через `to`.
 
 ## Импорты и зависимости
 
-1. `react-router-dom` (`Link`) — кликабельная навигация по карточке.
+1. `react-router-dom` (`Link`) — кликабельный переход на detail-route.
 2. `contracts/collection.contracts.ts` — тип `CollectionView`.
-3. `src/config/collections.config.ts` — человекочитаемые подписи категорий.
+3. `src/config/collections.config.ts` — helper `getCollectionCategoryLabel`.
 
 ## Экспорты и контракты
 
-1. Экспортируется `CollectionCard`.
+1. Экспортируется default-компонент `CollectionCard`.
 2. Пропсы:
    - `collection: CollectionView`
    - `to?: string`
-3. Если `to` передан, карточка рендерится как `Link`.
-4. Если `to` не передан, карточка остается статичным блоком без навигации.
 
 ## Нетривиальная логика
 
-1. Внутренний `CollectionCardContent` отделяет общий UI от способа обертки (`Link` или `div`).
-2. Опциональные `coverImageUrl` и `description` имеют аккуратные fallback-состояния.
-3. Проп `to` позволяет переиспользовать один и тот же компонент и для `/collections/:id`, и для `/examples/:id`.
+1. Если `to` не передан, карточка остаётся статичной и не оборачивается в `Link`.
+2. Категория отображается через `getCollectionCategoryLabel`, поэтому карточка автоматически показывает пользовательский текст, если коллекция использует `other + customCategory`.
 
 ## Где используется
 
-1. `src/components/Collections/CollectionsGrid.tsx` — рендер списка карточек коллекций.
+1. `src/components/Collections/CollectionsGrid.tsx`

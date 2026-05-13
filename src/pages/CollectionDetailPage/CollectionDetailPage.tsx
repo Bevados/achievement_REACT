@@ -8,7 +8,7 @@ import EntryForm from '../../components/Entries/EntryForm';
 import EntriesFilters from '../../components/Entries/EntriesFilters';
 import EntriesGrid from '../../components/Entries/EntriesGrid';
 import EntriesPagination from '../../components/Entries/EntriesPagination';
-import { collectionCategoryLabels } from '../../config/collections.config';
+import { getCollectionCategoryLabel } from '../../config/collections.config';
 import { useEntriesListController } from '../../hooks/useEntriesListController';
 
 function formatDate(value: string): string {
@@ -163,7 +163,7 @@ export default function CollectionDetailPage() {
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-700">
-                  {collectionCategoryLabels[collection.category]}
+                  {getCollectionCategoryLabel(collection)}
                 </span>
                 <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">
                   {collection.entriesCount} карточек
@@ -304,6 +304,7 @@ export default function CollectionDetailPage() {
           initialValues={{
             title: collection.title,
             category: collection.category,
+            customCategory: collection.customCategory ?? '',
             description: collection.description ?? '',
             coverImageUrl: collection.coverImageUrl ?? '',
           }}

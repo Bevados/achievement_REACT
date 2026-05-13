@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { CollectionView } from '../../../contracts/collection.contracts';
-import { collectionCategoryLabels } from '../../config/collections.config';
+import { getCollectionCategoryLabel } from '../../config/collections.config';
 
 interface CollectionCardProps {
   collection: CollectionView;
@@ -16,7 +16,7 @@ function formatDate(iso: string): string {
 }
 
 function CollectionCardContent({ collection }: Pick<CollectionCardProps, 'collection'>) {
-  const categoryLabel = collectionCategoryLabels[collection.category];
+  const categoryLabel = getCollectionCategoryLabel(collection);
 
   return (
     <article>

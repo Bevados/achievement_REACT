@@ -27,6 +27,8 @@ const urlSchema = z.preprocess(
   z.url().max(2048),
 );
 
+const customCategorySchema = z.string().trim().min(1).max(60);
+
 export const objectIdSchema = z.string().regex(objectIdPattern, 'Invalid ObjectId format');
 
 export const collectionIdParamSchema = z.object({
@@ -42,6 +44,7 @@ export const createCollectionSchema: z.ZodType<CreateCollectionDto> = z
   .object({
     title: z.string().trim().min(1).max(120),
     category: z.enum(COLLECTION_CATEGORIES),
+    customCategory: customCategorySchema.optional(),
     description: z.string().trim().min(1).max(1000).optional(),
     coverImageUrl: urlSchema.optional(),
   })
@@ -51,6 +54,7 @@ export const updateCollectionSchema: z.ZodType<UpdateCollectionDto> = z
   .object({
     title: z.string().trim().min(1).max(120).optional(),
     category: z.enum(COLLECTION_CATEGORIES).optional(),
+    customCategory: customCategorySchema.optional(),
     description: z.string().trim().min(1).max(1000).optional(),
     coverImageUrl: urlSchema.optional(),
   })

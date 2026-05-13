@@ -1,6 +1,7 @@
 import type {
   CollectionCategory,
   CollectionSortField,
+  CollectionView,
   SortOrder,
 } from '../../contracts/collection.contracts';
 
@@ -30,3 +31,13 @@ export const collectionSortOrderOptions: Array<{ value: SortOrder; label: string
   { value: 'desc', label: 'По убыванию' },
   { value: 'asc', label: 'По возрастанию' },
 ];
+
+export function getCollectionCategoryLabel(
+  collection: Pick<CollectionView, 'category' | 'customCategory'>,
+): string {
+  if (collection.category === 'other' && collection.customCategory) {
+    return collection.customCategory;
+  }
+
+  return collectionCategoryLabels[collection.category];
+}
