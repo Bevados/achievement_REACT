@@ -2,14 +2,16 @@
 
 ## Что делает файл
 
-Компонент рендерит UI-форму карточки `Entry` для private CRUD-сценариев.
-На текущем этапе это controlled-форма в модалке без API-submit: она показывает все будущие поля карточки, поддерживает create/edit режимы и локальный переключатель даты `одна дата / период`.
+Компонент рендерит private modal-форму карточки `Entry` для create/edit сценариев.
+На шаге `5.5` форма переведена на `react-hook-form`, валидирует completed-правила через Zod и отдаёт наружу уже нормализованный payload, но ещё не делает CRUD-запросы сама.
 
 ## Импорты и зависимости
 
-1. `react` (`useState`) — хранит локальное состояние полей и режим даты.
-2. `contracts/collection.contracts.ts` — даёт тип `EntryStatus` и список статусов `ENTRY_STATUSES`.
-3. `src/config/entries.config.ts` — поставляет локализованные подписи статусов.
+1. `react` (`useMemo`, `useState`) — хранит локальный `dateMode` и пересобирает resolver при смене режима даты.
+2. `react-hook-form` — управляет form-state, submit и ошибками.
+3. `contracts/collection.contracts.ts` — даёт тип итогового payload `CreateEntryDto` и enum статусов.
+4. `src/config/entries.config.ts` — локализованные labels статусов.
+5. `src/utils/crud-form.utils.ts` — shared resolver, нормализация `price/tags/dateStart/dateEnd`.
 
 ## Экспорты и контракты
 
@@ -18,28 +20,22 @@
    - `mode: 'create' | 'edit'`
    - `initialValues?: Partial<EntryFormValues>`
    - `onCancel: () => void`
-   - `onSubmit?: (values: EntryFormValues) => void`
-3. Локальная модель значений:
-   - `title`
-   - `status`
-   - `description`
-   - `imageUrl`
-   - `price`
-   - `tags`
-   - `rating`
-   - `dateStart`
-   - `dateEnd`
-4. Локальный UI-state:
-   - `dateMode: 'single' | 'range'`
+   - `onSubmit?: (values: CreateEntryDto) => void | Promise<void>`
+3. Внутренний `dateMode: 'single' | 'range'` остаётся только UI-state и не попадает в DTO/API.
 
 ## Нетривиальная логика
 
-1. `getInitialValues` позволяет безопасно стартовать и пустую create-форму, и edit-форму с существующими данными карточки.
-2. `dateMode` живёт только в UI и не утечёт в backend DTO: доменная модель по-прежнему опирается только на `dateStart/dateEnd`.
-3. При возврате из `range` в `single` форма очищает `dateEnd`, чтобы не оставлять скрытое “висящее” значение.
-4. Кнопка сохранения намеренно disabled, а helper-блок объясняет, что реальный submit появится на следующем подпункте.
+1. Resolver переиспользует shared business rules:
+   - для `completed` обязательны `rating` и `dateStart`;
+   - `dateEnd` не может быть раньше `dateStart`.
+2. Переключение `range -> single` очищает `dateEnd` и снимает связанные ошибки, чтобы форма не держала скрытое невалидное значение.
+3. Нормализация submit-полей:
+   - `price` превращается в `number`;
+   - `tags` превращаются в массив без дублей;
+   - даты из `<input type="date">` превращаются в ISO-строки.
+4. `noValidate` отключает встроенную browser-валидацию, чтобы UX контролировался RHF/Zod-слоем.
 
 ## Где используется
 
-1. `src/pages/CollectionDetailPage/CollectionDetailPage.tsx` — модалка создания карточки.
-2. `src/pages/CollectionDetailPage/CollectionDetailPage.tsx` — модалка редактирования карточки.
+1. `src/pages/CollectionDetailPage/CollectionDetailPage.tsx` — create modal для карточки.
+2. `src/pages/CollectionDetailPage/CollectionDetailPage.tsx` — edit modal для карточки.

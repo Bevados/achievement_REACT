@@ -36,6 +36,6 @@ describe('CollectionsPage', () => {
 
     expect(screen.getByRole('dialog', { name: 'Новая коллекция' })).toBeInTheDocument();
     expect(screen.getByLabelText('Название коллекции')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Сохранить коллекцию' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Сохранить коллекцию' })).toBeEnabled();
   });
 });

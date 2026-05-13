@@ -2,32 +2,33 @@
 
 ## Что делает файл
 
-Покрывает UI-контракт формы `EntryForm` на шаге 5.4.
-Тесты проверяют create/edit режимы, работу локальных полей, переключение `одна дата / период`, подстановку initial values и disabled-состояние сохранения.
+Покрывает `EntryForm` после подключения `react-hook-form + zod`.
+Тесты проверяют create/edit режимы, completed-валидацию, range-date правила и нормализованный submit payload.
 
 ## Импорты и зависимости
 
-1. `vitest` — тестовый раннер и моки.
-2. `@testing-library/react` — рендер и DOM-assertions.
-3. `@testing-library/user-event` — имитация ввода пользователя и кликов.
-4. `./EntryForm` — тестируемая форма карточки.
+1. `vitest`
+2. `@testing-library/react`
+3. `@testing-library/user-event`
+4. `./EntryForm`
 
 ## Экспорты и контракты
 
 1. Runtime-экспортов нет.
-2. Проверяемые контракты:
+2. Проверяемые инварианты:
    - create-форма редактирует все ключевые поля;
-   - переключение на `Период` показывает `dateStart` и `dateEnd`;
-   - edit-форма подставляет начальные значения, включая range-даты;
-   - `Сохранить` остаётся disabled;
-   - `Отмена` вызывает callback.
+   - `single/range` переключение корректно меняет набор date-полей;
+   - edit-форма подставляет initial values;
+   - `completed` без `rating` и `dateStart` не проходит;
+   - `dateEnd < dateStart` даёт ошибку;
+   - валидный submit отдаёт нормализованный payload.
 
 ## Нетривиальная логика
 
-1. Тесты разделяют create и edit сценарии, потому что именно они определяют будущий UX модалок на detail-странице.
-2. Покрытие range-режима важно из-за перехода проекта на модель `dateStart/dateEnd` вместо одного поля `date`.
+1. Тест на completed-статус защищает новые бизнес-правила шага после `5.2`, чтобы форма не расходилась с backend contract.
+2. Submit-тест подтверждает нормализацию `price`, `tags` и `dateStart/dateEnd` ещё до подключения реальной CRUD-мутации.
 
 ## Где используется
 
 1. Запускается в `npm.cmd run test`.
-2. Защищает `src/components/Entries/EntryForm.tsx` от регрессий до подключения RHF/Zod.
+2. Страхует `src/components/Entries/EntryForm.tsx`.

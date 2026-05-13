@@ -103,7 +103,9 @@ describe('CollectionDetailPage', () => {
     renderPage();
 
     expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
-    expect(screen.getByText('По выбранным фильтрам карточки не найдены.')).toBeInTheDocument();
+    expect(
+      screen.getByText('По выбранным фильтрам карточки не найдены.'),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Показать фильтры' }));
     expect(screen.getByLabelText('Статус')).toBeInTheDocument();
   });
@@ -201,9 +203,11 @@ describe('CollectionDetailPage', () => {
     expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Редактировать коллекцию' }));
-    expect(screen.getByRole('dialog', { name: 'Редактирование коллекции' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('dialog', { name: 'Редактирование коллекции' }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Название коллекции')).toHaveValue('Моя коллекция');
-    expect(screen.getByRole('button', { name: 'Сохранить изменения' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Сохранить изменения' })).toBeEnabled();
     await user.click(screen.getByRole('button', { name: 'Отмена' }));
     await waitFor(() => {
       expect(
@@ -214,14 +218,16 @@ describe('CollectionDetailPage', () => {
     await user.click(screen.getByRole('button', { name: 'Добавить карточку' }));
     expect(screen.getByRole('dialog', { name: 'Новая карточка' })).toBeInTheDocument();
     expect(screen.getByLabelText('Название карточки')).toHaveValue('');
-    expect(screen.getByRole('button', { name: 'Сохранить карточку' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Сохранить карточку' })).toBeEnabled();
     await user.click(screen.getByRole('button', { name: 'Отмена' }));
     await waitFor(() => {
       expect(screen.queryByRole('dialog', { name: 'Новая карточка' })).not.toBeInTheDocument();
     });
 
     await user.click(screen.getByRole('button', { name: 'Редактировать' }));
-    expect(screen.getByRole('dialog', { name: 'Редактирование карточки' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('dialog', { name: 'Редактирование карточки' }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Название карточки')).toHaveValue('Токио');
     expect(screen.getByLabelText('Статус')).toHaveValue('completed');
     expect(screen.getByLabelText('Описание')).toHaveValue('Первый город в маршруте.');
@@ -230,6 +236,6 @@ describe('CollectionDetailPage', () => {
     expect(screen.getByLabelText('Теги')).toHaveValue('travel, japan');
     expect(screen.getByLabelText('Дата начала')).toHaveValue('2026-05-01');
     expect(screen.getByLabelText('Дата окончания')).toHaveValue('2026-05-03');
-    expect(screen.getByRole('button', { name: 'Сохранить изменения' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Сохранить изменения' })).toBeEnabled();
   });
 });

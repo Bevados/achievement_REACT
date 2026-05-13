@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import CollectionForm from './CollectionForm';
 
 describe('CollectionForm', () => {
-  it('renders create mode and updates fields', async () => {
+  it('renders create mode, updates fields and closes by cancel', async () => {
     const user = userEvent.setup();
     const onCancel = vi.fn();
 
@@ -30,8 +30,12 @@ describe('CollectionForm', () => {
     expect(screen.getByLabelText('Своя категория')).toHaveValue('Гастротуры');
     expect(descriptionInput).toHaveValue('Коллекция маршрутов и стран.');
     expect(coverInput).toHaveValue('https://example.com/cover.jpg');
-    expect(screen.getByRole('button', { name: 'Сохранить коллекцию' })).toBeDisabled();
-    expect(screen.getByText(/Сохранение коллекции будет подключено/)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Сохранить коллекцию' }),
+    ).toBeEnabled();
+    expect(
+      screen.getByText(/Сохранение коллекции в API будет подключено/),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Отмена' }));
     expect(onCancel).toHaveBeenCalledTimes(1);
@@ -56,23 +60,48 @@ describe('CollectionForm', () => {
     expect(screen.getByLabelText('Категория')).toHaveValue('shopping');
     expect(screen.getByLabelText('Описание')).toHaveValue('Лучшие места для ужина.');
     expect(screen.getByLabelText('Обложка (URL)')).toHaveValue('https://example.com/food.jpg');
-    expect(screen.getByRole('button', { name: 'Сохранить изменения' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Сохранить изменения' })).toBeEnabled();
   });
 
-  it('renders custom category field in edit mode when category is other', () => {
-    render(
-      <CollectionForm
-        mode="edit"
-        initialValues={{
-          title: 'Нишевая коллекция',
-          category: 'other',
-          customCategory: 'Гастротуры',
-        }}
-        onCancel={() => undefined}
-      />,
-    );
+  it('requires custom category when other is selected', async () => {
+    const user = userEvent.setup();
 
-    expect(screen.getByLabelText('Категория')).toHaveValue('other');
-    expect(screen.getByLabelText('Своя категория')).toHaveValue('Гастротуры');
+    render(<CollectionForm mode="create" onCancel={() => undefined} />);
+
+    await user.type(screen.getByLabelText('Название коллекции'), 'Нишевая коллекция');
+    await user.click(screen.getByRole('button', { name: 'Сохранить коллекцию' }));
+
+    expect(await screen.findByText('Введите свою категорию')).toBeInTheDocument();
+  });
+
+  it('validates cover url and submits normalized values', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+
+    render(<CollectionForm mode="create" onCancel={() => undefined} onSubmit={onSubmit} />);
+
+    await user.type(screen.getByLabelText('Название коллекции'), 'Поездки 2026');
+    await user.selectOptions(screen.getByLabelText('Категория'), 'other');
+    await user.type(screen.getByLabelText('Своя категория'), 'Гастротуры');
+    await user.type(screen.getByLabelText('Обложка (URL)'), 'not-a-url');
+    await user.click(screen.getByRole('button', { name: 'Сохранить коллекцию' }));
+
+    expect(await screen.findByText(/Invalid URL|Invalid input/i)).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    await user.clear(screen.getByLabelText(/Обложка \(URL\)/));
+    await user.type(
+      screen.getByLabelText(/Обложка \(URL\)/),
+      'https://example.com/cover.jpg',
+    );
+    await user.click(screen.getByRole('button', { name: 'Сохранить коллекцию' }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      title: 'Поездки 2026',
+      category: 'other',
+      customCategory: 'Гастротуры',
+      description: undefined,
+      coverImageUrl: 'https://example.com/cover.jpg',
+    });
   });
 });

@@ -1,25 +1,20 @@
-import { useState } from 'react';
-import type { EntryStatus } from '../../../contracts/collection.contracts';
+import { useMemo, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import type { CreateEntryDto } from '../../../contracts/collection.contracts';
 import { ENTRY_STATUSES } from '../../../contracts/collection.contracts';
 import { entryStatusLabels } from '../../config/entries.config';
-
-interface EntryFormValues {
-  title: string;
-  status: EntryStatus;
-  description: string;
-  imageUrl: string;
-  price: string;
-  tags: string;
-  rating: string;
-  dateStart: string;
-  dateEnd: string;
-}
+import {
+  createEntryFormResolver,
+  normalizeEntryFormValues,
+  type EntryDateMode,
+  type EntryFormValues,
+} from '../../utils/crud-form.utils';
 
 interface EntryFormProps {
   mode: 'create' | 'edit';
   initialValues?: Partial<EntryFormValues>;
   onCancel: () => void;
-  onSubmit?: (values: EntryFormValues) => void;
+  onSubmit?: (values: CreateEntryDto) => void | Promise<void>;
 }
 
 function getInitialValues(initialValues?: Partial<EntryFormValues>): EntryFormValues {
@@ -37,43 +32,53 @@ function getInitialValues(initialValues?: Partial<EntryFormValues>): EntryFormVa
 }
 
 export default function EntryForm({ mode, initialValues, onCancel, onSubmit }: EntryFormProps) {
-  const [values, setValues] = useState(() => getInitialValues(initialValues));
-  const [dateMode, setDateMode] = useState<'single' | 'range'>(() =>
+  const [dateMode, setDateMode] = useState<EntryDateMode>(() =>
     initialValues?.dateEnd ? 'range' : 'single',
   );
+  const resolver = useMemo(() => createEntryFormResolver(dateMode), [dateMode]);
+  const {
+    control,
+    register,
+    setValue,
+    clearErrors,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<EntryFormValues>({
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
+    resolver,
+    defaultValues: getInitialValues(initialValues),
+  });
+
+  const currentStatus = useWatch({
+    control,
+    name: 'status',
+  });
 
   return (
     <form
+      noValidate
       className="space-y-4"
-      onSubmit={(event) => {
-        event.preventDefault();
-        onSubmit?.(values);
-      }}
+      onSubmit={handleSubmit(async (values) => {
+        await onSubmit?.(normalizeEntryFormValues(values, dateMode));
+      })}
     >
       <label className="flex flex-col gap-1 text-sm text-gray-700">
         Название карточки
         <input
           type="text"
-          value={values.title}
-          onChange={(event) => {
-            setValues((current) => ({ ...current, title: event.target.value }));
-          }}
           className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
           placeholder="Например, Поездка в Токио"
+          {...register('title')}
         />
+        {errors.title ? <p className="text-sm text-danger">{errors.title.message}</p> : null}
       </label>
 
       <label className="flex flex-col gap-1 text-sm text-gray-700">
         Статус
         <select
-          value={values.status}
-          onChange={(event) => {
-            setValues((current) => ({
-              ...current,
-              status: event.target.value as EntryStatus,
-            }));
-          }}
           className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+          {...register('status')}
         >
           {ENTRY_STATUSES.map((status) => (
             <option key={status} value={status}>
@@ -81,31 +86,36 @@ export default function EntryForm({ mode, initialValues, onCancel, onSubmit }: E
             </option>
           ))}
         </select>
+        {errors.status ? <p className="text-sm text-danger">{errors.status.message}</p> : null}
       </label>
+
+      {currentStatus === 'completed' ? (
+        <p className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-700">
+          Для статуса «Завершено» нужно указать рейтинг и дату события.
+        </p>
+      ) : null}
 
       <label className="flex flex-col gap-1 text-sm text-gray-700">
         Описание
         <textarea
-          value={values.description}
-          onChange={(event) => {
-            setValues((current) => ({ ...current, description: event.target.value }));
-          }}
           className="min-h-28 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
           placeholder="Что это за карточка и почему она важна"
+          {...register('description')}
         />
+        {errors.description ? (
+          <p className="text-sm text-danger">{errors.description.message}</p>
+        ) : null}
       </label>
 
       <label className="flex flex-col gap-1 text-sm text-gray-700">
         Изображение (URL)
         <input
           type="url"
-          value={values.imageUrl}
-          onChange={(event) => {
-            setValues((current) => ({ ...current, imageUrl: event.target.value }));
-          }}
           className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
           placeholder="https://example.com/photo.jpg"
+          {...register('imageUrl')}
         />
+        {errors.imageUrl ? <p className="text-sm text-danger">{errors.imageUrl.message}</p> : null}
       </label>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -115,13 +125,11 @@ export default function EntryForm({ mode, initialValues, onCancel, onSubmit }: E
             type="number"
             min="0"
             step="0.01"
-            value={values.price}
-            onChange={(event) => {
-              setValues((current) => ({ ...current, price: event.target.value }));
-            }}
             className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
             placeholder="0.00"
+            {...register('price')}
           />
+          {errors.price ? <p className="text-sm text-danger">{errors.price.message}</p> : null}
         </label>
 
         <label className="flex flex-col gap-1 text-sm text-gray-700">
@@ -131,13 +139,11 @@ export default function EntryForm({ mode, initialValues, onCancel, onSubmit }: E
             min="1"
             max="10"
             step="1"
-            value={values.rating}
-            onChange={(event) => {
-              setValues((current) => ({ ...current, rating: event.target.value }));
-            }}
             className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
             placeholder="1-10"
+            {...register('rating')}
           />
+          {errors.rating ? <p className="text-sm text-danger">{errors.rating.message}</p> : null}
         </label>
       </div>
 
@@ -145,13 +151,11 @@ export default function EntryForm({ mode, initialValues, onCancel, onSubmit }: E
         Теги
         <input
           type="text"
-          value={values.tags}
-          onChange={(event) => {
-            setValues((current) => ({ ...current, tags: event.target.value }));
-          }}
           className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
           placeholder="travel, japan, spring"
+          {...register('tags')}
         />
+        {errors.tags ? <p className="text-sm text-danger">{errors.tags.message}</p> : null}
       </label>
 
       <fieldset className="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
@@ -162,7 +166,8 @@ export default function EntryForm({ mode, initialValues, onCancel, onSubmit }: E
             type="button"
             onClick={() => {
               setDateMode('single');
-              setValues((current) => ({ ...current, dateEnd: '' }));
+              setValue('dateEnd', '');
+              clearErrors('dateEnd');
             }}
             className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
               dateMode === 'single'
@@ -192,12 +197,12 @@ export default function EntryForm({ mode, initialValues, onCancel, onSubmit }: E
             {dateMode === 'range' ? 'Дата начала' : 'Дата'}
             <input
               type="date"
-              value={values.dateStart}
-              onChange={(event) => {
-                setValues((current) => ({ ...current, dateStart: event.target.value }));
-              }}
               className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+              {...register('dateStart')}
             />
+            {errors.dateStart ? (
+              <p className="text-sm text-danger">{errors.dateStart.message}</p>
+            ) : null}
           </label>
 
           {dateMode === 'range' ? (
@@ -205,20 +210,20 @@ export default function EntryForm({ mode, initialValues, onCancel, onSubmit }: E
               Дата окончания
               <input
                 type="date"
-                value={values.dateEnd}
-                onChange={(event) => {
-                  setValues((current) => ({ ...current, dateEnd: event.target.value }));
-                }}
                 className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+                {...register('dateEnd')}
               />
+              {errors.dateEnd ? (
+                <p className="text-sm text-danger">{errors.dateEnd.message}</p>
+              ) : null}
             </label>
           ) : null}
         </div>
       </fieldset>
 
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-        Сохранение карточки будет подключено на следующем подпункте. Сейчас форма нужна для
-        сборки и проверки UI.
+        Сохранение карточки в API будет подключено на следующем подпункте. Сейчас форма уже
+        валидирует данные и подготавливает корректный payload для будущего CRUD.
       </div>
 
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
@@ -231,8 +236,8 @@ export default function EntryForm({ mode, initialValues, onCancel, onSubmit }: E
         </button>
         <button
           type="submit"
-          disabled
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white opacity-60 disabled:cursor-not-allowed"
+          disabled={isSubmitting}
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {mode === 'create' ? 'Сохранить карточку' : 'Сохранить изменения'}
         </button>

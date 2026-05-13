@@ -3,35 +3,34 @@
 ## Что делает файл
 
 Тестирует private detail-страницу коллекции.
-Покрывает состояния `loading/error/empty/success`, retry загрузки и новый modal-flow шага 5.4 для создания/редактирования коллекции и карточек.
+Покрывает `loading/error/empty/success`, retry полной загрузки и modal-flow после перевода форм на `react-hook-form + zod`.
 
 ## Импорты и зависимости
 
-1. `vitest` — тестовый раннер и моки API.
-2. `@testing-library/react` — рендер, DOM-assertions и `waitFor`.
-3. `@testing-library/user-event` — клики по фильтрам и modal-entrypoint кнопкам.
-4. `react-router-dom` (`MemoryRouter`, `Routes`, `Route`) — изолированное тестирование route `/collections/:collectionId`.
-5. `./CollectionDetailPage` — тестируемая страница.
-6. `../../api/collections.api` — замоканные методы `getCollectionById` и `getCollectionEntries`.
+1. `vitest` — раннер и моки API.
+2. `@testing-library/react` — рендер, assertions, `waitFor`.
+3. `@testing-library/user-event` — взаимодействие с фильтрами и modal-entrypoints.
+4. `react-router-dom` (`MemoryRouter`, `Routes`, `Route`) — isolated route `/collections/:collectionId`.
+5. `./CollectionDetailPage`
+6. `../../api/collections.api` — замоканные `getCollectionById` и `getCollectionEntries`.
 
 ## Экспорты и контракты
 
 1. Runtime-экспортов нет.
-2. Проверяемые контракты:
+2. Проверяемые инварианты:
    - page корректно показывает `loading/error/empty/success`;
-   - кнопка retry повторяет загрузку и коллекции, и списка карточек;
+   - retry заново грузит и коллекцию, и entries;
    - private action-кнопки активны в success-сценарии;
-   - `Редактировать коллекцию` открывает `CollectionForm`;
-   - `Добавить карточку` открывает `EntryForm` в create-режиме;
-   - `Редактировать` на карточке открывает `EntryForm` в edit-режиме с initial values;
-   - save-кнопки в формах пока disabled.
+   - modal коллекции и карточки открываются корректно;
+   - edit-модалки получают initial values;
+   - save-кнопки в формах теперь активны как часть RHF/Zod-потока.
 
 ## Нетривиальная логика
 
-1. Тесты не мокают модалки отдельно: они проходят весь пользовательский сценарий на уровне страницы и тем самым подтверждают, что local modal state wired correctly.
-2. Отдельная проверка retry защищает уже исправленную регрессию, где ранее перезагружалась только коллекция или только entries, но не весь экран целиком.
+1. Тесты проходят пользовательский сценарий на уровне страницы и тем самым подтверждают, что modal state, callbacks и новые формы корректно состыкованы.
+2. Отдельная проверка retry защищает уже исправленный сценарий полной перезагрузки detail-экрана.
 
 ## Где используется
 
 1. Запускается в `npm.cmd run test`.
-2. Защищает `src/pages/CollectionDetailPage/CollectionDetailPage.tsx` от регрессий при дальнейшем подключении реального submit.
+2. Страхует `src/pages/CollectionDetailPage/CollectionDetailPage.tsx`.

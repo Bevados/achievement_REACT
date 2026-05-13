@@ -458,6 +458,15 @@
 3. `CollectionForm` уже подключена как modal create/edit UI на `/collections` и `/collections/:collectionId`.
 4. `EntryForm` уже подключена на `/collections/:collectionId` как modal create/edit UI, включая локальный переключатель даты `Одна дата / Период`.
 5. Private `EntryCard` и `EntriesGrid` больше не просто показывают заглушку `Редактировать`: они умеют поднимать edit-модалку карточки через callback, но реальные мутации и удаление ещё не включены.
+
+## Прогресс шага 5.5
+
+1. `CollectionForm` и `EntryForm` переведены с локального `useState` на `react-hook-form`, чтобы следующий подпункт с CRUD-мутациями опирался уже на стабильный form-state и submit-flow.
+2. Клиентская валидация подключена через Zod без новой внешней зависимости-резолвера: формы используют локальный adapter поверх shared schema и общих бизнес-правил.
+3. Для `CollectionForm` дополнительно зафиксировано UX-правило: если выбрана категория `other`, поле `customCategory` обязательно на клиенте.
+4. Для `EntryForm` форма теперь валидирует completed-правила (`rating` + `dateStart` обязательны) и проверяет диапазон `dateEnd >= dateStart`.
+5. Submit-кнопки в формах больше не disabled по умолчанию: валидная форма вызывает локальный `onSubmit` с уже нормализованным payload, но без реальной записи в API на этом шаге.
+6. Нормализация form-values вынесена в отдельный helper для private CRUD-форм: пустые строки очищаются, `price` превращается в number, `tags` — в массив, а `dateStart/dateEnd` — в ISO-строки.
 7. `dateStart` и `dateEnd` в API/DTO передаем как ISO-строки.
 8. Пагинация фиксируется в list DTO (page, limit, sortBy, sortOrder и фильтры).
 9. Price на API принимается только как number (строковый формат, например "12.34", не принимаем).
