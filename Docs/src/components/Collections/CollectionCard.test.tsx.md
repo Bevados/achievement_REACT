@@ -2,31 +2,40 @@
 
 ## Что делает файл
 
-Тестирует контракт отображения `CollectionCard`.
-Покрывает основной рендер, fallback по optional-полям, ссылку на detail и отображение пользовательской категории.
+Тестирует UI-контракт компонента `CollectionCard`.
 
 ## Импорты и зависимости
 
-1. `vitest`
-2. `@testing-library/react`
-3. `react-router-dom` (`MemoryRouter`)
-4. `./CollectionCard`
-5. `contracts/collection.contracts.ts`
+1. `vitest` — сценарии и проверки.
+2. `@testing-library/react` — рендер и поиск элементов.
+3. `@testing-library/user-event` — проверка пользовательских действий.
+4. `react-router-dom` (`MemoryRouter`) — тестирование ссылок карточки.
+5. `contracts/collection.contracts.ts` — тип `CollectionView`.
+6. `./CollectionCard` — тестируемый компонент.
 
 ## Экспорты и контракты
 
-1. Runtime-экспортов нет.
-2. Проверяемые инварианты:
-   - базовые поля коллекции рендерятся корректно
-   - optional-поля имеют fallback
-   - ссылка ведёт по переданному маршруту
-   - custom category показывается вместо стандартного `Другое`
+1. Файл ничего не экспортирует.
+2. Покрывает контракт карточки:
+   - читаемый `href` в формате `id + slug`;
+   - показ `createdAt` и `updatedAt`;
+   - fallback для optional-полей;
+   - inline-actions `onEdit` и `onDelete`.
+
+## Что проверяется
+
+1. Базовый рендер полей коллекции.
+2. Показ `createdAt` и `updatedAt`.
+3. Переход по читаемому `href` в формате `id + slug`.
+4. Fallback для optional-полей.
+5. Отображение `customCategory`.
+6. Вызов inline-callback'ов `onEdit` и `onDelete`.
 
 ## Нетривиальная логика
 
-1. Отдельный тест на `customCategory` защищает display-логику helper-а `getCollectionCategoryLabel`.
+1. Тесты валидируют, что карточка использует slug-friendly URL, а не старый путь только с `id`.
+2. Inline-кнопки действий проверяются отдельно от клика по всей карточке, чтобы не смешивать основной navigation flow и CRUD-entrypoints списка.
 
 ## Где используется
 
-1. Запускается в `npm.cmd run test`.
-2. Защищает `src/components/Collections/CollectionCard.tsx`.
+1. Запускается через `npm.cmd run test`.

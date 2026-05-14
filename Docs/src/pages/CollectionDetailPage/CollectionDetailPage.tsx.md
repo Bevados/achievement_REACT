@@ -1,40 +1,33 @@
-# src/pages/CollectionDetailPage/CollectionDetailPage.tsx
+﻿# src/pages/CollectionDetailPage/CollectionDetailPage.tsx
 
 ## Что делает файл
 
-Private detail-страница одной коллекции.
-Страница загружает саму коллекцию, подключает общий controller списка карточек, показывает фильтры, серверный список `entries` и private modal-entrypoints для CRUD.
+Рендерит private detail-страницу одной коллекции со списком карточек и private CRUD entrypoints.
 
 ## Импорты и зависимости
 
 1. `react`
-2. `react-router-dom` — `Link`, `useNavigate`, `useParams`
-3. `contracts/collection.contracts.ts`
-4. `src/api/collections.api.ts`
-5. `src/components/Collections/CollectionForm.tsx`
-6. `src/components/Entries/EntryForm.tsx`
-7. `src/components/Entries/EntriesFilters.tsx`
-8. `src/components/Entries/EntriesGrid.tsx`
-9. `src/components/Entries/EntriesPagination.tsx`
-10. `src/components/Modal/BaseModal.tsx`
-11. `src/config/collections.config.ts`
-12. `src/hooks/useEntriesListController.ts`
+2. `react-router-dom`
+3. `src/api/collections.api.ts`
+4. `CollectionForm`, `EntryForm`
+5. `EntriesFilters`, `EntriesGrid`, `EntriesPagination`
+6. `BaseModal`
+7. `useEntriesListController`
 
 ## Экспорты и контракты
 
 1. Экспортируется default-компонент `CollectionDetailPage`.
-2. Компонент не принимает props.
-3. Ожидает route-param `collectionId`.
+2. Страница ожидает route-param `collectionId`, при этом маршрут может включать optional slug.
 
 ## Нетривиальная логика
 
-1. Edit коллекции вызывает `PATCH /api/collections/:collectionId` и обновляет локальный `collection` state без полного reload.
-2. Create/edit карточки вызывают `POST/PATCH /api/collections/:collectionId/entries`, затем перезагружают server-driven список карточек.
-3. Create карточки дополнительно локально увеличивает `entriesCount`.
-4. Delete коллекции теперь работает через confirm-flow и после успеха переводит пользователя обратно на `/collections`.
-5. Delete карточки теперь работает через confirm-flow, перезагружает список карточек и локально уменьшает `entriesCount`.
-6. Ошибки create/update и ошибки delete хранятся раздельно, чтобы modal submit UX не смешивался с page-level alert-блоками.
+1. Страница поддерживает create/update/delete для коллекции и карточек.
+2. `entriesCount` локально синхронизируется после create/delete карточек.
+3. Ошибки submit и delete разделены на разные alert-слои.
+4. На странице показываются и `createdAt`, и `updatedAt` коллекции.
+5. Есть две точки возврата к списку коллекций: сверху и внизу после списка карточек, без дублирующей CTA-кнопки.
+6. Empty-state карточек зависит от `hasActiveFilters`: без фильтров страница сообщает, что карточек ещё нет, а при активных фильтрах показывает сообщение про отсутствие совпадений.
 
 ## Где используется
 
-1. `src/App.tsx` рендерит страницу на private-route `/collections/:collectionId`.
+1. `src/App.tsx`

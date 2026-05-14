@@ -1,3 +1,4 @@
+import { Pencil, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { CollectionView } from '../../../contracts/collection.contracts';
 import { getCollectionCategoryLabel } from '../../config/collections.config';
@@ -5,6 +6,8 @@ import { getCollectionCategoryLabel } from '../../config/collections.config';
 interface CollectionCardProps {
   collection: CollectionView;
   to?: string;
+  onEdit?: (collection: CollectionView) => void;
+  onDelete?: (collection: CollectionView) => void;
 }
 
 function formatDate(iso: string): string {
@@ -15,11 +18,11 @@ function formatDate(iso: string): string {
   });
 }
 
-function CollectionCardContent({ collection }: Pick<CollectionCardProps, 'collection'>) {
+function CollectionCardBody({ collection }: Pick<CollectionCardProps, 'collection'>) {
   const categoryLabel = getCollectionCategoryLabel(collection);
 
   return (
-    <article>
+    <>
       {collection.coverImageUrl ? (
         <img
           src={collection.coverImageUrl}
@@ -59,33 +62,72 @@ function CollectionCardContent({ collection }: Pick<CollectionCardProps, 'collec
           <p className="text-sm leading-relaxed text-gray-500">Описание пока не добавлено.</p>
         )}
 
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs text-gray-500">Обновлено: {formatDate(collection.updatedAt)}</p>
-          <span className="text-xs font-medium text-sky-700 transition group-hover:text-sky-800">
-            Подробнее
-          </span>
+        <div className="space-y-1 text-xs text-gray-500">
+          <p>Создано: {formatDate(collection.createdAt)}</p>
+          <p>Обновлено: {formatDate(collection.updatedAt)}</p>
         </div>
       </div>
-    </article>
+    </>
   );
 }
 
-export default function CollectionCard({ collection, to }: CollectionCardProps) {
-  if (!to) {
-    return (
-      <div className="group block overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <CollectionCardContent collection={collection} />
-      </div>
-    );
+function CollectionActionButtons({
+  collection,
+  onEdit,
+  onDelete,
+}: Pick<CollectionCardProps, 'collection' | 'onEdit' | 'onDelete'>) {
+  if (!onEdit && !onDelete) {
+    return null;
   }
 
   return (
-    <Link
-      to={to}
-      className="group block overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2"
-      aria-label={`Открыть коллекцию ${collection.title}`}
-    >
-      <CollectionCardContent collection={collection} />
-    </Link>
+    <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
+      {onEdit ? (
+        <button
+          type="button"
+          aria-label={`Редактировать коллекцию ${collection.title}`}
+          onClick={() => {
+            onEdit(collection);
+          }}
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/80 bg-white/90 text-gray-700 shadow-sm transition hover:bg-white"
+        >
+          <Pencil size={14} />
+        </button>
+      ) : null}
+      {onDelete ? (
+        <button
+          type="button"
+          aria-label={`Удалить коллекцию ${collection.title}`}
+          onClick={() => {
+            onDelete(collection);
+          }}
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/80 bg-white/90 text-rose-600 shadow-sm transition hover:bg-white"
+        >
+          <Trash2 size={14} />
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+export default function CollectionCard({ collection, to, onEdit, onDelete }: CollectionCardProps) {
+  return (
+    <div className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <CollectionActionButtons collection={collection} onEdit={onEdit} onDelete={onDelete} />
+
+      {to ? (
+        <Link
+          to={to}
+          className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2"
+          aria-label={`Открыть коллекцию ${collection.title}`}
+        >
+          <CollectionCardBody collection={collection} />
+        </Link>
+      ) : (
+        <div className="block">
+          <CollectionCardBody collection={collection} />
+        </div>
+      )}
+    </div>
   );
 }

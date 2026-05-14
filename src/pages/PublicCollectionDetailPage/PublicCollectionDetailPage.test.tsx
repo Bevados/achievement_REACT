@@ -44,7 +44,9 @@ describe('PublicCollectionDetailPage', () => {
   it('renders error state and retries loading', async () => {
     const user = userEvent.setup();
 
-    mockedGetPublicCollectionById.mockRejectedValueOnce(new Error('Не удалось загрузить публичную коллекцию.'));
+    mockedGetPublicCollectionById.mockRejectedValueOnce(
+      new Error('Не удалось загрузить публичную коллекцию.'),
+    );
     mockedGetPublicCollectionEntries.mockRejectedValueOnce(new Error('Не удалось загрузить карточки.'));
 
     mockedGetPublicCollectionById.mockResolvedValueOnce({
@@ -79,7 +81,7 @@ describe('PublicCollectionDetailPage', () => {
     });
   });
 
-  it('renders empty state for public entries', async () => {
+  it('renders empty state for public entries without active filters', async () => {
     const user = userEvent.setup();
 
     mockedGetPublicCollectionById.mockResolvedValue({
@@ -105,9 +107,36 @@ describe('PublicCollectionDetailPage', () => {
     renderPage();
 
     expect(await screen.findByRole('heading', { name: 'Публичная коллекция' })).toBeInTheDocument();
-    expect(screen.getByText('По выбранным фильтрам карточки не найдены.')).toBeInTheDocument();
+    expect(screen.getByText('В этой коллекции пока нет карточек.')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Показать фильтры' }));
     expect(screen.getByLabelText('Статус')).toBeInTheDocument();
+  });
+
+  it('renders filtered empty state for public collection', async () => {
+    mockedGetPublicCollectionById.mockResolvedValue({
+      id: 'collection-1',
+      ownerId: 'system_examples',
+      title: 'Публичная коллекция',
+      category: 'travel',
+      isPublic: true,
+      entriesCount: 0,
+      createdAt: '2026-05-01T08:00:00.000Z',
+      updatedAt: '2026-05-02T08:00:00.000Z',
+    });
+    mockedGetPublicCollectionEntries.mockResolvedValue({
+      items: [],
+      meta: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 1,
+      },
+    });
+
+    renderPage('/examples/collection-1?status=planned');
+
+    expect(await screen.findByRole('heading', { name: 'Публичная коллекция' })).toBeInTheDocument();
+    expect(screen.getByText('По выбранным фильтрам карточки не найдены.')).toBeInTheDocument();
   });
 
   it('renders success state without private actions', async () => {

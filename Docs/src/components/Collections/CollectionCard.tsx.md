@@ -2,14 +2,14 @@
 
 ## Что делает файл
 
-Компонент рендерит одну карточку коллекции для public/private списков.
-Он показывает обложку, категорию, количество карточек, описание и ссылку на detail-страницу, если маршрут передан через `to`.
+Рендерит одну карточку коллекции для public/private списков.
 
 ## Импорты и зависимости
 
-1. `react-router-dom` (`Link`) — кликабельный переход на detail-route.
-2. `contracts/collection.contracts.ts` — тип `CollectionView`.
-3. `src/config/collections.config.ts` — helper `getCollectionCategoryLabel`.
+1. `lucide-react`
+2. `react-router-dom`
+3. `contracts/collection.contracts.ts`
+4. `src/config/collections.config.ts`
 
 ## Экспорты и контракты
 
@@ -17,11 +17,16 @@
 2. Пропсы:
    - `collection: CollectionView`
    - `to?: string`
+   - `onEdit?: (collection: CollectionView) => void`
+   - `onDelete?: (collection: CollectionView) => void`
 
 ## Нетривиальная логика
 
-1. Если `to` не передан, карточка остаётся статичной и не оборачивается в `Link`.
-2. Категория отображается через `getCollectionCategoryLabel`, поэтому карточка автоматически показывает пользовательский текст, если коллекция использует `other + customCategory`.
+1. Если `to` передан, кликабельной становится вся карточка.
+2. Inline-кнопки `Редактировать` и `Удалить` живут отдельно от `Link`, чтобы не конфликтовать с переходом по карточке.
+3. На карточке показываются обе даты: `createdAt` и `updatedAt`.
+4. Текстовый CTA `Подробнее` убран, потому что переход идёт кликом по всей карточке.
+5. Категория отображается через `getCollectionCategoryLabel`, поэтому корректно работает и `customCategory`.
 
 ## Где используется
 

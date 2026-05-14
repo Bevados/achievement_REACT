@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import type { CreateCollectionDto } from '../../../contracts/collection.contracts';
-import { COLLECTION_CATEGORIES } from '../../../contracts/collection.contracts';
-import { collectionCategoryLabels } from '../../config/collections.config';
+import {
+  collectionCategoryLabels,
+  orderedCollectionCategoryOptions,
+} from '../../config/collections.config';
 import {
   collectionFormResolver,
   normalizeCollectionFormValues,
@@ -20,7 +22,7 @@ interface CollectionFormProps {
 function getInitialValues(initialValues?: Partial<CollectionFormValues>): CollectionFormValues {
   return {
     title: initialValues?.title ?? '',
-    category: initialValues?.category ?? 'other',
+    category: initialValues?.category ?? '',
     customCategory: initialValues?.customCategory ?? '',
     description: initialValues?.description ?? '',
     coverImageUrl: initialValues?.coverImageUrl ?? '',
@@ -85,17 +87,21 @@ export default function CollectionForm({
           className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
           {...register('category')}
         >
-          {COLLECTION_CATEGORIES.map((entryCategory) => (
-            <option key={entryCategory} value={entryCategory}>
-              {entryCategory === 'other'
-                ? 'Своя категория'
-                : collectionCategoryLabels[entryCategory]}
-            </option>
-          ))}
+          <option value="" disabled>
+            Например, Путешествия
+          </option>
+          <optgroup label="Свой вариант">
+            <option value="other">Своя категория</option>
+          </optgroup>
+          <optgroup label="Основные категории">
+            {orderedCollectionCategoryOptions.map((entryCategory) => (
+              <option key={entryCategory} value={entryCategory}>
+                {collectionCategoryLabels[entryCategory]}
+              </option>
+            ))}
+          </optgroup>
         </select>
-        {errors.category ? (
-          <p className="text-sm text-danger">{errors.category.message}</p>
-        ) : null}
+        {errors.category ? <p className="text-sm text-danger">{errors.category.message}</p> : null}
       </label>
 
       {category === 'other' ? (
@@ -137,11 +143,6 @@ export default function CollectionForm({
           <p className="text-sm text-danger">{errors.coverImageUrl.message}</p>
         ) : null}
       </label>
-
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-        Создание и редактирование коллекции уже подключены. Удаление и CRUD для карточек будут
-        добавлены на следующих подпунктах.
-      </div>
 
       {submitError ? (
         <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">

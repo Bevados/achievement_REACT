@@ -16,6 +16,19 @@ function formatDate(value: string): string {
   });
 }
 
+function BackToExamplesLinks() {
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <Link
+        to="/examples"
+        className="inline-flex text-base font-semibold text-sky-700 transition hover:text-sky-800 hover:underline"
+      >
+        ← К списку примеров
+      </Link>
+    </div>
+  );
+}
+
 export default function PublicCollectionDetailPage() {
   const { collectionId } = useParams<{ collectionId: string }>();
 
@@ -26,6 +39,7 @@ export default function PublicCollectionDetailPage() {
   const {
     entries,
     meta: entriesMeta,
+    hasActiveFilters,
     page,
     sortBy,
     sortOrder,
@@ -75,7 +89,6 @@ export default function PublicCollectionDetailPage() {
 
     try {
       const collectionResult = await getPublicCollectionById(collectionId);
-
       setCollection(collectionResult);
     } catch (error) {
       setCollection(null);
@@ -110,9 +123,7 @@ export default function PublicCollectionDetailPage() {
   if (errorMessage || !collection) {
     return (
       <section className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-8">
-        <Link to="/examples" className="text-sm font-medium text-sky-700 hover:underline">
-          ← К списку примеров
-        </Link>
+        <BackToExamplesLinks />
 
         <div className="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-4" role="alert">
           <p className="text-sm text-rose-700">
@@ -135,9 +146,9 @@ export default function PublicCollectionDetailPage() {
 
   return (
     <section className="space-y-6 rounded-3xl border border-gray-200 bg-white p-6 sm:p-8">
-      <Link to="/examples" className="text-sm font-medium text-sky-700 hover:underline">
-        ← К списку примеров
-      </Link>
+      <div className="mb-5">
+        <BackToExamplesLinks />
+      </div>
 
       <div className="overflow-hidden rounded-3xl border border-gray-200 bg-gray-50">
         {collection.coverImageUrl ? (
@@ -154,7 +165,7 @@ export default function PublicCollectionDetailPage() {
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-700">
-                  {getCollectionCategoryLabel(collection)}
+                {getCollectionCategoryLabel(collection)}
               </span>
               <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">
                 {collection.entriesCount} карточек
@@ -166,7 +177,10 @@ export default function PublicCollectionDetailPage() {
 
             <div>
               <h1 className="text-3xl font-bold text-primary">{collection.title}</h1>
-              <p className="mt-2 text-sm text-gray-500">Обновлено: {formatDate(collection.updatedAt)}</p>
+              <div className="mt-2 space-y-1 text-sm text-gray-500">
+                <p>Создано: {formatDate(collection.createdAt)}</p>
+                <p>Обновлено: {formatDate(collection.updatedAt)}</p>
+              </div>
             </div>
 
             {collection.description ? (
@@ -235,7 +249,11 @@ export default function PublicCollectionDetailPage() {
           <>
             <EntriesGrid
               entries={entries}
-              emptyMessage="По выбранным фильтрам карточки не найдены."
+              emptyMessage={
+                hasActiveFilters
+                  ? 'По выбранным фильтрам карточки не найдены.'
+                  : 'В этой коллекции пока нет карточек.'
+              }
               showActions={false}
             />
 
@@ -248,6 +266,10 @@ export default function PublicCollectionDetailPage() {
                 onNextPage={goToNextPage}
               />
             ) : null}
+
+            <div className="pt-2">
+              <BackToExamplesLinks />
+            </div>
           </>
         )}
       </div>

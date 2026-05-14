@@ -108,7 +108,7 @@ function App() {
             }
           />
           <Route
-            path="/examples/:collectionId"
+            path="/examples/:collectionId/:collectionSlug?"
             element={
               !isInitialized ? (
                 <AuthResolvingState />
@@ -132,7 +132,7 @@ function App() {
             }
           />
           <Route
-            path="/collections/:collectionId"
+            path="/collections/:collectionId/:collectionSlug?"
             element={
               !isInitialized ? (
                 <AuthResolvingState />

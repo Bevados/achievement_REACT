@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import type { CollectionView } from '../../../contracts/collection.contracts';
 import CollectionCard from './CollectionCard';
@@ -26,7 +27,7 @@ describe('CollectionCard', () => {
             coverImageUrl:
               'https://images.unsplash.com/photo-1492571350019-22de08371fd3?auto=format&fit=crop&w=1200&q=80',
           }}
-          to="/examples/collection-1"
+          to="/examples/collection-1/testovaya-kollektsiya"
         />
       </MemoryRouter>,
     );
@@ -36,11 +37,14 @@ describe('CollectionCard', () => {
     expect(screen.getByText('8 карточек')).toBeInTheDocument();
     expect(screen.getByText('Публичная')).toBeInTheDocument();
     expect(screen.getByText('Описание коллекции.')).toBeInTheDocument();
+    expect(screen.getByText(/Создано:/)).toBeInTheDocument();
     expect(screen.getByText(/Обновлено:/)).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'Обложка коллекции Тестовая коллекция' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('img', { name: 'Обложка коллекции Тестовая коллекция' }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Открыть коллекцию Тестовая коллекция' })).toHaveAttribute(
       'href',
-      '/examples/collection-1',
+      '/examples/collection-1/testovaya-kollektsiya',
     );
   });
 
@@ -77,5 +81,23 @@ describe('CollectionCard', () => {
 
     expect(screen.getByText('Гастротуры')).toBeInTheDocument();
     expect(screen.queryByText('Другое')).not.toBeInTheDocument();
+  });
+
+  it('calls edit and delete callbacks when action buttons are shown', async () => {
+    const user = userEvent.setup();
+    const onEdit = vi.fn();
+    const onDelete = vi.fn();
+
+    render(
+      <MemoryRouter>
+        <CollectionCard collection={baseCollection} onEdit={onEdit} onDelete={onDelete} />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Редактировать коллекцию Тестовая коллекция' }));
+    await user.click(screen.getByRole('button', { name: 'Удалить коллекцию Тестовая коллекция' }));
+
+    expect(onEdit).toHaveBeenCalledWith(baseCollection);
+    expect(onDelete).toHaveBeenCalledWith(baseCollection);
   });
 });

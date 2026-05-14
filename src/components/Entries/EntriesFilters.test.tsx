@@ -31,10 +31,13 @@ describe('EntriesFilters', () => {
     onReset: vi.fn(),
   };
 
-  it('renders all filter groups', () => {
+  it('renders collapsed state by default', () => {
     render(<EntriesFilters {...baseProps} />);
 
-    expect(screen.getByRole('button', { name: 'Показать фильтры' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Показать фильтры' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
   });
 
   it('opens and closes filter panel by button', async () => {
@@ -42,10 +45,12 @@ describe('EntriesFilters', () => {
 
     render(<EntriesFilters {...baseProps} />);
 
-    expect(screen.queryByLabelText('Сортировка')).not.toBeInTheDocument();
-
     await user.click(screen.getByRole('button', { name: 'Показать фильтры' }));
 
+    expect(screen.getByRole('button', { name: 'Скрыть фильтры' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
     expect(screen.getByLabelText('Сортировка')).toBeInTheDocument();
     expect(screen.getByLabelText('Порядок')).toBeInTheDocument();
     expect(screen.getByLabelText('Статус')).toBeInTheDocument();
@@ -56,7 +61,10 @@ describe('EntriesFilters', () => {
 
     await user.click(screen.getByRole('button', { name: 'Скрыть фильтры' }));
 
-    expect(screen.queryByLabelText('Сортировка')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Показать фильтры' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
   });
 
   it('submits filters through apply callback', async () => {

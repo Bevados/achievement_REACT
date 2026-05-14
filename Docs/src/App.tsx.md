@@ -2,31 +2,34 @@
 
 ## Что делает файл
 
-Это корневой route-shell приложения.
+Файл собирает корневую маршрутизацию приложения, общую шапку и auth-гейты.
 
 ## Импорты и зависимости
 
-1. `react-router-dom` — маршрутизация и redirect.
-2. auth/theme/modal stores — глобальные состояния приложения.
-3. pages — публичные и приватные страницы.
+1. `react`
+2. `react-router-dom`
+3. `src/components/Header/Header.tsx`
+4. `src/components/Auth/AuthModal.tsx`
+5. страницы из `src/pages/*`
+6. auth/theme/modal stores
 
 ## Экспорты и контракты
 
-1. Экспортируется `App`.
-2. Guest routes:
+1. Экспортируется default-компонент `App`.
+2. Основные маршруты:
    - `/`
    - `/examples`
-   - `/examples/:collectionId`
-3. Private routes:
+   - `/examples/:collectionId/:collectionSlug?`
    - `/collections`
-   - `/collections/:collectionId`
+   - `/collections/:collectionId/:collectionSlug?`
    - `/profile`
 
 ## Нетривиальная логика
 
-1. `/examples/:collectionId` работает только для гостя и редиректит авторизованного пользователя в private-зону.
-2. Root route redirect-ит авторизованного пользователя в `/collections`.
+1. Для detail-страниц коллекций маршрут принимает optional slug, но загрузка данных всё равно идёт по `collectionId`.
+2. Гостевые и private-разделы разводятся через `Navigate`.
+3. Авторизованный пользователь уходит с `/` в `/collections`.
 
 ## Где используется
 
-1. Главная точка входа frontend-приложения.
+1. Корневая точка frontend-приложения.

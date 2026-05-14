@@ -2,25 +2,26 @@
 
 ## Что делает файл
 
-Страница показывает публичный список example-коллекций.
+Рендерит public-список example-коллекций.
 
 ## Импорты и зависимости
 
-1. `src/api/collections.api.ts` — `getPublicCollections`.
-2. `CollectionsGrid`, `CollectionsFilters`, `CollectionsPagination` — общий list UI.
-3. `useCollectionsListController` — общий контроллер состояний списка.
+1. `src/api/collections.api.ts`
+2. `CollectionsGrid`
+3. `CollectionsFilters`
+4. `CollectionsPagination`
+5. `useCollectionsListController`
+6. `src/utils/routing.utils.ts`
 
 ## Экспорты и контракты
 
-1. Экспортируется `ExamplesPage`.
-2. Страница рендерит состояния `loading`, `error`, `empty`, `success`.
-3. Карточки examples теперь ведут на `/examples/:collectionId`.
+1. Экспортируется default-компонент `ExamplesPage`.
 
 ## Нетривиальная логика
 
-1. Страница использует тот же list-controller, что и private collections page.
-2. Отличие от private-страницы теперь сведено к источнику данных и public route для карточек.
+1. Detail href строятся через `getPublicCollectionHref`, поэтому URL публичных коллекций читаемые и содержат `id + slug`.
+2. Сама страница остаётся read-only и использует только public API.
 
 ## Где используется
 
-1. `src/App.tsx` — guest route `/examples`.
+1. `src/App.tsx`

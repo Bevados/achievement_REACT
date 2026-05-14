@@ -38,6 +38,7 @@ interface UseEntriesListControllerOptions {
 interface UseEntriesListControllerResult {
   entries: EntryView[];
   meta: PaginationMeta | null;
+  hasActiveFilters: boolean;
   page: number;
   sortBy: EntrySortField;
   sortOrder: SortOrder;
@@ -172,6 +173,17 @@ export function useEntriesListController(
   const [maxRating, setMaxRating] = useState(initialMaxRating);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const hasActiveFilters = Boolean(
+    status ||
+      createdAtFrom ||
+      createdAtTo ||
+      dateStartFrom ||
+      dateStartTo ||
+      minPrice ||
+      maxPrice ||
+      minRating ||
+      maxRating,
+  );
 
   useEffect(() => {
     const nextPage = parsePage(searchParams.get('page'));
@@ -251,7 +263,7 @@ export function useEntriesListController(
     syncValue('maxRating', maxRating);
 
     if (nextParams.toString() !== searchParams.toString()) {
-      setSearchParams(nextParams, { replace: true });
+      setSearchParams(nextParams);
     }
   }, [
     createdAtFrom,
@@ -391,6 +403,7 @@ export function useEntriesListController(
   return {
     entries,
     meta,
+    hasActiveFilters,
     page,
     sortBy,
     sortOrder,

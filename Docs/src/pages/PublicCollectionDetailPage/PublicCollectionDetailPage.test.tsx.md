@@ -1,4 +1,4 @@
-# src/pages/PublicCollectionDetailPage/PublicCollectionDetailPage.test.tsx
+﻿# src/pages/PublicCollectionDetailPage/PublicCollectionDetailPage.test.tsx
 
 ## Что делает файл
 
@@ -14,13 +14,14 @@
 ## Экспорты и контракты
 
 1. Файл не экспортирует production-сущности.
-2. Проверяет `loading`, `error + retry`, `empty`, `success`.
+2. Проверяет `loading`, `error + retry`, два варианта `empty` и `success`.
 3. В успешных сценариях дополнительно фиксирует наличие общего UI-фильтрации карточек.
 
 ## Нетривиальная логика
 
 1. В `success` отдельно проверяется, что на public detail отсутствуют private action-кнопки entry.
 2. В empty/success сценариях тесты раскрывают фильтры по кнопке `Показать фильтры` и проверяют, что public detail использует тот же `EntriesFilters`, что и private detail.
+3. Отдельно покрывается различие между пустой коллекцией без фильтров и пустым результатом после активного фильтра `status`.
 
 ## Где используется
 

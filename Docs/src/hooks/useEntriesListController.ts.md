@@ -1,39 +1,33 @@
-# src/hooks/useEntriesListController.ts
+﻿# src/hooks/useEntriesListController.ts
 
 ## Что делает файл
 
-Файл содержит общий кастомный хук для detail-страниц списков карточек `entries`.
-Хук объединяет server-driven фильтры, сортировку, пагинацию, loading/error и синхронизацию query-параметров с URL.
+Хранит общий controller-хук для detail-списков карточек `entries`.
 
 ## Импорты и зависимости
 
-1. `react` — `useState`, `useEffect`, `useCallback`.
-2. `react-router-dom` (`useSearchParams`) — sync filter-state с URL.
-3. `contracts/collection.contracts.ts` — типы query, сортировки, статуса, pagination и элементов списка.
+1. `react`
+2. `react-router-dom`
+3. `contracts/collection.contracts.ts`
 
 ## Экспорты и контракты
 
 1. Экспортируется `useEntriesListController(options)`.
-2. Обязательные входные параметры:
-   - `collectionId`
-   - `fetchEntries(collectionId, query)`
-   - `fallbackErrorMessage`
-3. Опциональный параметр:
-   - `pageSize` (по умолчанию 12)
-4. Хук возвращает:
-   - данные: `entries`, `meta`
-   - состояние фильтров и полей ввода
-   - loading/error
-   - обработчики apply/reset/pagination/reload
+2. Хук управляет:
+   - server-driven фильтрами;
+   - сортировкой;
+   - пагинацией;
+   - applied/input state диапазонов;
+   - sync с URL;
+   - retry;
+   - признаком `hasActiveFilters`.
 
 ## Нетривиальная логика
 
-1. Держит отдельно input-state и applied-state для фильтров диапазонов, чтобы запросы уходили только после `Применить`.
-2. Конвертирует `type="date"` поля в ISO-границы суток:
-   - `From` -> начало дня
-   - `To` -> конец дня
-3. Автоматически сбрасывает `page` на 1 при применении фильтров и при смене сортировки/статуса.
-4. Переиспользуется и в private, и в public detail-страницах, различается только fetcher.
+1. Input-state и applied-state диапазонов разделены, поэтому запросы уходят только после `Применить`.
+2. Date-inputs конвертируются в ISO-границы суток.
+3. Query sync больше не использует `replace`, чтобы back/forward не ощущались "залипающими".
+4. `hasActiveFilters` позволяет страницам различать пустую коллекцию без карточек и пустой результат после применения фильтров.
 
 ## Где используется
 

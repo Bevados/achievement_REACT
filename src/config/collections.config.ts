@@ -6,19 +6,33 @@ import type {
 } from '../../contracts/collection.contracts';
 
 export const collectionCategoryLabels: Record<CollectionCategory, string> = {
-  travel: 'Путешествия',
-  sport: 'Спорт',
-  shopping: 'Покупки',
-  learning: 'Обучение',
-  health_body: 'Здоровье и тело',
-  creativity: 'Творчество',
-  hobby: 'Хобби',
   career: 'Карьера',
+  creativity: 'Творчество',
   family: 'Семья',
+  health_body: 'Здоровье и тело',
+  hobby: 'Хобби',
   home: 'Дом',
-  self_development: 'Саморазвитие',
+  learning: 'Обучение',
   other: 'Другое',
+  self_development: 'Саморазвитие',
+  shopping: 'Покупки',
+  sport: 'Спорт',
+  travel: 'Путешествия',
 };
+
+export const orderedCollectionCategoryOptions: CollectionCategory[] = [
+  'career',
+  'creativity',
+  'family',
+  'health_body',
+  'hobby',
+  'home',
+  'learning',
+  'self_development',
+  'shopping',
+  'sport',
+  'travel',
+];
 
 export const collectionSortByOptions: Array<{ value: CollectionSortField; label: string }> = [
   { value: 'updatedAt', label: 'Сначала недавно обновленные' },

@@ -162,7 +162,7 @@ export function useCollectionsListController(
     }
 
     if (nextParams.toString() !== searchParams.toString()) {
-      setSearchParams(nextParams, { replace: true });
+      setSearchParams(nextParams);
     }
   }, [category, page, search, searchParams, setSearchParams, sortBy, sortOrder]);
 

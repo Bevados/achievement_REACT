@@ -12,9 +12,10 @@
 ## Экспорты и контракты
 
 1. `collectionCategoryLabels`
-2. `collectionSortByOptions`
-3. `collectionSortOrderOptions`
-4. `getCollectionCategoryLabel(collection)`
+2. `orderedCollectionCategoryOptions`
+3. `collectionSortByOptions`
+4. `collectionSortOrderOptions`
+5. `getCollectionCategoryLabel(collection)`
 
 ## Нетривиальная логика
 
@@ -24,6 +25,7 @@
    - если `category === 'other'` и есть `customCategory`, возвращает пользовательский текст;
    - если `category === 'other'`, но `customCategory` пуст, возвращает стандартное `Другое`.
 3. Такой helper позволяет не дублировать условную логику по компонентам карточек и detail-страниц.
+4. `orderedCollectionCategoryOptions` хранит только preset-категории без `other`, чтобы форма могла отдельно вывести `Своя категория` сверху, а основной список показать в стабильном алфавитном порядке.
 
 ## Где используется
 

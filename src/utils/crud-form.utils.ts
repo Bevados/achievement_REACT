@@ -18,7 +18,7 @@ import {
 
 export interface CollectionFormValues {
   title: string;
-  category: CollectionCategory;
+  category: CollectionCategory | '';
   customCategory: string;
   description: string;
   coverImageUrl: string;
@@ -104,7 +104,7 @@ export function normalizeCollectionFormValues(
 ): CreateCollectionDto {
   return {
     title: values.title.trim(),
-    category: values.category,
+    category: values.category as CollectionCategory,
     customCategory:
       values.category === 'other' ? toOptionalTrimmedString(values.customCategory) : undefined,
     description: toOptionalTrimmedString(values.description),
@@ -131,7 +131,18 @@ export function normalizeEntryFormValues(
 
 export const collectionFormResolver: Resolver<CollectionFormValues> = async (values) => {
   const manualErrors: FieldErrors<CollectionFormValues> = {};
-  const normalizedValues = normalizeCollectionFormValues(values);
+
+  if (!values.category) {
+    manualErrors.category = {
+      type: 'manual',
+      message: 'Выберите категорию',
+    };
+  }
+
+  const normalizedValues = normalizeCollectionFormValues({
+    ...values,
+    category: values.category || 'other',
+  });
 
   if (values.category === 'other' && !normalizedValues.customCategory) {
     manualErrors.customCategory = {

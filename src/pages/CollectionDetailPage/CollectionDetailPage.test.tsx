@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import CollectionDetailPage from './CollectionDetailPage';
@@ -107,7 +107,7 @@ describe('CollectionDetailPage', () => {
     });
   });
 
-  it('renders empty state for entries', async () => {
+  it('renders empty state for entries without active filters', async () => {
     const user = userEvent.setup();
 
     mockedGetCollectionById.mockResolvedValue(makeCollection({ entriesCount: 0 }));
@@ -116,9 +116,24 @@ describe('CollectionDetailPage', () => {
     renderPage();
 
     expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
-    expect(screen.getByText('По выбранным фильтрам карточки не найдены.')).toBeInTheDocument();
+    expect(screen.getByText('Вы пока еще не создали ни одной карточки.')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Показать фильтры' }));
     expect(screen.getByLabelText('Статус')).toBeInTheDocument();
+  });
+
+  it('renders filtered empty state when active filters remove all entries', async () => {
+    mockedGetCollectionById.mockResolvedValue(makeCollection({ entriesCount: 0 }));
+    mockedGetCollectionEntries.mockResolvedValue(makeEntriesResult([]));
+
+    renderPage('/collections/collection-1?status=planned');
+
+    expect(await screen.findByRole('heading', { name: 'Моя коллекция' })).toBeInTheDocument();
+    expect(screen.getByText('По выбранным фильтрам карточки не найдены.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Скрыть фильтры' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+    expect(screen.getByLabelText('Статус')).toHaveValue('planned');
   });
 
   it('renders success state with entries', async () => {
@@ -201,16 +216,19 @@ describe('CollectionDetailPage', () => {
     });
 
     await user.click(screen.getByRole('button', { name: 'Редактировать' }));
-    expect(screen.getByRole('dialog', { name: 'Редактирование карточки' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Название карточки')).toHaveValue('Токио');
-    expect(screen.getByLabelText('Статус')).toHaveValue('completed');
-    expect(screen.getByLabelText('Описание')).toHaveValue('Первый город в маршруте.');
-    expect(screen.getByLabelText('Цена')).toHaveValue(24.5);
-    expect(screen.getByLabelText('Рейтинг')).toHaveValue(9);
-    expect(screen.getByLabelText('Теги')).toHaveValue('travel, japan');
-    expect(screen.getByLabelText('Дата начала')).toHaveValue('2026-05-01');
-    expect(screen.getByLabelText('Дата окончания')).toHaveValue('2026-05-03');
-    expect(screen.getByRole('button', { name: 'Сохранить изменения' })).toBeEnabled();
+    const entryDialog = screen.getByRole('dialog', { name: 'Редактирование карточки' });
+    const entryDialogQueries = within(entryDialog);
+
+    expect(entryDialog).toBeInTheDocument();
+    expect(entryDialogQueries.getByLabelText('Название карточки')).toHaveValue('Токио');
+    expect(entryDialogQueries.getByLabelText('Статус')).toHaveValue('completed');
+    expect(entryDialogQueries.getByLabelText('Описание')).toHaveValue('Первый город в маршруте.');
+    expect(entryDialogQueries.getByLabelText('Цена')).toHaveValue(24.5);
+    expect(entryDialogQueries.getByLabelText('Рейтинг')).toHaveValue(9);
+    expect(entryDialogQueries.getByLabelText('Теги')).toHaveValue('travel, japan');
+    expect(entryDialogQueries.getByLabelText('Дата начала')).toHaveValue('2026-05-01');
+    expect(entryDialogQueries.getByLabelText('Дата окончания')).toHaveValue('2026-05-03');
+    expect(entryDialogQueries.getByRole('button', { name: 'Сохранить изменения' })).toBeEnabled();
   });
 
   it('submits collection edit form and updates detail card', async () => {

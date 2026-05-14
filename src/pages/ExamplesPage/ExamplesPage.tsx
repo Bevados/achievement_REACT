@@ -3,6 +3,7 @@ import CollectionsGrid from '../../components/Collections/CollectionsGrid';
 import CollectionsFilters from '../../components/Collections/CollectionsFilters';
 import CollectionsPagination from '../../components/Collections/CollectionsPagination';
 import { useCollectionsListController } from '../../hooks/useCollectionsListController';
+import { getPublicCollectionHref } from '../../utils/routing.utils';
 
 export default function ExamplesPage() {
   const {
@@ -77,7 +78,7 @@ export default function ExamplesPage() {
           <CollectionsGrid
             collections={collections}
             emptyMessage="Публичные примеры пока отсутствуют."
-            getCollectionHref={(collection) => `/examples/${collection.id}`}
+            getCollectionHref={getPublicCollectionHref}
           />
 
           <CollectionsPagination

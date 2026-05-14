@@ -5,8 +5,5 @@ export const siteConfig = {
     { label: 'Главная', path: '/' },
     { label: 'Примеры коллекций', path: '/examples' },
   ],
-  navItemsPrivate: [
-    { label: 'Мои коллекции', path: '/collections' },
-    // { label: 'Профиль', path: '/profile' },
-  ],
+  navItemsPrivate: [],
 };

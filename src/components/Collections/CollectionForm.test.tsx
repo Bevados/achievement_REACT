@@ -15,6 +15,9 @@ describe('CollectionForm', () => {
     const descriptionInput = screen.getByLabelText('Описание');
     const coverInput = screen.getByLabelText('Обложка (URL)');
 
+    expect(categorySelect).toHaveValue('');
+    expect(screen.getByRole('option', { name: 'Например, Путешествия' })).toBeDisabled();
+
     fireEvent.change(titleInput, { target: { value: 'Trips' } });
     await user.selectOptions(categorySelect, 'travel');
 
@@ -33,9 +36,6 @@ describe('CollectionForm', () => {
     expect(descriptionInput).toHaveValue('Routes and places.');
     expect(coverInput).toHaveValue('https://example.com/cover.jpg');
     expect(screen.getByRole('button', { name: 'Сохранить коллекцию' })).toBeEnabled();
-    expect(
-      screen.getByText(/Создание и редактирование коллекции уже подключены/),
-    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Отмена' }));
     expect(onCancel).toHaveBeenCalledTimes(1);
@@ -63,6 +63,19 @@ describe('CollectionForm', () => {
     expect(screen.getByRole('button', { name: 'Сохранить изменения' })).toBeEnabled();
   });
 
+  it('requires category selection before submit', async () => {
+    const user = userEvent.setup();
+
+    render(<CollectionForm mode="create" onCancel={() => undefined} />);
+
+    fireEvent.change(screen.getByLabelText('Название коллекции'), {
+      target: { value: 'Нишевая коллекция' },
+    });
+    await user.click(screen.getByRole('button', { name: 'Сохранить коллекцию' }));
+
+    expect(await screen.findByText('Выберите категорию')).toBeInTheDocument();
+  });
+
   it('requires custom category when other is selected', async () => {
     const user = userEvent.setup();
 
@@ -71,6 +84,7 @@ describe('CollectionForm', () => {
     fireEvent.change(screen.getByLabelText('Название коллекции'), {
       target: { value: 'Нишевая коллекция' },
     });
+    await user.selectOptions(screen.getByLabelText('Категория'), 'other');
     await user.click(screen.getByRole('button', { name: 'Сохранить коллекцию' }));
 
     expect(await screen.findByText('Введите свою категорию')).toBeInTheDocument();

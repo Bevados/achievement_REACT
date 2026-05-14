@@ -5,12 +5,16 @@ interface CollectionsGridProps {
   collections: CollectionView[];
   emptyMessage: string;
   getCollectionHref?: (collection: CollectionView) => string | undefined;
+  onEditCollection?: (collection: CollectionView) => void;
+  onDeleteCollection?: (collection: CollectionView) => void;
 }
 
 export default function CollectionsGrid({
   collections,
   emptyMessage,
   getCollectionHref,
+  onEditCollection,
+  onDeleteCollection,
 }: CollectionsGridProps) {
   if (collections.length === 0) {
     return (
@@ -27,6 +31,8 @@ export default function CollectionsGrid({
           key={collection.id}
           collection={collection}
           to={getCollectionHref?.(collection)}
+          onEdit={onEditCollection}
+          onDelete={onDeleteCollection}
         />
       ))}
     </div>

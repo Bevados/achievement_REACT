@@ -16,11 +16,14 @@
    - `collections: CollectionView[]`
    - `emptyMessage: string`
    - `getCollectionHref?: (collection) => string | undefined`
+   - `onEditCollection?: (collection: CollectionView) => void`
+   - `onDeleteCollection?: (collection: CollectionView) => void`
 
 ## Нетривиальная логика
 
 1. `getCollectionHref` позволяет странице самой решать, куда ведет карточка: в private detail или в public detail.
 2. Компонент не знает о роутинге напрямую и остается переиспользуемым list-shell.
+3. Inline-CRUD для коллекций тоже остаётся на уровне страницы: grid только пробрасывает callbacks в `CollectionCard`.
 
 ## Где используется
 

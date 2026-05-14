@@ -32,6 +32,19 @@ function formatDate(value: string): string {
   });
 }
 
+function BackToCollectionsLinks() {
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <Link
+        to="/collections"
+        className="inline-flex text-base font-semibold text-sky-700 transition hover:text-sky-800 hover:underline"
+      >
+        ← К списку коллекций
+      </Link>
+    </div>
+  );
+}
+
 type EntryFormState =
   | { isOpen: false; entry: null; mode: 'create' | 'edit' }
   | { isOpen: true; entry: EntryView | null; mode: 'create' | 'edit' };
@@ -75,6 +88,7 @@ export default function CollectionDetailPage() {
   const {
     entries,
     meta: entriesMeta,
+    hasActiveFilters,
     page,
     sortBy,
     sortOrder,
@@ -261,9 +275,7 @@ export default function CollectionDetailPage() {
   if (errorMessage || !collection) {
     return (
       <section className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-8">
-        <Link to="/collections" className="text-sm font-medium text-sky-700 hover:underline">
-          ← К списку коллекций
-        </Link>
+        <BackToCollectionsLinks />
 
         <div className="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-4" role="alert">
           <p className="text-sm text-rose-700">
@@ -286,9 +298,9 @@ export default function CollectionDetailPage() {
 
   return (
     <section className="space-y-6 rounded-3xl border border-gray-200 bg-white p-6 sm:p-8">
-      <Link to="/collections" className="text-sm font-medium text-sky-700 hover:underline">
-        ← К списку коллекций
-      </Link>
+      <div className="mb-5">
+        <BackToCollectionsLinks />
+      </div>
 
       <div className="overflow-hidden rounded-3xl border border-gray-200 bg-gray-50">
         {collection.coverImageUrl ? (
@@ -315,9 +327,10 @@ export default function CollectionDetailPage() {
 
               <div>
                 <h1 className="text-3xl font-bold text-primary">{collection.title}</h1>
-                <p className="mt-2 text-sm text-gray-500">
-                  Обновлено: {formatDate(collection.updatedAt)}
-                </p>
+                <div className="mt-2 space-y-1 text-sm text-gray-500">
+                  <p>Создано: {formatDate(collection.createdAt)}</p>
+                  <p>Обновлено: {formatDate(collection.updatedAt)}</p>
+                </div>
               </div>
 
               {collection.description ? (
@@ -433,7 +446,11 @@ export default function CollectionDetailPage() {
 
             <EntriesGrid
               entries={entries}
-              emptyMessage="По выбранным фильтрам карточки не найдены."
+              emptyMessage={
+                hasActiveFilters
+                  ? 'По выбранным фильтрам карточки не найдены.'
+                  : 'Вы пока еще не создали ни одной карточки.'
+              }
               onEditEntry={(entry) => {
                 setEntrySubmitError(null);
                 setEntryDeleteError(null);
@@ -453,6 +470,10 @@ export default function CollectionDetailPage() {
                 onNextPage={goToNextPage}
               />
             ) : null}
+
+            <div className="pt-2">
+              <BackToCollectionsLinks />
+            </div>
           </>
         )}
       </div>
