@@ -33,13 +33,11 @@ describe('EntryForm', () => {
     expect(screen.getByLabelText('Дата')).toHaveValue('2026-05-12');
     expect(screen.getByRole('button', { name: 'Сохранить карточку' })).toBeEnabled();
 
-    await user.click(screen.getByRole('button', { name: 'Период' }));
+    await user.click(screen.getByRole('button', { name: 'Выбрать период' }));
 
     expect(screen.getByLabelText('Дата начала')).toHaveValue('2026-05-12');
     expect(screen.getByLabelText('Дата окончания')).toHaveValue('');
-    expect(
-      screen.getByText(/Создание и редактирование карточки уже подключены/),
-    ).toBeInTheDocument();
+    expect(screen.queryByText(/Создание и редактирование карточки уже подключены/i)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Отмена' }));
     expect(onCancel).toHaveBeenCalledTimes(1);
@@ -87,8 +85,18 @@ describe('EntryForm', () => {
     await user.selectOptions(screen.getByLabelText('Статус'), 'completed');
     await user.click(screen.getByRole('button', { name: 'Сохранить карточку' }));
 
-    expect(await screen.findByText('rating is required when status is completed')).toBeInTheDocument();
-    expect(screen.getByText('dateStart is required when status is completed')).toBeInTheDocument();
+    expect(await screen.findByText('Для статуса «Завершено» укажите рейтинг')).toBeInTheDocument();
+    expect(screen.getByText('Для статуса «Завершено» укажите дату')).toBeInTheDocument();
+  });
+
+  it('shows russian validation for empty entry title', async () => {
+    const user = userEvent.setup();
+
+    render(<EntryForm mode="create" onCancel={() => undefined} />);
+
+    await user.click(screen.getByRole('button', { name: 'Сохранить карточку' }));
+
+    expect(await screen.findByText('Введите название карточки')).toBeInTheDocument();
   });
 
   it('validates date range, submits normalized payload and renders submit error', async () => {
@@ -108,7 +116,7 @@ describe('EntryForm', () => {
     fireEvent.change(screen.getByLabelText('Теги'), {
       target: { value: 'travel, japan, travel' },
     });
-    await user.click(screen.getByRole('button', { name: 'Период' }));
+    await user.click(screen.getByRole('button', { name: 'Выбрать период' }));
     const dateStartInput = screen.getByLabelText('Дата начала');
     const dateEndInput = screen.getByLabelText('Дата окончания');
 
@@ -117,7 +125,7 @@ describe('EntryForm', () => {
     await user.click(screen.getByRole('button', { name: 'Сохранить карточку' }));
 
     expect(
-      await screen.findByText('dateEnd must be greater than or equal to dateStart'),
+      await screen.findByText('Дата окончания не может быть раньше даты начала'),
     ).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
 

@@ -32,6 +32,56 @@ function getInitialValues(initialValues?: Partial<EntryFormValues>): EntryFormVa
   };
 }
 
+function RequiredMark() {
+  return (
+    <span aria-hidden="true" className="ml-1 font-semibold text-rose-500">
+      *
+    </span>
+  );
+}
+
+function FieldLabel({
+  children,
+  required = false,
+}: {
+  children: string;
+  required?: boolean;
+}) {
+  return (
+    <span>
+      {children}
+      {required ? <RequiredMark /> : null}
+    </span>
+  );
+}
+
+function RatingField({
+  required,
+  register,
+  errorMessage,
+}: {
+  required: boolean;
+  register: ReturnType<typeof useForm<EntryFormValues>>['register'];
+  errorMessage?: string;
+}) {
+  return (
+    <label className="flex flex-col gap-1 text-sm text-gray-700">
+      <FieldLabel required={required}>Рейтинг</FieldLabel>
+      <input
+        type="number"
+        aria-label="Рейтинг"
+        min="1"
+        max="10"
+        step="1"
+        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+        placeholder="1-10"
+        {...register('rating')}
+      />
+      {errorMessage ? <p className="text-sm text-danger">{errorMessage}</p> : null}
+    </label>
+  );
+}
+
 export default function EntryForm({
   mode,
   initialValues,
@@ -62,74 +112,97 @@ export default function EntryForm({
     name: 'status',
   });
 
+  const isCompleted = currentStatus === 'completed';
+
   return (
     <form
       noValidate
-      className="space-y-4"
+      className="space-y-5"
       onSubmit={handleSubmit(async (values) => {
         await onSubmit?.(normalizeEntryFormValues(values, dateMode));
       })}
     >
-      <label className="flex flex-col gap-1 text-sm text-gray-700">
-        Название карточки
-        <input
-          type="text"
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
-          placeholder="Например, Поездка в Токио"
-          {...register('title')}
-        />
-        {errors.title ? <p className="text-sm text-danger">{errors.title.message}</p> : null}
-      </label>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="flex flex-col gap-1 text-sm text-gray-700 sm:col-span-2">
+          <FieldLabel required>Название карточки</FieldLabel>
+          <input
+            type="text"
+            aria-label="Название карточки"
+            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+            placeholder="Например, Поездка в Токио"
+            {...register('title')}
+          />
+          {errors.title ? <p className="text-sm text-danger">{errors.title.message}</p> : null}
+        </label>
+
+        <label className="flex flex-col gap-1 text-sm text-gray-700">
+          <FieldLabel required>Статус</FieldLabel>
+          <select
+            aria-label="Статус"
+            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+            {...register('status')}
+          >
+            {ENTRY_STATUSES.map((status) => (
+              <option key={status} value={status}>
+                {entryStatusLabels[status]}
+              </option>
+            ))}
+          </select>
+          {errors.status ? <p className="text-sm text-danger">{errors.status.message}</p> : null}
+        </label>
+
+        {isCompleted ? (
+          <div className="motion-safe:animate-[fade-in_180ms_ease-out] transition-all duration-200 ease-out">
+            <RatingField
+              required
+              register={register}
+              errorMessage={errors.rating?.message}
+            />
+          </div>
+        ) : null}
+      </div>
 
       <label className="flex flex-col gap-1 text-sm text-gray-700">
-        Статус
-        <select
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
-          {...register('status')}
-        >
-          {ENTRY_STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {entryStatusLabels[status]}
-            </option>
-          ))}
-        </select>
-        {errors.status ? <p className="text-sm text-danger">{errors.status.message}</p> : null}
-      </label>
-
-      {currentStatus === 'completed' ? (
-        <p className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-700">
-          Для статуса «Завершено» нужно указать рейтинг и дату события.
-        </p>
-      ) : null}
-
-      <label className="flex flex-col gap-1 text-sm text-gray-700">
-        Описание
+        <FieldLabel>Описание</FieldLabel>
         <textarea
-          className="min-h-28 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+          aria-label="Описание"
+          className="min-h-24 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
           placeholder="Что это за карточка и почему она важна"
           {...register('description')}
         />
-        {errors.description ? (
-          <p className="text-sm text-danger">{errors.description.message}</p>
-        ) : null}
+        {errors.description ? <p className="text-sm text-danger">{errors.description.message}</p> : null}
       </label>
 
-      <label className="flex flex-col gap-1 text-sm text-gray-700">
-        Изображение (URL)
-        <input
-          type="url"
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
-          placeholder="https://example.com/photo.jpg"
-          {...register('imageUrl')}
-        />
-        {errors.imageUrl ? <p className="text-sm text-danger">{errors.imageUrl.message}</p> : null}
-      </label>
-
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-sm text-gray-700">
-          Цена
+          <FieldLabel>Изображение (URL)</FieldLabel>
+          <input
+            type="url"
+            aria-label="Изображение (URL)"
+            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+            placeholder="https://example.com/photo.jpg"
+            {...register('imageUrl')}
+          />
+          {errors.imageUrl ? <p className="text-sm text-danger">{errors.imageUrl.message}</p> : null}
+        </label>
+
+        <label className="flex flex-col gap-1 text-sm text-gray-700">
+          <FieldLabel>Теги</FieldLabel>
+          <input
+            type="text"
+            aria-label="Теги"
+            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+            placeholder="travel, japan, spring"
+            {...register('tags')}
+          />
+          {errors.tags ? <p className="text-sm text-danger">{errors.tags.message}</p> : null}
+        </label>
+
+        <label className="flex flex-col gap-1 text-sm text-gray-700">
+          <FieldLabel>Цена</FieldLabel>
           <input
             type="number"
+            aria-label="Цена"
             min="0"
             step="0.01"
             className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
@@ -139,34 +212,21 @@ export default function EntryForm({
           {errors.price ? <p className="text-sm text-danger">{errors.price.message}</p> : null}
         </label>
 
-        <label className="flex flex-col gap-1 text-sm text-gray-700">
-          Рейтинг
-          <input
-            type="number"
-            min="1"
-            max="10"
-            step="1"
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
-            placeholder="1-10"
-            {...register('rating')}
-          />
-          {errors.rating ? <p className="text-sm text-danger">{errors.rating.message}</p> : null}
-        </label>
+        {!isCompleted ? (
+          <div className="motion-safe:animate-[fade-in_180ms_ease-out] transition-all duration-200 ease-out">
+            <RatingField
+              required={false}
+              register={register}
+              errorMessage={errors.rating?.message}
+            />
+          </div>
+        ) : null}
       </div>
 
-      <label className="flex flex-col gap-1 text-sm text-gray-700">
-        Теги
-        <input
-          type="text"
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
-          placeholder="travel, japan, spring"
-          {...register('tags')}
-        />
-        {errors.tags ? <p className="text-sm text-danger">{errors.tags.message}</p> : null}
-      </label>
-
       <fieldset className="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
-        <legend className="px-1 text-sm font-semibold text-gray-800">Дата карточки</legend>
+        <legend className="px-1 text-sm font-semibold text-gray-800">
+          <FieldLabel required={isCompleted}>Дата</FieldLabel>
+        </legend>
 
         <div className="flex flex-wrap gap-2">
           <button
@@ -182,7 +242,7 @@ export default function EntryForm({
                 : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-100'
             }`}
           >
-            Одна дата
+            Выбрать дату
           </button>
           <button
             type="button"
@@ -195,43 +255,38 @@ export default function EntryForm({
                 : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-100'
             }`}
           >
-            Период
+            Выбрать период
           </button>
         </div>
 
         <div className={`grid gap-3 ${dateMode === 'range' ? 'sm:grid-cols-2' : ''}`}>
           <label className="flex flex-col gap-1 text-sm text-gray-700">
-            {dateMode === 'range' ? 'Дата начала' : 'Дата'}
+            <FieldLabel required={isCompleted}>
+              {dateMode === 'range' ? 'Дата начала' : 'Дата'}
+            </FieldLabel>
             <input
               type="date"
+              aria-label={dateMode === 'range' ? 'Дата начала' : 'Дата'}
               className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
               {...register('dateStart')}
             />
-            {errors.dateStart ? (
-              <p className="text-sm text-danger">{errors.dateStart.message}</p>
-            ) : null}
+            {errors.dateStart ? <p className="text-sm text-danger">{errors.dateStart.message}</p> : null}
           </label>
 
           {dateMode === 'range' ? (
             <label className="flex flex-col gap-1 text-sm text-gray-700">
-              Дата окончания
+              <FieldLabel>Дата окончания</FieldLabel>
               <input
                 type="date"
+                aria-label="Дата окончания"
                 className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
                 {...register('dateEnd')}
               />
-              {errors.dateEnd ? (
-                <p className="text-sm text-danger">{errors.dateEnd.message}</p>
-              ) : null}
+              {errors.dateEnd ? <p className="text-sm text-danger">{errors.dateEnd.message}</p> : null}
             </label>
           ) : null}
         </div>
       </fieldset>
-
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-        Создание и редактирование карточки уже подключены. Удаление и остальные CRUD-действия будут
-        добавлены на следующих подпунктах.
-      </div>
 
       {submitError ? (
         <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
@@ -239,7 +294,7 @@ export default function EntryForm({
         </div>
       ) : null}
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      <div className="sticky bottom-0 flex flex-col-reverse gap-2 border-t border-gray-200 bg-white pt-4 sm:flex-row sm:justify-end">
         <button
           type="button"
           onClick={onCancel}

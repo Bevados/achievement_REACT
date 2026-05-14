@@ -84,18 +84,19 @@ export default function CollectionForm({
       <label className="flex flex-col gap-1 text-sm text-gray-700">
         Категория
         <select
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
+          style={{ color: category ? '#111827' : '#9CA3AF' }}
           {...register('category')}
         >
-          <option value="" disabled>
+          <option value="" disabled hidden style={{ color: '#9CA3AF' }}>
             Например, Путешествия
           </option>
-          <optgroup label="Свой вариант">
-            <option value="other">Своя категория</option>
-          </optgroup>
-          <optgroup label="Основные категории">
+          <option value="other" style={{ color: '#111827' }}>
+            Свой вариант
+          </option>
+          <optgroup label="Основные категории" style={{ color: '#111827' }}>
             {orderedCollectionCategoryOptions.map((entryCategory) => (
-              <option key={entryCategory} value={entryCategory}>
+              <option key={entryCategory} value={entryCategory} style={{ color: '#111827' }}>
                 {collectionCategoryLabels[entryCategory]}
               </option>
             ))}

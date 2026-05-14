@@ -3,35 +3,36 @@
 ## Что делает файл
 
 Это базовый переиспользуемый контейнер модального окна.
-Компонент отвечает за инфраструктуру модалки: рендер в portal, закрытие по Escape/клику по фону, блокировку скролла body и семантику доступности (`role="dialog"`, `aria-modal`).
+Компонент отвечает за portal-рендер, закрытие по Escape/клику по фону, блокировку скролла страницы и базовую доступность.
+После UX-правки модалка ещё и ограничивает высоту по viewport, а контент внутри получает собственный вертикальный скролл.
 
 ## Импорты и зависимости
 
-1. `react` (`useEffect`, `ReactNode`) - управление side effects и тип children.
-2. `react-dom` (`createPortal`) - рендер поверх основного дерева в `document.body`.
-3. `lucide-react` (`X`) - иконка кнопки закрытия.
+1. `react` (`useEffect`, `ReactNode`) — управление side effects и тип children.
+2. `react-dom` (`createPortal`) — рендер поверх основного дерева в `document.body`.
+3. `lucide-react` (`X`) — иконка кнопки закрытия.
 
 ## Экспорты и контракты
 
 1. Экспортируется default-компонент `BaseModal`.
 2. Пропсы:
-3. `isOpen: boolean` - управляет рендером модалки.
-4. `title: string` - заголовок и `aria-label` диалога.
-5. `onClose: () => void` - единый обработчик закрытия.
-6. `children: ReactNode` - контент модалки.
-7. Инварианты:
-8. При `isOpen=false` компонент возвращает `null`.
-9. При `isOpen=true` скролл страницы блокируется до размонтирования/закрытия.
-10. Закрытие по Escape, по клику на фон и по кнопке использует один `onClose`.
+   - `isOpen: boolean`
+   - `title: string`
+   - `onClose: () => void`
+   - `children: ReactNode`
+3. Инварианты:
+   - при `isOpen=false` возвращает `null`;
+   - при `isOpen=true` блокирует скролл страницы до закрытия;
+   - один и тот же `onClose` используется для Escape, overlay-click и кнопки закрытия.
 
 ## Нетривиальная логика
 
-1. В `useEffect` запоминается оригинальный `document.body.style.overflow` и восстанавливается в cleanup, чтобы не ломать страницу после закрытия модалки.
-2. Закрытие по мыши реализовано на событии `onMouseDown` через сравнение `event.target === event.currentTarget`, чтобы взаимодействие внутри контента не закрывало окно.
-3. Использование portal предотвращает проблемы со stacking context и позволяет модалке корректно перекрывать layout.
+1. В `useEffect` запоминается исходный `document.body.style.overflow` и восстанавливается в cleanup.
+2. Закрытие по клику мышью реализовано через проверку `event.target === event.currentTarget`, чтобы взаимодействие внутри контента не закрывало окно.
+3. Контейнер модалки стал `flex` + `max-h`, а children обёрнуты в `overflow-y-auto`, поэтому длинные формы больше не выпадают за пределы экрана.
 
 ## Где используется
 
-1. Прямое использование в `src/components/Auth/AuthModal.tsx`.
-2. Косвенно участвует в auth-flow через `src/App.tsx` -> `AuthModal`.
-3. Поведение закрытия проверяется в `src/components/Auth/AuthModal.test.tsx`.
+1. `src/components/Auth/AuthModal.tsx`
+2. `src/pages/CollectionsPage/CollectionsPage.tsx`
+3. `src/pages/CollectionDetailPage/CollectionDetailPage.tsx`

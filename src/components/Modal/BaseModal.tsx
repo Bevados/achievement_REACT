@@ -49,12 +49,12 @@ export default function BaseModal({ isOpen, title, onClose, children }: BaseModa
       role="presentation"
     >
       <section
-        className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl"
+        className="flex max-h-[calc(100vh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl"
         role="dialog"
         aria-modal="true"
         aria-label={title}
       >
-        <header className="mb-5 flex items-start justify-between gap-4">
+        <header className="mb-5 flex shrink-0 items-start justify-between gap-4">
           <h2 className="text-xl font-bold text-primary">{title}</h2>
           <button
             type="button"
@@ -66,7 +66,7 @@ export default function BaseModal({ isOpen, title, onClose, children }: BaseModa
           </button>
         </header>
 
-        {children}
+        <div className="min-h-0 overflow-y-auto pr-1">{children}</div>
       </section>
     </div>,
     document.body,

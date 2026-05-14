@@ -16,7 +16,11 @@ describe('CollectionForm', () => {
     const coverInput = screen.getByLabelText('Обложка (URL)');
 
     expect(categorySelect).toHaveValue('');
-    expect(screen.getByRole('option', { name: 'Например, Путешествия' })).toBeDisabled();
+    const placeholderOption = categorySelect.querySelector('option[value=""]');
+    expect(placeholderOption).not.toBeNull();
+    expect(placeholderOption).toHaveAttribute('hidden');
+    expect(screen.getByRole('option', { name: 'Свой вариант' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Основные категории' })).toBeInTheDocument();
 
     fireEvent.change(titleInput, { target: { value: 'Trips' } });
     await user.selectOptions(categorySelect, 'travel');
@@ -76,6 +80,17 @@ describe('CollectionForm', () => {
     expect(await screen.findByText('Выберите категорию')).toBeInTheDocument();
   });
 
+  it('shows russian validation for empty collection title', async () => {
+    const user = userEvent.setup();
+
+    render(<CollectionForm mode="create" onCancel={() => undefined} />);
+
+    await user.selectOptions(screen.getByLabelText('Категория'), 'travel');
+    await user.click(screen.getByRole('button', { name: 'Сохранить коллекцию' }));
+
+    expect(await screen.findByText('Введите название коллекции')).toBeInTheDocument();
+  });
+
   it('requires custom category when other is selected', async () => {
     const user = userEvent.setup();
 
@@ -110,7 +125,7 @@ describe('CollectionForm', () => {
     });
     await user.click(screen.getByRole('button', { name: 'Сохранить коллекцию' }));
 
-    expect(await screen.findByText(/Invalid URL|Invalid input/i)).toBeInTheDocument();
+    expect(await screen.findByText('Введите корректный URL')).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
 
     fireEvent.change(coverInput, {

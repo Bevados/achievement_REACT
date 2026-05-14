@@ -13,23 +13,55 @@ import {
 
 const objectIdPattern = /^[a-f0-9]{24}$/i;
 
+const collectionTitleSchema = z
+  .string()
+  .trim()
+  .min(1, 'Введите название коллекции')
+  .max(120, 'Название коллекции не должно превышать 120 символов');
+
+const entryTitleSchema = z
+  .string()
+  .trim()
+  .min(1, 'Введите название карточки')
+  .max(160, 'Название карточки не должно превышать 160 символов');
+
+const descriptionSchema = z
+  .string()
+  .trim()
+  .min(1, 'Описание не должно быть пустым')
+  .max(1000, 'Описание не должно превышать 1000 символов');
+
 const priceSchema = z
   .number()
-  .min(0, 'Price must be greater than or equal to 0')
-  .refine((value) => Number(value.toFixed(2)) === value, 'Price must have up to 2 decimals');
+  .min(0, 'Цена не может быть меньше 0')
+  .refine(
+    (value) => Number(value.toFixed(2)) === value,
+    'Цена может содержать не более 2 знаков после запятой',
+  );
 
-const tagSchema = z.string().trim().min(1).max(20);
+const tagSchema = z
+  .string()
+  .trim()
+  .min(1, 'Тег не должен быть пустым')
+  .max(20, 'Тег не должен превышать 20 символов');
 
 const dateIsoSchema = z.iso.datetime({ offset: true });
 
 const urlSchema = z.preprocess(
   (value) => (typeof value === 'string' ? value.trim() : value),
-  z.url().max(2048),
+  z
+    .string()
+    .url('Введите корректный URL')
+    .max(2048, 'URL не должен превышать 2048 символов'),
 );
 
-const customCategorySchema = z.string().trim().min(1).max(60);
+const customCategorySchema = z
+  .string()
+  .trim()
+  .min(1, 'Введите свой вариант категории')
+  .max(60, 'Название своей категории не должно превышать 60 символов');
 
-export const objectIdSchema = z.string().regex(objectIdPattern, 'Invalid ObjectId format');
+export const objectIdSchema = z.string().regex(objectIdPattern, 'Некорректный идентификатор');
 
 export const collectionIdParamSchema = z.object({
   collectionId: objectIdSchema,
@@ -42,25 +74,25 @@ export const collectionAndEntryIdsParamSchema = z.object({
 
 export const createCollectionSchema: z.ZodType<CreateCollectionDto> = z
   .object({
-    title: z.string().trim().min(1).max(120),
+    title: collectionTitleSchema,
     category: z.enum(COLLECTION_CATEGORIES),
     customCategory: customCategorySchema.optional(),
-    description: z.string().trim().min(1).max(1000).optional(),
+    description: descriptionSchema.optional(),
     coverImageUrl: urlSchema.optional(),
   })
   .strict();
 
 export const updateCollectionSchema: z.ZodType<UpdateCollectionDto> = z
   .object({
-    title: z.string().trim().min(1).max(120).optional(),
+    title: collectionTitleSchema.optional(),
     category: z.enum(COLLECTION_CATEGORIES).optional(),
     customCategory: customCategorySchema.optional(),
-    description: z.string().trim().min(1).max(1000).optional(),
+    description: descriptionSchema.optional(),
     coverImageUrl: urlSchema.optional(),
   })
   .strict()
   .refine((payload) => Object.keys(payload).length > 0, {
-    message: 'At least one field must be provided for update',
+    message: 'Нужно изменить хотя бы одно поле',
   });
 
 function addEntryBusinessRules<
@@ -79,7 +111,7 @@ function addEntryBusinessRules<
       if (end < start) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'dateEnd must be greater than or equal to dateStart',
+          message: 'Дата окончания не может быть раньше даты начала',
           path: ['dateEnd'],
         });
       }
@@ -89,7 +121,7 @@ function addEntryBusinessRules<
       if (payload.rating === undefined) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'rating is required when status is completed',
+          message: 'Для статуса «Завершено» укажите рейтинг',
           path: ['rating'],
         });
       }
@@ -97,7 +129,7 @@ function addEntryBusinessRules<
       if (!payload.dateStart) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'dateStart is required when status is completed',
+          message: 'Для статуса «Завершено» укажите дату',
           path: ['dateStart'],
         });
       }
@@ -108,17 +140,22 @@ function addEntryBusinessRules<
 export const createEntrySchema: z.ZodType<CreateEntryDto> = addEntryBusinessRules(
   z
     .object({
-      title: z.string().trim().min(1).max(160),
+      title: entryTitleSchema,
       status: z.enum(ENTRY_STATUSES),
-      description: z.string().trim().min(1).max(1000).optional(),
+      description: descriptionSchema.optional(),
       imageUrl: urlSchema.optional(),
       price: priceSchema.optional(),
       tags: z
         .array(tagSchema)
-        .max(10, 'No more than 10 tags are allowed')
+        .max(10, 'Можно указать не более 10 тегов')
         .transform((tags) => Array.from(new Set(tags)))
         .optional(),
-      rating: z.number().int().min(1).max(10).optional(),
+      rating: z
+        .number()
+        .int('Рейтинг должен быть целым числом')
+        .min(1, 'Рейтинг должен быть не меньше 1')
+        .max(10, 'Рейтинг должен быть не больше 10')
+        .optional(),
       dateStart: dateIsoSchema.optional(),
       dateEnd: dateIsoSchema.optional(),
     })
@@ -128,23 +165,28 @@ export const createEntrySchema: z.ZodType<CreateEntryDto> = addEntryBusinessRule
 export const updateEntrySchema: z.ZodType<UpdateEntryDto> = addEntryBusinessRules(
   z
     .object({
-      title: z.string().trim().min(1).max(160).optional(),
+      title: entryTitleSchema.optional(),
       status: z.enum(ENTRY_STATUSES).optional(),
-      description: z.string().trim().min(1).max(1000).optional(),
+      description: descriptionSchema.optional(),
       imageUrl: urlSchema.optional(),
       price: priceSchema.optional(),
       tags: z
         .array(tagSchema)
-        .max(10, 'No more than 10 tags are allowed')
+        .max(10, 'Можно указать не более 10 тегов')
         .transform((tags) => Array.from(new Set(tags)))
         .optional(),
-      rating: z.number().int().min(1).max(10).optional(),
+      rating: z
+        .number()
+        .int('Рейтинг должен быть целым числом')
+        .min(1, 'Рейтинг должен быть не меньше 1')
+        .max(10, 'Рейтинг должен быть не больше 10')
+        .optional(),
       dateStart: dateIsoSchema.optional(),
       dateEnd: dateIsoSchema.optional(),
     })
     .strict()
     .refine((payload) => Object.keys(payload).length > 0, {
-      message: 'At least one field must be provided for update',
+      message: 'Нужно изменить хотя бы одно поле',
     }),
 );
 
@@ -185,7 +227,7 @@ export const entryListQuerySchema = baseListQuerySchema
       query.maxRating === undefined ||
       query.minRating <= query.maxRating,
     {
-      message: 'minRating must be less than or equal to maxRating',
+      message: 'Минимальный рейтинг не может быть больше максимального',
       path: ['minRating'],
     },
   )
@@ -195,7 +237,7 @@ export const entryListQuerySchema = baseListQuerySchema
       query.maxPrice === undefined ||
       query.minPrice <= query.maxPrice,
     {
-      message: 'minPrice must be less than or equal to maxPrice',
+      message: 'Минимальная цена не может быть больше максимальной',
       path: ['minPrice'],
     },
   )
@@ -205,7 +247,7 @@ export const entryListQuerySchema = baseListQuerySchema
       query.createdAtTo === undefined ||
       new Date(query.createdAtFrom).getTime() <= new Date(query.createdAtTo).getTime(),
     {
-      message: 'createdAtFrom must be less than or equal to createdAtTo',
+      message: 'Дата создания «от» не может быть позже даты «до»',
       path: ['createdAtFrom'],
     },
   )
@@ -215,7 +257,7 @@ export const entryListQuerySchema = baseListQuerySchema
       query.dateStartTo === undefined ||
       new Date(query.dateStartFrom).getTime() <= new Date(query.dateStartTo).getTime(),
     {
-      message: 'dateStartFrom must be less than or equal to dateStartTo',
+      message: 'Дата события «от» не может быть позже даты «до»',
       path: ['dateStartFrom'],
     },
   );

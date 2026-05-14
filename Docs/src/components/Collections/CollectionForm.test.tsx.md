@@ -1,36 +1,28 @@
-# src/components/Collections/CollectionForm.test.tsx
+﻿# src/components/Collections/CollectionForm.test.tsx
 
 ## Что делает файл
 
-Тестирует `CollectionForm` в create/edit режимах, клиентскую валидацию и нормализованный submit payload.
-После шага `5.6.1` тесты также фиксируют, что helper-text и submit-flow формы соответствуют уже подключённым create/update мутациям коллекций.
+Тестирует поведение private CRUD-формы коллекции.
 
 ## Импорты и зависимости
 
-1. `vitest`
-2. `@testing-library/react`
-3. `@testing-library/user-event`
-4. `./CollectionForm`
+1. `vitest` — assertions и mocks callbacks.
+2. `@testing-library/react` — рендер и проверки DOM.
+3. `@testing-library/user-event` — пользовательские действия с формой.
+4. `./CollectionForm` — тестируемый компонент.
 
 ## Экспорты и контракты
 
-1. Runtime-экспортов нет.
-2. Проверяются сценарии:
-   - create-mode;
-   - edit-mode;
-   - пустой стартовый select категории с placeholder;
-   - ошибка `Выберите категорию`, если пользователь не выбрал вариант;
-   - обязательный `customCategory` для `other`;
-   - валидация `coverImageUrl`;
-   - нормализованный `onSubmit` payload;
-   - отмена через `onCancel`.
+1. Файл ничего не экспортирует.
+2. Покрывает create/edit режимы, валидацию и submit формы.
+3. Дополнительно фиксирует UX select категории: hidden placeholder, отдельный `Свой вариант`, группа `Основные категории`.
 
 ## Нетривиальная логика
 
-1. Поле `customCategory` появляется только для `category='other'`.
-2. Submit проверяется на нормализованном DTO-подобном payload, а не на сыром UI-state.
-3. Отдельно проверяется, что устаревший helper-text про "будущие подпункты CRUD" больше не показывается.
+1. Тесты проверяют не только значения формы, но и структуру dropdown категории.
+2. Отдельно зафиксированы русские пользовательские ошибки для пустого названия и невалидного URL обложки.
+3. Submit-сценарий валидирует нормализацию формы в DTO-совместимый payload.
 
 ## Где используется
 
-1. Запускается в `npm.cmd run test`.
+1. Запускается через `npm.cmd run test`.
