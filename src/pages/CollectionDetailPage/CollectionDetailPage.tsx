@@ -314,8 +314,8 @@ export default function CollectionDetailPage() {
         )}
 
         <div className="space-y-5 p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-3">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-3 lg:flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-700">
                   {getCollectionCategoryLabel(collection)}
@@ -334,17 +334,17 @@ export default function CollectionDetailPage() {
               </div>
 
               {collection.description ? (
-                <p className="max-w-3xl text-sm leading-relaxed text-gray-700 sm:text-base">
+                <p className="text-sm leading-relaxed text-gray-700 sm:text-base">
                   {collection.description}
                 </p>
               ) : (
-                <p className="max-w-3xl text-sm leading-relaxed text-gray-500 sm:text-base">
+                <p className="text-sm leading-relaxed text-gray-500 sm:text-base">
                   Описание для этой коллекции пока не добавлено.
                 </p>
               )}
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-3 lg:w-auto lg:grid-cols-none lg:auto-cols-max lg:grid-flow-col lg:justify-end lg:gap-1.5 xl:gap-2">
               <button
                 type="button"
                 onClick={() => {
@@ -352,7 +352,7 @@ export default function CollectionDetailPage() {
                   setEntryDeleteError(null);
                   setEntryFormState({ isOpen: true, entry: null, mode: 'create' });
                 }}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+                className="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 lg:w-auto lg:px-3 lg:text-xs xl:px-4 xl:text-sm"
               >
                 Добавить карточку
               </button>
@@ -363,7 +363,7 @@ export default function CollectionDetailPage() {
                   setCollectionDeleteError(null);
                   setIsCollectionFormOpen(true);
                 }}
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                className="inline-flex w-full items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 lg:w-auto lg:px-3 lg:text-xs xl:px-4 xl:text-sm"
               >
                 Редактировать коллекцию
               </button>
@@ -372,7 +372,7 @@ export default function CollectionDetailPage() {
                 onClick={() => {
                   void handleCollectionDelete();
                 }}
-                className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
+                className="inline-flex w-full items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100 lg:w-auto lg:px-3 lg:text-xs xl:px-4 xl:text-sm"
               >
                 Удалить коллекцию
               </button>
