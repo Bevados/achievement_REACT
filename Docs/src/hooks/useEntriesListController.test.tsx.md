@@ -2,30 +2,27 @@
 
 ## Что делает файл
 
-Файл тестирует общий controller списка карточек `entries`.
-Покрывает начальную загрузку, применение фильтров и их сброс.
+Проверяет базовую загрузку и применение фильтров для manual-fetch controller-хука карточек.
 
 ## Импорты и зависимости
 
-1. `vitest` — тестовый раннер и mocks.
-2. `@testing-library/react` — рендер тестового host-компонента.
-3. `react-router-dom` — `MemoryRouter` и тестовый route для проверки `URLSearchParams`.
-4. `./useEntriesListController` — тестируемый hook.
+1. `@testing-library/react` — `renderHook`, `act`, `waitFor`.
+2. `react-router-dom` — `MemoryRouter` и test-route.
+3. `vitest` — assertions и mocks.
+4. `useEntriesListController.ts` — тестируемый хук.
 
 ## Экспорты и контракты
 
-1. Runtime-экспортов нет.
-2. Проверяются:
-   - начальная загрузка карточек с дефолтными параметрами;
-   - применение фильтров с reset `page` на `1`;
-   - очистка фильтров через reset.
+1. Файл не экспортирует runtime-код.
+2. Покрывает:
+   - начальную загрузку с default query state;
+   - применение фильтров и сброс страницы на `1`.
 
 ## Нетривиальная логика
 
-1. Хук тестируется внутри `MemoryRouter`, потому что его ключевая ответственность — двусторонняя синхронизация фильтров с `URLSearchParams`.
-2. Проверка `applyFilters` важна отдельно: controller хранит input-state и applied-state раздельно, поэтому тест сначала меняет поля, а затем отдельным действием применяет фильтры.
+1. Тесты завязаны на `MemoryRouter` и private detail route с optional slug.
+2. После reducer-sync допустимы дополнительные fetch-вызовы, поэтому проверки считают не точное число вызовов, а минимум.
 
 ## Где используется
 
-1. Запускается в `npm run test`.
-2. Защищает от регрессий `src/hooks/useEntriesListController.ts`.
+1. `npm.cmd run test`

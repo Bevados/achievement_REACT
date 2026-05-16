@@ -1,28 +1,29 @@
-﻿# src/pages/PublicCollectionDetailPage/PublicCollectionDetailPage.test.tsx
+# src/pages/PublicCollectionDetailPage/PublicCollectionDetailPage.test.tsx
 
 ## Что делает файл
 
-Тестирует состояния публичной detail-страницы example-коллекции.
+Проверяет public detail-страницу examples.
 
 ## Импорты и зависимости
 
-1. `vitest` — mocks и assertions.
-2. `@testing-library/react` — рендер и ожидания.
-3. `react-router-dom` — тестовый route `/examples/:collectionId`.
-4. `src/api/collections.api.ts` — мок публичных detail-методов.
+1. `@testing-library/react` и `user-event` — page-level interactions.
+2. `react-router-dom` — `MemoryRouter` и public detail route.
+3. `src/api/collections.api.ts` — мокируемые public endpoints.
 
 ## Экспорты и контракты
 
-1. Файл не экспортирует production-сущности.
-2. Проверяет `loading`, `error + retry`, два варианта `empty` и `success`.
-3. В успешных сценариях дополнительно фиксирует наличие общего UI-фильтрации карточек.
+1. Файл не экспортирует runtime-код.
+2. Покрывает:
+   - loading;
+   - retry/error;
+   - empty;
+   - success ветки public detail.
 
 ## Нетривиальная логика
 
-1. В `success` отдельно проверяется, что на public detail отсутствуют private action-кнопки entry.
-2. В empty/success сценариях тесты раскрывают фильтры по кнопке `Показать фильтры` и проверяют, что public detail использует тот же `EntriesFilters`, что и private detail.
-3. Отдельно покрывается различие между пустой коллекцией без фильтров и пустым результатом после активного фильтра `status`.
+1. Покрывает loading, error, empty и success ветки.
+2. Retry-ветка допускает несколько fetch-вызовов, потому что общий URL-state controller после рефактора может сделать дополнительные синхронизирующие перезапросы.
 
 ## Где используется
 
-1. `npm test` — покрытие `PublicCollectionDetailPage`.
+1. `npm.cmd run test`

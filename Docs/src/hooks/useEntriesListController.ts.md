@@ -1,35 +1,30 @@
-﻿# src/hooks/useEntriesListController.ts
+# src/hooks/useEntriesListController.ts
 
 ## Что делает файл
 
-Хранит общий controller-хук для detail-списков карточек `entries`.
+Хранит общий controller-хук и отдельный state-хук для server-driven списка карточек коллекции с фильтрами и пагинацией.
 
 ## Импорты и зависимости
 
-1. `react`
-2. `react-router-dom`
-3. `contracts/collection.contracts.ts`
+1. `react` — reducer, эффекты и manual-fetch state.
+2. `react-router-dom` — `useSearchParams`.
+3. `contracts/collection.contracts.ts` — типы карточек, статусов, сортировок и query DTO.
 
 ## Экспорты и контракты
 
-1. Экспортируется `useEntriesListController(options)`.
-2. Хук управляет:
-   - server-driven фильтрами;
-   - сортировкой;
-   - пагинацией;
-   - applied/input state диапазонов;
-   - sync с URL;
-   - retry;
-   - признаком `hasActiveFilters`.
+1. `EntriesQuery` — нормализованный shape query-параметров списка карточек.
+2. `useEntriesListState(pageSize?)` — URL-state для фильтров, сортировки и пагинации без загрузки данных.
+3. `useEntriesListController(options)` — manual-fetch оболочка над `useEntriesListState()` для экранов, которые ещё не переведены на Query.
 
 ## Нетривиальная логика
 
-1. Input-state и applied-state диапазонов разделены, поэтому запросы уходят только после `Применить`.
-2. Date-inputs конвертируются в ISO-границы суток.
-3. Query sync больше не использует `replace`, чтобы back/forward не ощущались "залипающими".
-4. `hasActiveFilters` позволяет страницам различать пустую коллекцию без карточек и пустой результат после применения фильтров.
+1. Input-state фильтров отделён от applied-state, чтобы пользователь мог заполнять поля до нажатия `Применить`.
+2. URL-state синхронизируется через reducer, без прямых `setState` в эффекте.
+3. Query-параметры дат конвертируются в начало/конец дня в ISO.
+4. Empty-state зависит от `hasActiveFilters`: без фильтров коллекция считается пустой, с фильтрами — просто ничего не найдено.
 
 ## Где используется
 
-1. `src/pages/CollectionDetailPage/CollectionDetailPage.tsx`
-2. `src/pages/PublicCollectionDetailPage/PublicCollectionDetailPage.tsx`
+1. `src/pages/PublicCollectionDetailPage/PublicCollectionDetailPage.tsx`
+2. `src/pages/CollectionDetailPage/CollectionDetailPage.tsx`
+3. Тип `EntriesQuery` используется в private query keys.

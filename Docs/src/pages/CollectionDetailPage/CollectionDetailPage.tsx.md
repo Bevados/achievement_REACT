@@ -1,33 +1,28 @@
-﻿# src/pages/CollectionDetailPage/CollectionDetailPage.tsx
+# src/pages/CollectionDetailPage/CollectionDetailPage.tsx
 
 ## Что делает файл
 
-Рендерит private detail-страницу одной коллекции со списком карточек и private CRUD entrypoints.
+Рендерит private detail-страницу одной коллекции и её карточек.
 
 ## Импорты и зависимости
 
-1. `react`
-2. `react-router-dom`
-3. `src/api/collections.api.ts`
-4. `CollectionForm`, `EntryForm`
-5. `EntriesFilters`, `EntriesGrid`, `EntriesPagination`
-6. `BaseModal`
-7. `useEntriesListController`
+1. `src/hooks/usePrivateCollectionsQueries.ts` — detail и collection CRUD.
+2. `src/hooks/usePrivateEntriesQueries.ts` — список карточек и entry CRUD.
+3. `src/hooks/useEntriesListController.ts` — URL-state фильтров и пагинации.
+4. `CollectionForm`, `EntryForm`, `EntriesGrid`, `EntriesFilters`, `EntriesPagination` — UI слоя detail.
+5. `src/utils/routing.utils.ts` — readable href для возврата к спискам.
 
 ## Экспорты и контракты
 
-1. Экспортируется default-компонент `CollectionDetailPage`.
-2. Страница ожидает route-param `collectionId`, при этом маршрут может включать optional slug.
+1. Default export `CollectionDetailPage`.
+2. Страница ожидает private detail route `/collections/:collectionId/:collectionSlug?`.
+3. URL-state фильтров карточек остаётся в query string, а server-state приходит из TanStack Query.
 
 ## Нетривиальная логика
 
-1. Страница поддерживает create/update/delete для коллекции и карточек.
-2. `entriesCount` локально синхронизируется после create/delete карточек.
-3. Ошибки submit и delete разделены на разные alert-слои.
-4. На странице показываются и `createdAt`, и `updatedAt` коллекции.
-5. Есть две точки возврата к списку коллекций: сверху и внизу после списка карточек, без дублирующей CTA-кнопки.
-6. Empty-state карточек зависит от `hasActiveFilters`: без фильтров страница сообщает, что карточек ещё нет, а при активных фильтрах показывает сообщение про отсутствие совпадений.
-7. Верхняя шапка коллекции адаптивно перестраивает action-кнопки: ниже `lg` они переходят в отдельный нижний ряд из трёх равных кнопок на всю ширину, а на самых узких экранах становятся вертикальным стеком.
+1. Detail и entries теперь берутся из TanStack Query, а не из ручных `useEffect`/`reload`.
+2. После create/update/delete коллекции и карточек страница обновляется через invalidate query keys.
+3. Верхний hero-блок меняет раскладку action-кнопок в зависимости от ширины экрана.
 
 ## Где используется
 

@@ -2,20 +2,19 @@
 
 ## Что делает файл
 
-Файл собирает корневую маршрутизацию приложения, общую шапку и auth-гейты.
+Собирает корневую маршрутизацию приложения, общую шапку, auth-gate и общий `QueryClientProvider`.
 
 ## Импорты и зависимости
 
-1. `react`
-2. `react-router-dom`
-3. `src/components/Header/Header.tsx`
-4. `src/components/Auth/AuthModal.tsx`
-5. страницы из `src/pages/*`
-6. auth/theme/modal stores
+1. `react-router-dom` — маршруты и редиректы.
+2. `src/components/Header/Header.tsx` и `src/components/Auth/AuthModal.tsx` — глобальный UI.
+3. `src/pages/*` — страницы приложения.
+4. `src/lib/query-client.ts` — singleton `QueryClient`.
+5. auth/theme/modal stores — глобальные UI/auth состояния.
 
 ## Экспорты и контракты
 
-1. Экспортируется default-компонент `App`.
+1. Default export `App`.
 2. Основные маршруты:
    - `/`
    - `/examples`
@@ -26,10 +25,10 @@
 
 ## Нетривиальная логика
 
-1. Для detail-страниц коллекций маршрут принимает optional slug, но загрузка данных всё равно идёт по `collectionId`.
+1. Detail-маршруты принимают optional slug, но загрузка данных всегда идёт по `collectionId`.
 2. Гостевые и private-разделы разводятся через `Navigate`.
-3. Авторизованный пользователь уходит с `/` в `/collections`.
+3. Весь frontend теперь обёрнут в `QueryClientProvider`, поэтому private server-state живёт через TanStack Query.
 
 ## Где используется
 
-1. Корневая точка frontend-приложения.
+1. `src/main.tsx`

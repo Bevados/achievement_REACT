@@ -20,7 +20,7 @@
 Ты работаешь с проектом `achievement_collections_REACT` в workspace:
 `F:\Portfolio\achievement_collections_REACT`
 
-Ниже актуальный контекст проекта. Правила работы бери из файла `AI_RULES.md`. Считай оба файла (`CHAT_CONTEXT_PROMPT.md` и `AI_RULES.md`) стартовой рабочей базой.
+Ниже актуальный контекст проекта. Правила работы бери из `AI_RULES.md`. Считай оба файла (`CHAT_CONTEXT_PROMPT.md` и `AI_RULES.md`) стартовой рабочей базой.
 
 ---
 
@@ -33,7 +33,8 @@
 - внутри коллекций есть карточки (`entries`);
 - есть публичная часть с example-коллекциями;
 - есть приватная часть пользователя;
-- проект должен дойти до полноценного CRUD для коллекций и карточек.
+- базовый private CRUD для коллекций и карточек уже работает;
+- следующий крупный этап — перевод server-state на TanStack Query.
 
 ---
 
@@ -69,51 +70,42 @@ Frontend:
 - Zod
 - Tailwind CSS
 
+Data layer:
+- TanStack Query уже подключён для private server-state
+
 Backend:
 - Vercel-style API routes
 - MongoDB
 - Firebase Admin
-- Zod
-
-Tooling:
-- ESLint
-- Vitest
-- Testing Library
 
 ---
 
-# 4. Текущее состояние
+# 4. Что уже сделано
 
-Уже сделано:
-- исправлен route `/profile`, добавлена страница-заглушка;
-- починен ESLint-конфиг и расширено покрытие линта;
-- удалён legacy `items` probe из auth-flow;
-- backend search экранирует regex-ввод;
-- `Шаг 5.1` реализован:
-  - private-route `/collections/:collectionId`
-  - detail page коллекции
-  - read-only список `entries`
-  - базовый `EntryCard`
-- `Шаг 5.2` трактуется как адаптивный `EntryCard`, который естественно меняется по заполненности данных, без ручных режимов карточки;
-- после `5.2` для completed-entry введены более строгие правила:
-  - `rating` обязателен;
-  - `dateStart` обязателен;
-  - вместо одного `date` используется модель `dateStart/dateEnd`;
-- список `entries` на detail-страницах строится с masonry feel на desktop, но сохраняет строчный порядок карточек;
-- detail-страницы коллекций используют общий server-driven фильтр карточек по статусу, датам, цене и рейтингу;
-- локальная backend-разработка восстановлена через `npm run dev:api`;
-- реализована публичная detail-страница examples:
-  - `/examples/:collectionId`
+- починен `/profile`
+- починен ESLint-конфиг и typed linting
+- добавлен локальный backend-runner `npm run dev:api`
+- public examples работают через:
+  - `/examples`
+  - `/examples/:collectionId/:collectionSlug?`
+  - `/api/examples/collections`
   - `/api/examples/collections/:collectionId`
   - `/api/examples/collections/:collectionId/entries`
-- `CollectionCard` поддерживает контекстную навигацию для public/private.
-- В private-списке коллекций карточка также поддерживает маленькие inline-действия `Редактировать` и `Удалить`, чтобы базовый CRUD был доступен без перехода в detail.
-- Для авторизованного пользователя шапка больше не дублирует ссылку `Мои коллекции`: в текущем scope это единственный private-раздел, и лишняя ссылка убрана из UX.
-- В `CollectionForm` выбор категории теперь начинается с пустого placeholder, `Своя категория` вынесена отдельным первым блоком, а preset-категории идут стабильным алфавитным списком.
-- Detail URL коллекций теперь строятся в формате `id + slug`, чтобы адрес был читаемым, но загрузка данных всё равно опиралась на `collectionId`.
-- Sync query-параметров в list/detail controller’ах больше не использует `replace`, чтобы back/forward в браузере ощущались естественнее.
-- На карточке коллекции и на detail-страницах теперь показываются и дата создания, и дата обновления.
-- На private/public detail-страницах добавлены верхние и нижние кнопки возврата к спискам, а раскрытие панели фильтров карточек стало плавным.
+- реализован `Шаг 5` по private CRUD:
+  - detail collection page
+  - read-only и adaptive `EntryCard`
+  - filters/pagination для entries
+  - modal-формы `CollectionForm` и `EntryForm`
+  - `react-hook-form + zod`
+  - create/update/delete collection
+  - create/update/delete entry
+- `CollectionCard` поддерживает контекстную навигацию для public/private
+- в private-списке коллекций есть inline-действия `Редактировать` и `Удалить`
+- detail URL коллекций используют формат `id + slug`
+- query-sync в list/detail controller-хуках больше не использует `replace`, чтобы back/forward работали естественнее
+- на карточке коллекции и на detail-страницах показываются дата создания и дата обновления
+- private/public detail-страницы имеют верхнюю и нижнюю ссылки возврата к спискам
+- фильтры карточек раскрываются плавно
 
 ---
 
@@ -121,20 +113,33 @@ Tooling:
 
 Источник истины по этапам проекта — `Plan.md`.
 
-Важно:
+Текущее состояние:
 - ранние шаги плана уже выполнены;
-- `Шаг 5.1` уже реализован;
-- восстановительные задачи после `5.1` закрыты;
-- `Шаг 5.2` посвящён адаптивным состояниям `EntryCard` по реальным данным карточки.
-- следующий подпункт после `5.2` вводит обязательный `rating` и обязательную дату для `completed`, а также новую модель дат `dateStart/dateEnd`.
+- `Шаг 5` по CRUD фактически закрыт;
+- текущий активный этап — `Шаг 6.1`: перевод private server-state на TanStack Query.
 
-Шаг 5:
-1. read-only каркас Collection и Entry
-2. адаптивные состояния карточек по заполненности данных
-3. бизнес-правила completed-card и новая модель дат `dateStart/dateEnd`
-4. формы collection и entry
-5. валидация через react-hook-form + zod
-6. создание, редактирование, удаление
+Что уже сделано в `Шаге 6.1`:
+- добавлен `QueryClientProvider` на уровне приложения;
+- private server-state переведён на TanStack Query для:
+  - `/collections`
+  - `/collections/:collectionId/:collectionSlug?`
+- вынесены отдельные private query/mutation hooks:
+  - `useCollectionsQuery`
+  - `useCollectionDetailQuery`
+  - `useCollectionEntriesQuery`
+  - `useCreateCollectionMutation`
+  - `useUpdateCollectionMutation`
+  - `useDeleteCollectionMutation`
+  - `useCreateEntryMutation`
+  - `useUpdateEntryMutation`
+  - `useDeleteEntryMutation`
+- private manual reload-сценарии заменяются на `invalidateQueries`
+- `useCollectionsListController` и `useEntriesListController` разделены на:
+  - URL-state hooks
+  - legacy manual-fetch controller layer для экранов, которые ещё не на Query
+
+Что ещё не сделано в `Шаге 6`:
+- public examples пока сознательно не переведены на TanStack Query
 
 ---
 
@@ -143,11 +148,11 @@ Tooling:
 Public pages:
 - `/`
 - `/examples`
-- `/examples/:collectionId`
+- `/examples/:collectionId/:collectionSlug?`
 
 Private pages:
 - `/collections`
-- `/collections/:collectionId`
+- `/collections/:collectionId/:collectionSlug?`
 - `/profile`
 
 Public API:
@@ -162,7 +167,7 @@ Private API:
 
 Разделение:
 - public examples — read-only;
-- private collections — база для будущего CRUD.
+- private collections — рабочий CRUD-поток и текущая зона миграции на TanStack Query.
 
 ---
 
@@ -199,8 +204,11 @@ Private API:
 - Локальная разработка идёт в split-режиме: frontend отдельно, backend отдельно.
 - `api/*` нельзя ломать, потому что это production entrypoints для Vercel.
 - Public examples и private collections — разные контексты.
-- После значимых изменений нужно проверять, не устарели ли `CHAT_CONTEXT_PROMPT.md` и `AI_RULES.md`.
-- Для `completed` entry проект теперь требует `rating` и `dateStart`.
+- Для `completed` entry обязательны `rating` и `dateStart`.
+- Вместо одного `date` используется модель `dateStart/dateEnd`.
+- В `Шаге 6.1` private URL-state и private server-state разделены:
+  - URL-state остаётся в controller hooks;
+  - server-state и CRUD-инвалидация уходят в TanStack Query.
 
 ---
 
@@ -213,49 +221,4 @@ Private API:
 - avoid solutions depending on WSL unless explicitly requested
 - если CLI-проверка проходит, а VS Code показывает старую ошибку, сначала проверить, не editor cache ли это
 - если backend не стартует, частая причина — занят порт `3000`
-
----
-
-# 11. Обновление По Шагу 5.4
-
-- В private-зоне уже есть modal-формы `CollectionForm` и `EntryForm`.
-- Формы теперь подключены через `react-hook-form` и Zod-валидацию.
-- Для коллекций уже подключены реальные create/update мутации:
-  - `/collections` умеет создавать коллекцию через API;
-  - `/collections/:collectionId` умеет редактировать коллекцию через API;
-  - submit-ошибки отображаются прямо внутри `CollectionForm`.
-- Для карточек тоже уже подключены реальные create/update мутации:
-  - `/collections/:collectionId` умеет создавать карточки через API;
-  - `/collections/:collectionId` умеет редактировать карточки через API;
-  - submit-ошибки отображаются прямо внутри `EntryForm`;
-  - после создания карточки detail-страница перезагружает список и локально обновляет `entriesCount`.
-- `CollectionsPage` открывает modal создания коллекции.
-- `CollectionDetailPage` открывает:
-  - modal редактирования коллекции;
-  - modal создания карточки;
-  - modal редактирования карточки из `EntryCard`.
-- Состояние этих модалок хранится локально в страницах и не смешивается с auth `modal.store`.
-- `CollectionForm` требует `customCategory`, если выбрана категория `other`.
-- `EntryForm` валидирует правила completed-entry (`rating` и `dateStart` обязательны) и готовит нормализованный payload (`price`, `tags`, `dateStart/dateEnd`) для следующего CRUD-подпункта.
-- Следующий логический подпункт после этого — delete flow для collection и entry.
 ```
-## Обновление по пользовательской категории коллекции
-
-- Для коллекций поддержан вариант `Своя категория`.
-- Это реализовано без отказа от enum `category`:
-  - в данных сохраняется `category = 'other'`
-  - пользовательский текст хранится в `customCategory`
-- `CollectionForm` показывает отдельное поле `Своя категория` только при выборе `other`.
-- Отображение категории в карточках и detail-страницах идёт через helper `getCollectionCategoryLabel`, поэтому UI показывает либо стандартный label, либо пользовательский текст.
-## Обновление по delete flow
-
-- Для private detail-страницы коллекции уже подключены реальные delete-мутации.
-- `CollectionDetailPage` теперь умеет:
-  - удалять коллекцию через confirm-flow;
-  - после успешного удаления уводить пользователя обратно на `/collections`;
-  - удалять карточку через confirm-flow;
-  - после удаления карточки перезагружать server-driven список и локально уменьшать `entriesCount`.
-- `src/api/collections.api.ts` уже содержит клиентские методы `deleteCollection` и `deleteEntry`.
-- `EntryCard` и `EntriesGrid` в private-режиме умеют пробрасывать не только edit-callback, но и delete-callback.
-- Для ошибок удаления на detail-странице есть отдельный error UX, не смешанный с modal submit-ошибками create/update.
-- Следующий логичный подпункт после этого — улучшения delete UX или переход к следующему крупному шагу плана, если отдельные правки удаления не требуются.

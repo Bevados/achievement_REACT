@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useReducer, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type {
   CollectionCategory,
@@ -15,7 +15,7 @@ import {
   SORT_ORDERS,
 } from '../../contracts/collection.contracts';
 
-type CollectionsQuery = Pick<
+export type CollectionsQuery = Pick<
   CollectionListQueryDto,
   'page' | 'limit' | 'sortBy' | 'sortOrder' | 'category' | 'search'
 >;
@@ -24,6 +24,32 @@ interface UseCollectionsListControllerOptions {
   fetchCollections: (query: CollectionsQuery) => Promise<PaginatedResult<CollectionView>>;
   fallbackErrorMessage: string;
   pageSize?: number;
+}
+
+interface UseCollectionsListStateResult {
+  page: number;
+  sortBy: CollectionSortField;
+  sortOrder: SortOrder;
+  category: CollectionCategory | '';
+  searchInput: string;
+  search: string;
+  setSortBy: (value: CollectionSortField) => void;
+  setSortOrder: (value: SortOrder) => void;
+  setCategory: (value: CollectionCategory | '') => void;
+  setSearchInput: (value: string) => void;
+  applySearch: () => void;
+  resetFilters: () => void;
+  goToPreviousPage: () => void;
+  goToNextPage: () => void;
+}
+
+interface CollectionsListState {
+  page: number;
+  sortBy: CollectionSortField;
+  sortOrder: SortOrder;
+  category: CollectionCategory | '';
+  searchInput: string;
+  search: string;
 }
 
 interface UseCollectionsListControllerResult {
@@ -89,82 +115,167 @@ function parseSearch(value: string | null): string {
   return value?.trim() ?? '';
 }
 
-export function useCollectionsListController(
-  options: UseCollectionsListControllerOptions,
-): UseCollectionsListControllerResult {
-  const { fetchCollections, fallbackErrorMessage, pageSize = 12 } = options;
+function createCollectionsListState(searchParams: URLSearchParams): CollectionsListState {
+  const search = parseSearch(searchParams.get('search'));
 
+  return {
+    page: parsePage(searchParams.get('page')),
+    sortBy: parseSortBy(searchParams.get('sortBy')),
+    sortOrder: parseSortOrder(searchParams.get('sortOrder')),
+    category: parseCategory(searchParams.get('category')),
+    searchInput: search,
+    search,
+  };
+}
+
+type CollectionsListAction =
+  | { type: 'sync_from_url'; payload: CollectionsListState }
+  | { type: 'set_sort_by'; value: CollectionSortField }
+  | { type: 'set_sort_order'; value: SortOrder }
+  | { type: 'set_category'; value: CollectionCategory | '' }
+  | { type: 'set_search_input'; value: string }
+  | { type: 'apply_search' }
+  | { type: 'reset_filters' }
+  | { type: 'go_to_previous_page' }
+  | { type: 'go_to_next_page' };
+
+function collectionsListReducer(
+  state: CollectionsListState,
+  action: CollectionsListAction,
+): CollectionsListState {
+  switch (action.type) {
+    case 'sync_from_url':
+      return action.payload;
+    case 'set_sort_by':
+      return { ...state, sortBy: action.value, page: 1 };
+    case 'set_sort_order':
+      return { ...state, sortOrder: action.value, page: 1 };
+    case 'set_category':
+      return { ...state, category: action.value, page: 1 };
+    case 'set_search_input':
+      return { ...state, searchInput: action.value };
+    case 'apply_search':
+      return { ...state, page: 1, search: state.searchInput.trim() };
+    case 'reset_filters':
+      return {
+        ...state,
+        page: 1,
+        category: '',
+        searchInput: '',
+        search: '',
+      };
+    case 'go_to_previous_page':
+      return { ...state, page: Math.max(1, state.page - 1) };
+    case 'go_to_next_page':
+      return { ...state, page: state.page + 1 };
+    default:
+      return state;
+  }
+}
+
+export function useCollectionsListState(): UseCollectionsListStateResult {
   const [searchParams, setSearchParams] = useSearchParams();
-
-  const initialPage = parsePage(searchParams.get('page'));
-  const initialSortBy = parseSortBy(searchParams.get('sortBy'));
-  const initialSortOrder = parseSortOrder(searchParams.get('sortOrder'));
-  const initialCategory = parseCategory(searchParams.get('category'));
-  const initialSearch = parseSearch(searchParams.get('search'));
-
-  const [collections, setCollections] = useState<CollectionView[]>([]);
-  const [meta, setMeta] = useState<PaginationMeta | null>(null);
-  const [page, setPage] = useState<number>(initialPage);
-  const [sortBy, setSortByState] = useState<CollectionSortField>(initialSortBy);
-  const [sortOrder, setSortOrderState] = useState<SortOrder>(initialSortOrder);
-  const [category, setCategoryState] = useState<CollectionCategory | ''>(initialCategory);
-  const [searchInput, setSearchInput] = useState<string>(initialSearch);
-  const [search, setSearch] = useState<string>(initialSearch);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(collectionsListReducer, searchParams, createCollectionsListState);
 
   useEffect(() => {
-    const nextPage = parsePage(searchParams.get('page'));
-    const nextSortBy = parseSortBy(searchParams.get('sortBy'));
-    const nextSortOrder = parseSortOrder(searchParams.get('sortOrder'));
-    const nextCategory = parseCategory(searchParams.get('category'));
-    const nextSearch = parseSearch(searchParams.get('search'));
-
-    setPage((prev) => (prev === nextPage ? prev : nextPage));
-    setSortByState((prev) => (prev === nextSortBy ? prev : nextSortBy));
-    setSortOrderState((prev) => (prev === nextSortOrder ? prev : nextSortOrder));
-    setCategoryState((prev) => (prev === nextCategory ? prev : nextCategory));
-    setSearch((prev) => (prev === nextSearch ? prev : nextSearch));
-    setSearchInput((prev) => (prev === nextSearch ? prev : nextSearch));
+    dispatch({ type: 'sync_from_url', payload: createCollectionsListState(searchParams) });
   }, [searchParams]);
 
   useEffect(() => {
     const nextParams = new URLSearchParams(searchParams);
 
-    if (page === DEFAULT_PAGE) {
+    if (state.page === DEFAULT_PAGE) {
       nextParams.delete('page');
     } else {
-      nextParams.set('page', String(page));
+      nextParams.set('page', String(state.page));
     }
 
-    if (sortBy === DEFAULT_SORT_BY) {
+    if (state.sortBy === DEFAULT_SORT_BY) {
       nextParams.delete('sortBy');
     } else {
-      nextParams.set('sortBy', sortBy);
+      nextParams.set('sortBy', state.sortBy);
     }
 
-    if (sortOrder === DEFAULT_SORT_ORDER) {
+    if (state.sortOrder === DEFAULT_SORT_ORDER) {
       nextParams.delete('sortOrder');
     } else {
-      nextParams.set('sortOrder', sortOrder);
+      nextParams.set('sortOrder', state.sortOrder);
     }
 
-    if (!category) {
+    if (!state.category) {
       nextParams.delete('category');
     } else {
-      nextParams.set('category', category);
+      nextParams.set('category', state.category);
     }
 
-    if (!search) {
+    if (!state.search) {
       nextParams.delete('search');
     } else {
-      nextParams.set('search', search);
+      nextParams.set('search', state.search);
     }
 
     if (nextParams.toString() !== searchParams.toString()) {
       setSearchParams(nextParams);
     }
-  }, [category, page, search, searchParams, setSearchParams, sortBy, sortOrder]);
+  }, [searchParams, setSearchParams, state]);
+
+  function setSortBy(value: CollectionSortField): void {
+    dispatch({ type: 'set_sort_by', value });
+  }
+
+  function setSortOrder(value: SortOrder): void {
+    dispatch({ type: 'set_sort_order', value });
+  }
+
+  function setCategory(value: CollectionCategory | ''): void {
+    dispatch({ type: 'set_category', value });
+  }
+
+  function applySearch(): void {
+    dispatch({ type: 'apply_search' });
+  }
+
+  function resetFilters(): void {
+    dispatch({ type: 'reset_filters' });
+  }
+
+  function goToPreviousPage(): void {
+    dispatch({ type: 'go_to_previous_page' });
+  }
+
+  function goToNextPage(): void {
+    dispatch({ type: 'go_to_next_page' });
+  }
+
+  return {
+    page: state.page,
+    sortBy: state.sortBy,
+    sortOrder: state.sortOrder,
+    category: state.category,
+    searchInput: state.searchInput,
+    search: state.search,
+    setSortBy,
+    setSortOrder,
+    setCategory,
+    setSearchInput: (value) => {
+      dispatch({ type: 'set_search_input', value });
+    },
+    applySearch,
+    resetFilters,
+    goToPreviousPage,
+    goToNextPage,
+  };
+}
+
+export function useCollectionsListController(
+  options: UseCollectionsListControllerOptions,
+): UseCollectionsListControllerResult {
+  const { fetchCollections, fallbackErrorMessage, pageSize = 12 } = options;
+  const state = useCollectionsListState();
+  const [collections, setCollections] = useState<CollectionView[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const reloadCollections = useCallback(async () => {
     setIsLoading(true);
@@ -172,12 +283,12 @@ export function useCollectionsListController(
 
     try {
       const result = await fetchCollections({
-        page,
+        page: state.page,
         limit: pageSize,
-        sortBy,
-        sortOrder,
-        category: category || undefined,
-        search: search || undefined,
+        sortBy: state.sortBy,
+        sortOrder: state.sortOrder,
+        category: state.category || undefined,
+        search: state.search || undefined,
       });
 
       setCollections(result.items);
@@ -189,65 +300,39 @@ export function useCollectionsListController(
     } finally {
       setIsLoading(false);
     }
-  }, [category, fallbackErrorMessage, fetchCollections, page, pageSize, search, sortBy, sortOrder]);
+  }, [
+    fallbackErrorMessage,
+    fetchCollections,
+    pageSize,
+    state.category,
+    state.page,
+    state.search,
+    state.sortBy,
+    state.sortOrder,
+  ]);
 
   useEffect(() => {
     void reloadCollections();
   }, [reloadCollections]);
 
-  function setSortBy(value: CollectionSortField): void {
-    setSortByState(value);
-    setPage(1);
-  }
-
-  function setSortOrder(value: SortOrder): void {
-    setSortOrderState(value);
-    setPage(1);
-  }
-
-  function setCategory(value: CollectionCategory | ''): void {
-    setCategoryState(value);
-    setPage(1);
-  }
-
-  function applySearch(): void {
-    setPage(1);
-    setSearch(searchInput.trim());
-  }
-
-  function resetFilters(): void {
-    setSearchInput('');
-    setSearch('');
-    setCategoryState('');
-    setPage(1);
-  }
-
-  function goToPreviousPage(): void {
-    setPage((prev) => Math.max(1, prev - 1));
-  }
-
-  function goToNextPage(): void {
-    setPage((prev) => prev + 1);
-  }
-
   return {
     collections,
     meta,
-    page,
-    sortBy,
-    sortOrder,
-    category,
-    searchInput,
+    page: state.page,
+    sortBy: state.sortBy,
+    sortOrder: state.sortOrder,
+    category: state.category,
+    searchInput: state.searchInput,
     isLoading,
     errorMessage,
-    setSortBy,
-    setSortOrder,
-    setCategory,
-    setSearchInput,
-    applySearch,
-    resetFilters,
-    goToPreviousPage,
-    goToNextPage,
+    setSortBy: state.setSortBy,
+    setSortOrder: state.setSortOrder,
+    setCategory: state.setCategory,
+    setSearchInput: state.setSearchInput,
+    applySearch: state.applySearch,
+    resetFilters: state.resetFilters,
+    goToPreviousPage: state.goToPreviousPage,
+    goToNextPage: state.goToNextPage,
     reloadCollections,
   };
 }

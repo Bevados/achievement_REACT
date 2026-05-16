@@ -1,12 +1,17 @@
 import { useState } from 'react';
 import type { CollectionView } from '../../../contracts/collection.contracts';
-import { createCollection, deleteCollection, getOwnerCollections, updateCollection } from '../../api/collections.api';
 import CollectionForm from '../../components/Collections/CollectionForm';
 import CollectionsFilters from '../../components/Collections/CollectionsFilters';
 import CollectionsGrid from '../../components/Collections/CollectionsGrid';
 import CollectionsPagination from '../../components/Collections/CollectionsPagination';
 import BaseModal from '../../components/Modal/BaseModal';
-import { useCollectionsListController } from '../../hooks/useCollectionsListController';
+import { useCollectionsListState } from '../../hooks/useCollectionsListController';
+import {
+  useCollectionsQuery,
+  useCreateCollectionMutation,
+  useDeleteCollectionMutation,
+  useUpdateCollectionMutation,
+} from '../../hooks/usePrivateCollectionsQueries';
 import { getPrivateCollectionHref } from '../../utils/routing.utils';
 
 function getEditInitialValues(collection: CollectionView) {
@@ -27,15 +32,12 @@ export default function CollectionsPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const {
-    collections,
-    meta,
     page,
     sortBy,
     sortOrder,
     category,
     searchInput,
-    isLoading,
-    errorMessage,
+    search,
     setSortBy,
     setSortOrder,
     setCategory,
@@ -44,12 +46,24 @@ export default function CollectionsPage() {
     resetFilters,
     goToPreviousPage,
     goToNextPage,
-    reloadCollections,
-  } = useCollectionsListController({
-    fetchCollections: getOwnerCollections,
-    fallbackErrorMessage: 'Не удалось загрузить ваши коллекции. Попробуйте еще раз.',
-    pageSize: 12,
+  } = useCollectionsListState();
+
+  const collectionsQuery = useCollectionsQuery({
+    page,
+    limit: 12,
+    sortBy,
+    sortOrder,
+    category: category || undefined,
+    search: search || undefined,
   });
+  const createCollectionMutation = useCreateCollectionMutation();
+  const updateCollectionMutation = useUpdateCollectionMutation();
+  const deleteCollectionMutation = useDeleteCollectionMutation();
+
+  const collections = collectionsQuery.data?.items ?? [];
+  const meta = collectionsQuery.data?.meta ?? null;
+  const isLoading = collectionsQuery.isLoading;
+  const errorMessage = collectionsQuery.error?.message ?? null;
 
   async function handleDeleteCollection(collection: CollectionView) {
     const shouldDelete = window.confirm(
@@ -63,8 +77,7 @@ export default function CollectionsPage() {
     setDeleteError(null);
 
     try {
-      await deleteCollection(collection.id);
-      await reloadCollections();
+      await deleteCollectionMutation.mutateAsync({ collectionId: collection.id });
     } catch (error) {
       setDeleteError(
         error instanceof Error
@@ -127,7 +140,7 @@ export default function CollectionsPage() {
           <button
             type="button"
             onClick={() => {
-              void reloadCollections();
+              void collectionsQuery.refetch();
             }}
             className="mt-3 inline-flex rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
           >
@@ -180,9 +193,8 @@ export default function CollectionsPage() {
             setCreateSubmitError(null);
 
             try {
-              await createCollection(values);
+              await createCollectionMutation.mutateAsync(values);
               setIsCreateModalOpen(false);
-              await reloadCollections();
             } catch (error) {
               setCreateSubmitError(
                 error instanceof Error
@@ -216,9 +228,11 @@ export default function CollectionsPage() {
               setEditSubmitError(null);
 
               try {
-                await updateCollection(editingCollection.id, values);
+                await updateCollectionMutation.mutateAsync({
+                  collectionId: editingCollection.id,
+                  payload: values,
+                });
                 setEditingCollection(null);
-                await reloadCollections();
               } catch (error) {
                 setEditSubmitError(
                   error instanceof Error

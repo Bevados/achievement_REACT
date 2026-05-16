@@ -1,20 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import type {
-  CollectionView,
-  CreateEntryDto,
-  EntryView,
-  UpdateEntryDto,
-} from '../../../contracts/collection.contracts';
-import {
-  createEntry,
-  deleteCollection,
-  deleteEntry,
-  getCollectionById,
-  getCollectionEntries,
-  updateCollection,
-  updateEntry,
-} from '../../api/collections.api';
+import type { CreateEntryDto, EntryView, UpdateEntryDto } from '../../../contracts/collection.contracts';
 import CollectionForm from '../../components/Collections/CollectionForm';
 import EntryForm from '../../components/Entries/EntryForm';
 import EntriesFilters from '../../components/Entries/EntriesFilters';
@@ -22,7 +8,18 @@ import EntriesGrid from '../../components/Entries/EntriesGrid';
 import EntriesPagination from '../../components/Entries/EntriesPagination';
 import BaseModal from '../../components/Modal/BaseModal';
 import { getCollectionCategoryLabel } from '../../config/collections.config';
-import { useEntriesListController } from '../../hooks/useEntriesListController';
+import { useEntriesListState } from '../../hooks/useEntriesListController';
+import {
+  useCollectionDetailQuery,
+  useDeleteCollectionMutation,
+  useUpdateCollectionMutation,
+} from '../../hooks/usePrivateCollectionsQueries';
+import {
+  useCollectionEntriesQuery,
+  useCreateEntryMutation,
+  useDeleteEntryMutation,
+  useUpdateEntryMutation,
+} from '../../hooks/usePrivateEntriesQueries';
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString('ru-RU', {
@@ -71,9 +68,6 @@ export default function CollectionDetailPage() {
   const { collectionId } = useParams<{ collectionId: string }>();
   const navigate = useNavigate();
 
-  const [collection, setCollection] = useState<CollectionView | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isCollectionFormOpen, setIsCollectionFormOpen] = useState(false);
   const [collectionSubmitError, setCollectionSubmitError] = useState<string | null>(null);
   const [collectionDeleteError, setCollectionDeleteError] = useState<string | null>(null);
@@ -85,9 +79,8 @@ export default function CollectionDetailPage() {
     mode: 'create',
   });
 
+  const collectionQuery = useCollectionDetailQuery(collectionId ?? '');
   const {
-    entries,
-    meta: entriesMeta,
     hasActiveFilters,
     page,
     sortBy,
@@ -101,8 +94,7 @@ export default function CollectionDetailPage() {
     maxPriceInput,
     minRatingInput,
     maxRatingInput,
-    isLoading: isEntriesLoading,
-    errorMessage: entriesErrorMessage,
+    query: entriesQueryParams,
     setSortBy,
     setSortOrder,
     setStatus,
@@ -118,47 +110,26 @@ export default function CollectionDetailPage() {
     resetFilters,
     goToPreviousPage,
     goToNextPage,
-    reloadEntries,
-  } = useEntriesListController({
-    collectionId: collectionId ?? '',
-    fetchEntries: getCollectionEntries,
-    fallbackErrorMessage: 'Не удалось загрузить карточки коллекции. Попробуйте еще раз.',
-  });
+  } = useEntriesListState();
+  const entriesQuery = useCollectionEntriesQuery(collectionId ?? '', entriesQueryParams);
+  const updateCollectionMutation = useUpdateCollectionMutation();
+  const deleteCollectionMutation = useDeleteCollectionMutation();
+  const createEntryMutation = useCreateEntryMutation();
+  const updateEntryMutation = useUpdateEntryMutation();
+  const deleteEntryMutation = useDeleteEntryMutation();
 
-  const closeEntryModal = useCallback(() => {
+  const collection = collectionQuery.data ?? null;
+  const entries = entriesQuery.data?.items ?? [];
+  const entriesMeta = entriesQuery.data?.meta ?? null;
+  const isLoading = collectionQuery.isLoading;
+  const errorMessage = collectionQuery.error?.message ?? null;
+  const isEntriesLoading = entriesQuery.isLoading;
+  const entriesErrorMessage = entriesQuery.error?.message ?? null;
+
+  function closeEntryModal() {
     setEntrySubmitError(null);
     setEntryFormState({ isOpen: false, entry: null, mode: 'create' });
-  }, []);
-
-  const reloadPage = useCallback(async () => {
-    if (!collectionId) {
-      setCollection(null);
-      setErrorMessage('Не удалось определить идентификатор коллекции.');
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    try {
-      const collectionResult = await getCollectionById(collectionId);
-      setCollection(collectionResult);
-    } catch (error) {
-      setCollection(null);
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : 'Не удалось загрузить коллекцию и карточки. Попробуйте еще раз.',
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [collectionId]);
-
-  useEffect(() => {
-    void reloadPage();
-  }, [reloadPage]);
+  }
 
   async function handleEntrySubmit(values: CreateEntryDto | UpdateEntryDto) {
     if (!collection) {
@@ -170,21 +141,19 @@ export default function CollectionDetailPage() {
 
     try {
       if (entryFormState.mode === 'create') {
-        await createEntry(collection.id, values as CreateEntryDto);
-        setCollection((currentCollection) =>
-          currentCollection
-            ? {
-                ...currentCollection,
-                entriesCount: currentCollection.entriesCount + 1,
-              }
-            : currentCollection,
-        );
+        await createEntryMutation.mutateAsync({
+          collectionId: collection.id,
+          payload: values as CreateEntryDto,
+        });
       } else if (entryFormState.entry) {
-        await updateEntry(collection.id, entryFormState.entry.id, values as UpdateEntryDto);
+        await updateEntryMutation.mutateAsync({
+          collectionId: collection.id,
+          entryId: entryFormState.entry.id,
+          payload: values as UpdateEntryDto,
+        });
       }
 
       closeEntryModal();
-      await reloadEntries();
     } catch (error) {
       setEntrySubmitError(
         error instanceof Error
@@ -212,7 +181,7 @@ export default function CollectionDetailPage() {
     setCollectionDeleteError(null);
 
     try {
-      await deleteCollection(collection.id);
+      await deleteCollectionMutation.mutateAsync({ collectionId: collection.id });
       navigate('/collections');
     } catch (error) {
       setCollectionDeleteError(
@@ -239,16 +208,10 @@ export default function CollectionDetailPage() {
     setEntryDeleteError(null);
 
     try {
-      await deleteEntry(collection.id, entry.id);
-      setCollection((currentCollection) =>
-        currentCollection
-          ? {
-              ...currentCollection,
-              entriesCount: Math.max(0, currentCollection.entriesCount - 1),
-            }
-          : currentCollection,
-      );
-      await reloadEntries();
+      await deleteEntryMutation.mutateAsync({
+        collectionId: collection.id,
+        entryId: entry.id,
+      });
     } catch (error) {
       setEntryDeleteError(
         error instanceof Error
@@ -284,8 +247,7 @@ export default function CollectionDetailPage() {
           <button
             type="button"
             onClick={() => {
-              void reloadPage();
-              void reloadEntries();
+              void Promise.all([collectionQuery.refetch(), entriesQuery.refetch()]);
             }}
             className="mt-3 inline-flex rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
           >
@@ -505,8 +467,10 @@ export default function CollectionDetailPage() {
             setCollectionSubmitError(null);
 
             try {
-              const updatedCollection = await updateCollection(collection.id, values);
-              setCollection(updatedCollection);
+              await updateCollectionMutation.mutateAsync({
+                collectionId: collection.id,
+                payload: values,
+              });
               setIsCollectionFormOpen(false);
             } catch (error) {
               setCollectionSubmitError(

@@ -1,17 +1,19 @@
+import { QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import AuthModal from './components/Auth/AuthModal';
 import Header from './components/Header/Header';
-import { useThemeStore } from './store/theme.store';
+import { appQueryClient } from './lib/query-client';
+import CollectionDetailPage from './pages/CollectionDetailPage/CollectionDetailPage';
+import CollectionsPage from './pages/CollectionsPage/CollectionsPage';
+import ExamplesPage from './pages/ExamplesPage/ExamplesPage';
+import HomePage from './pages/HomePage/HomePage';
+import ProfilePage from './pages/ProfilePage/ProfilePage';
+import PublicCollectionDetailPage from './pages/PublicCollectionDetailPage/PublicCollectionDetailPage';
+import { useAuthIntentStore } from './store/auth-intent.store';
 import { useAuthStore } from './store/auth.store';
 import { useModalStore } from './store/modal.store';
-import { useAuthIntentStore } from './store/auth-intent.store';
-import AuthModal from './components/Auth/AuthModal';
-import HomePage from './pages/HomePage/HomePage';
-import CollectionsPage from './pages/CollectionsPage/CollectionsPage';
-import CollectionDetailPage from './pages/CollectionDetailPage/CollectionDetailPage';
-import ExamplesPage from './pages/ExamplesPage/ExamplesPage';
-import PublicCollectionDetailPage from './pages/PublicCollectionDetailPage/PublicCollectionDetailPage';
-import ProfilePage from './pages/ProfilePage/ProfilePage';
+import { useThemeStore } from './store/theme.store';
 
 function AuthResolvingState() {
   return (
@@ -72,7 +74,7 @@ function App() {
   };
 
   return (
-    <>
+    <QueryClientProvider client={appQueryClient}>
       <Header
         user={userForHeader}
         isAuthResolving={!isInitialized}
@@ -163,7 +165,7 @@ function App() {
       </main>
 
       <AuthModal />
-    </>
+    </QueryClientProvider>
   );
 }
 

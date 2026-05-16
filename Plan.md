@@ -393,8 +393,8 @@
 3. Шаг 2: done.
 4. Шаг 3: done (3.1 + 3.2.1-3.2.6).
 5. Шаг 4: done (4.1-4.3).
-6. Шаг 5: planned.
-7. Шаг 6: planned.
+6. Шаг 5: done.
+7. Шаг 6: in_progress.
 8. Шаг 7: planned.
 
 ## Прогресс шага 5.1
@@ -458,6 +458,26 @@
 3. `CollectionForm` уже подключена как modal create/edit UI на `/collections` и `/collections/:collectionId`.
 4. `EntryForm` уже подключена на `/collections/:collectionId` как modal create/edit UI, включая локальный переключатель даты `Одна дата / Период`.
 5. Private `EntryCard` и `EntriesGrid` больше не просто показывают заглушку `Редактировать`: они умеют поднимать edit-модалку карточки через callback, но реальные мутации и удаление ещё не включены.
+
+## Прогресс шага 6.1
+
+1. Private server-state переведён на TanStack Query только для `/collections` и `/collections/:collectionId/:collectionSlug?`.
+2. На уровне приложения добавлен `QueryClientProvider` с общим `appQueryClient`.
+3. Для private-потока вынесены отдельные query/mutation hooks:
+   - `useCollectionsQuery`
+   - `useCollectionDetailQuery`
+   - `useCollectionEntriesQuery`
+   - `useCreateCollectionMutation`
+   - `useUpdateCollectionMutation`
+   - `useDeleteCollectionMutation`
+   - `useCreateEntryMutation`
+   - `useUpdateEntryMutation`
+   - `useDeleteEntryMutation`
+4. Ручные post-submit reload-сценарии на private-страницах заменены на `invalidateQueries`.
+5. `useCollectionsListController` и `useEntriesListController` разделены на два слоя:
+   - URL-state (`useCollectionsListState` / `useEntriesListState`)
+   - legacy manual-fetch controller для экранов, которые ещё не переведены на Query
+6. Public examples пока намеренно не переведены на TanStack Query и остаются следующим подпунктом шага 6.
 
 ## Прогресс шага 5.5
 

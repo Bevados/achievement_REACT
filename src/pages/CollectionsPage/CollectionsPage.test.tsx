@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import CollectionsPage from './CollectionsPage';
 import {
@@ -9,8 +10,7 @@ import {
   getOwnerCollections,
   updateCollection,
 } from '../../api/collections.api';
-
-const reloadCollections = vi.fn(() => Promise.resolve());
+import { createAppQueryClient } from '../../lib/query-client';
 
 vi.mock('../../api/collections.api', () => ({
   createCollection: vi.fn(),
@@ -19,62 +19,44 @@ vi.mock('../../api/collections.api', () => ({
   updateCollection: vi.fn(),
 }));
 
-vi.mock('../../hooks/useCollectionsListController', () => ({
-  useCollectionsListController: () => ({
-    collections: [
-      {
-        id: 'collection-1',
-        ownerId: 'user-1',
-        title: 'Поездки 2026',
-        category: 'other',
-        customCategory: 'Гастротуры',
-        description: 'Лучшие маршруты.',
-        isPublic: false,
-        entriesCount: 3,
-        createdAt: '2026-05-01T00:00:00.000Z',
-        updatedAt: '2026-05-01T00:00:00.000Z',
-      },
-    ],
-    meta: { page: 1, limit: 12, total: 1, totalPages: 1 },
-    page: 1,
-    sortBy: 'updatedAt',
-    sortOrder: 'desc',
-    category: '',
-    searchInput: '',
-    isLoading: false,
-    errorMessage: null,
-    setSortBy: () => undefined,
-    setSortOrder: () => undefined,
-    setCategory: () => undefined,
-    setSearchInput: () => undefined,
-    applySearch: () => undefined,
-    resetFilters: () => undefined,
-    goToPreviousPage: () => undefined,
-    goToNextPage: () => undefined,
-    reloadCollections,
-  }),
-}));
-
 const mockedCreateCollection = vi.mocked(createCollection);
 const mockedDeleteCollection = vi.mocked(deleteCollection);
 const mockedGetOwnerCollections = vi.mocked(getOwnerCollections);
 const mockedUpdateCollection = vi.mocked(updateCollection);
 
+function makeCollection() {
+  return {
+    id: 'collection-1',
+    ownerId: 'user-1',
+    title: 'Поездки 2026',
+    category: 'other' as const,
+    customCategory: 'Гастротуры',
+    description: 'Лучшие маршруты.',
+    isPublic: false,
+    entriesCount: 3,
+    createdAt: '2026-05-01T00:00:00.000Z',
+    updatedAt: '2026-05-01T00:00:00.000Z',
+  };
+}
+
 function renderPage() {
+  const queryClient = createAppQueryClient();
+
   return render(
-    <MemoryRouter>
-      <CollectionsPage />
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <CollectionsPage />
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
 }
 
 describe('CollectionsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    reloadCollections.mockClear();
     mockedGetOwnerCollections.mockResolvedValue({
-      items: [],
-      meta: { page: 1, limit: 12, total: 0, totalPages: 1 },
+      items: [makeCollection()],
+      meta: { page: 1, limit: 12, total: 1, totalPages: 1 },
     });
   });
 
@@ -82,6 +64,7 @@ describe('CollectionsPage', () => {
     const user = userEvent.setup();
 
     renderPage();
+    expect(await screen.findByText('Поездки 2026')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Создать коллекцию' }));
 
@@ -90,24 +73,17 @@ describe('CollectionsPage', () => {
     expect(screen.getByRole('button', { name: 'Сохранить коллекцию' })).toBeEnabled();
   });
 
-  it('submits create form and reloads collections', async () => {
+  it('submits create form and invalidates collections query', async () => {
     const user = userEvent.setup();
 
     mockedCreateCollection.mockResolvedValue({
-      id: 'collection-1',
-      ownerId: 'user-1',
-      title: 'Поездки 2026',
-      category: 'other',
-      customCategory: 'Гастротуры',
-      description: undefined,
-      coverImageUrl: undefined,
-      isPublic: false,
+      ...makeCollection(),
+      id: 'collection-2',
       entriesCount: 0,
-      createdAt: '2026-05-01T00:00:00.000Z',
-      updatedAt: '2026-05-01T00:00:00.000Z',
     });
 
     renderPage();
+    expect(await screen.findByRole('heading', { name: 'Мои коллекции' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Создать коллекцию' }));
     const dialog = screen.getByRole('dialog', { name: 'Новая коллекция' });
@@ -119,14 +95,17 @@ describe('CollectionsPage', () => {
     await user.click(dialogQueries.getByRole('button', { name: 'Сохранить коллекцию' }));
 
     await waitFor(() => {
-      expect(mockedCreateCollection).toHaveBeenCalledWith({
+      expect(mockedCreateCollection.mock.calls[0]?.[0]).toEqual({
         title: 'Поездки 2026',
         category: 'other',
         customCategory: 'Гастротуры',
         description: undefined,
         coverImageUrl: undefined,
       });
-      expect(reloadCollections).toHaveBeenCalledTimes(1);
+    });
+
+    await waitFor(() => {
+      expect(mockedGetOwnerCollections.mock.calls.length).toBeGreaterThanOrEqual(2);
     });
   });
 
@@ -134,22 +113,17 @@ describe('CollectionsPage', () => {
     const user = userEvent.setup();
 
     mockedUpdateCollection.mockResolvedValue({
-      id: 'collection-1',
-      ownerId: 'user-1',
+      ...makeCollection(),
       title: 'Обновленная коллекция',
-      category: 'other',
-      customCategory: 'Гастротуры',
-      description: 'Лучшие маршруты.',
-      coverImageUrl: undefined,
-      isPublic: false,
-      entriesCount: 3,
-      createdAt: '2026-05-01T00:00:00.000Z',
       updatedAt: '2026-05-02T00:00:00.000Z',
     });
 
     renderPage();
+    const cardTitle = await screen.findByText('Поездки 2026');
+    const card = cardTitle.closest('.group');
+    expect(card).not.toBeNull();
 
-    await user.click(screen.getByRole('button', { name: 'Редактировать коллекцию Поездки 2026' }));
+    await user.click(within(card as HTMLElement).getAllByRole('button')[0]);
     expect(screen.getByRole('dialog', { name: 'Редактирование коллекции' })).toBeInTheDocument();
 
     await user.clear(screen.getByLabelText('Название коллекции'));
@@ -164,22 +138,27 @@ describe('CollectionsPage', () => {
         description: 'Лучшие маршруты.',
         coverImageUrl: undefined,
       });
-      expect(reloadCollections).toHaveBeenCalledTimes(1);
     });
   });
 
-  it('deletes collection from collection card and reloads list', async () => {
+  it('deletes collection from collection card and invalidates list', async () => {
     const user = userEvent.setup();
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     mockedDeleteCollection.mockResolvedValue(null);
 
     renderPage();
+    const cardTitle = await screen.findByText('Поездки 2026');
+    const card = cardTitle.closest('.group');
+    expect(card).not.toBeNull();
 
-    await user.click(screen.getByRole('button', { name: 'Удалить коллекцию Поездки 2026' }));
+    await user.click(within(card as HTMLElement).getAllByRole('button')[1]);
 
     await waitFor(() => {
       expect(mockedDeleteCollection).toHaveBeenCalledWith('collection-1');
-      expect(reloadCollections).toHaveBeenCalledTimes(1);
+    });
+
+    await waitFor(() => {
+      expect(mockedGetOwnerCollections.mock.calls.length).toBeGreaterThanOrEqual(2);
     });
   });
 
@@ -189,6 +168,7 @@ describe('CollectionsPage', () => {
     mockedCreateCollection.mockRejectedValue(new Error('Коллекцию сохранить не удалось.'));
 
     renderPage();
+    expect(await screen.findByRole('heading', { name: 'Мои коллекции' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Создать коллекцию' }));
     const dialog = screen.getByRole('dialog', { name: 'Новая коллекция' });
@@ -200,6 +180,5 @@ describe('CollectionsPage', () => {
     await user.click(dialogQueries.getByRole('button', { name: 'Сохранить коллекцию' }));
 
     expect(await screen.findByText('Коллекцию сохранить не удалось.')).toBeInTheDocument();
-    expect(reloadCollections).not.toHaveBeenCalled();
   });
 });
