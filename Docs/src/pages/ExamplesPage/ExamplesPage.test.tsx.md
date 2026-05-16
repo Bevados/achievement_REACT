@@ -2,31 +2,26 @@
 
 ## Что делает файл
 
-Файл проверяет минимально обязательные UI-сценарии страницы examples.
-Фокус тестов: корректный рендер состояний `loading`, `error`, `empty`, `success`.
+Проверяет публичную страницу списка examples после перевода на TanStack Query.
 
 ## Импорты и зависимости
 
-1. `vitest` используется как тестовый раннер и система моков.
-2. `@testing-library/react` и `@testing-library/user-event` нужны для рендера и пользовательских действий.
-3. `react-router-dom` (`MemoryRouter`) обязателен, потому что список коллекций теперь рендерит `CollectionCard` c `Link`.
-4. `src/pages/ExamplesPage/ExamplesPage.tsx` - тестируемый компонент.
-5. `src/hooks/useCollectionsListController.ts` мокается как источник состояния страницы.
-6. `contracts/collection.contracts.ts` задает типы мок-данных (`CollectionView`, `PaginationMeta`).
+1. `@tanstack/react-query` — `QueryClientProvider` для тестового query-контекста.
+2. `@testing-library/react` и `userEvent` — рендер, ожидания и retry-сценарии.
+3. `react-router-dom` — `MemoryRouter` для public route `/examples`.
+4. `src/api/collections.api.ts` — мок публичного API списка коллекций.
+5. `src/lib/query-client.ts` — фабрика изолированного `QueryClient` на каждый тест.
 
 ## Экспорты и контракты
 
-1. Файл не экспортирует production-сущности.
-2. Содержит набор unit/integration тестов поведения страницы при разных состояниях контроллера.
+1. Файл не экспортирует production-код; он покрывает public Query flow через `ExamplesPage`.
 
 ## Нетривиальная логика
 
-1. Вместо сетевых запросов мокается `useCollectionsListController`, чтобы детерминированно задавать состояние страницы.
-2. Все рендеры проходят через локальный helper `renderPage()`, который оборачивает страницу в `MemoryRouter`.
-3. Проверка `error` включает retry-клик и валидацию вызова `reloadCollections`.
-4. Для `success` проверяется рендер карточки коллекции и метаданных пагинации.
+1. Каждый тест создаёт отдельный `QueryClient`, чтобы кэш React Query не протекал между кейсами.
+2. Вместо controller-mock мокается реальный `getPublicCollections`, а страница проверяется через QueryClientProvider.
+3. Success-case фиксирует, что readable href коллекции остаётся в формате `id + slug`.
 
 ## Где используется
 
-1. Запускается Vitest-командой проекта (`npm test`).
-2. Закрывает минимальное требование шага по рендеру `loading/empty/error/success` для examples.
+1. `npm.cmd run test`

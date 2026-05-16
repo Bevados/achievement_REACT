@@ -6,7 +6,7 @@
 
 ## Импорты и зависимости
 
-1. `react` — reducer, эффекты и manual-fetch state.
+1. `react` — reducer, эффекты и legacy manual-fetch state.
 2. `react-router-dom` — `useSearchParams`.
 3. `contracts/collection.contracts.ts` — типы карточек, статусов, сортировок и query DTO.
 
@@ -14,17 +14,17 @@
 
 1. `EntriesQuery` — нормализованный shape query-параметров списка карточек.
 2. `useEntriesListState(pageSize?)` — URL-state для фильтров, сортировки и пагинации без загрузки данных.
-3. `useEntriesListController(options)` — manual-fetch оболочка над `useEntriesListState()` для экранов, которые ещё не переведены на Query.
+3. `useEntriesListController(options)` — legacy/manual-fetch обёртка над `useEntriesListState()` для совместимости со старыми сценариями.
 
 ## Нетривиальная логика
 
-1. Input-state фильтров отделён от applied-state, чтобы пользователь мог заполнять поля до нажатия `Применить`.
+1. Input-state фильтров отделён от applied-state, чтобы пользователь мог заполнить поля до нажатия `Применить`.
 2. URL-state синхронизируется через reducer, без прямых `setState` в эффекте.
 3. Query-параметры дат конвертируются в начало/конец дня в ISO.
 4. Empty-state зависит от `hasActiveFilters`: без фильтров коллекция считается пустой, с фильтрами — просто ничего не найдено.
 
 ## Где используется
 
-1. `src/pages/PublicCollectionDetailPage/PublicCollectionDetailPage.tsx`
-2. `src/pages/CollectionDetailPage/CollectionDetailPage.tsx`
-3. Тип `EntriesQuery` используется в private query keys.
+1. `src/pages/PublicCollectionDetailPage/PublicCollectionDetailPage.tsx` — через `useEntriesListState()` и public Query hooks.
+2. `src/pages/CollectionDetailPage/CollectionDetailPage.tsx` — через `useEntriesListState()` и private Query hooks.
+3. Тип `EntriesQuery` используется в private и public query keys.

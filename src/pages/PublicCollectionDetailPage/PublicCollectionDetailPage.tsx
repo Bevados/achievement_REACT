@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import type { CollectionView } from '../../../contracts/collection.contracts';
-import { getPublicCollectionById, getPublicCollectionEntries } from '../../api/collections.api';
 import EntriesFilters from '../../components/Entries/EntriesFilters';
 import EntriesGrid from '../../components/Entries/EntriesGrid';
 import EntriesPagination from '../../components/Entries/EntriesPagination';
 import { getCollectionCategoryLabel } from '../../config/collections.config';
-import { useEntriesListController } from '../../hooks/useEntriesListController';
+import { useEntriesListState } from '../../hooks/useEntriesListController';
+import {
+  usePublicCollectionDetailQuery,
+  usePublicCollectionEntriesQuery,
+} from '../../hooks/usePublicCollectionsQueries';
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString('ru-RU', {
@@ -31,14 +32,7 @@ function BackToExamplesLinks() {
 
 export default function PublicCollectionDetailPage() {
   const { collectionId } = useParams<{ collectionId: string }>();
-
-  const [collection, setCollection] = useState<CollectionView | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
   const {
-    entries,
-    meta: entriesMeta,
     hasActiveFilters,
     page,
     sortBy,
@@ -52,8 +46,7 @@ export default function PublicCollectionDetailPage() {
     maxPriceInput,
     minRatingInput,
     maxRatingInput,
-    isLoading: isEntriesLoading,
-    errorMessage: entriesErrorMessage,
+    query,
     setSortBy,
     setSortOrder,
     setStatus,
@@ -69,44 +62,13 @@ export default function PublicCollectionDetailPage() {
     resetFilters,
     goToPreviousPage,
     goToNextPage,
-    reloadEntries,
-  } = useEntriesListController({
-    collectionId: collectionId ?? '',
-    fetchEntries: getPublicCollectionEntries,
-    fallbackErrorMessage: 'Не удалось загрузить карточки публичной коллекции. Попробуйте еще раз.',
-  });
+  } = useEntriesListState();
 
-  const reloadPage = useCallback(async () => {
-    if (!collectionId) {
-      setCollection(null);
-      setErrorMessage('Не удалось определить идентификатор публичной коллекции.');
-      setIsLoading(false);
-      return;
-    }
+  const collectionQuery = usePublicCollectionDetailQuery(collectionId ?? '');
+  const entriesQuery = usePublicCollectionEntriesQuery(collectionId ?? '', query);
+  const collection = collectionQuery.data ?? null;
 
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    try {
-      const collectionResult = await getPublicCollectionById(collectionId);
-      setCollection(collectionResult);
-    } catch (error) {
-      setCollection(null);
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : 'Не удалось загрузить публичную коллекцию и ее карточки. Попробуйте еще раз.',
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [collectionId]);
-
-  useEffect(() => {
-    void reloadPage();
-  }, [reloadPage]);
-
-  if (isLoading) {
+  if (collectionQuery.isLoading) {
     return (
       <section className="space-y-6 rounded-3xl border border-gray-200 bg-white p-6 sm:p-8">
         <div className="h-4 w-36 animate-pulse rounded-full bg-gray-100" />
@@ -120,20 +82,20 @@ export default function PublicCollectionDetailPage() {
     );
   }
 
-  if (errorMessage || !collection) {
+  if (collectionQuery.error || !collection) {
     return (
       <section className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-8">
         <BackToExamplesLinks />
 
         <div className="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-4" role="alert">
           <p className="text-sm text-rose-700">
-            {errorMessage ?? 'Публичная коллекция не найдена или недоступна.'}
+            {collectionQuery.error?.message ?? 'Публичная коллекция не найдена или недоступна.'}
           </p>
           <button
             type="button"
             onClick={() => {
-              void reloadPage();
-              void reloadEntries();
+              void collectionQuery.refetch();
+              void entriesQuery.refetch();
             }}
             className="mt-3 inline-flex rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
           >
@@ -201,9 +163,9 @@ export default function PublicCollectionDetailPage() {
           <div>
             <h2 className="text-2xl font-semibold text-primary">Карточки коллекции</h2>
             <p className="mt-1 text-sm text-gray-600">
-              {entriesMeta
-                ? `Показано ${entries.length} из ${entriesMeta.total} карточек`
-                : `Показано ${entries.length} карточек`}
+              {entriesQuery.data?.meta
+                ? `Показано ${entriesQuery.data.items.length} из ${entriesQuery.data.meta.total} карточек`
+                : `Показано ${entriesQuery.data?.items.length ?? 0} карточек`}
             </p>
           </div>
         </div>
@@ -235,20 +197,20 @@ export default function PublicCollectionDetailPage() {
           onReset={resetFilters}
         />
 
-        {isEntriesLoading ? (
+        {entriesQuery.isLoading ? (
           <div className="grid gap-4 lg:grid-cols-2" aria-live="polite">
             {Array.from({ length: 2 }).map((_, index) => (
               <div key={index} className="h-72 animate-pulse rounded-2xl border border-gray-200 bg-gray-50" />
             ))}
           </div>
-        ) : entriesErrorMessage ? (
+        ) : entriesQuery.error ? (
           <div className="rounded-xl border border-rose-200 bg-rose-50 p-4" role="alert">
-            <p className="text-sm text-rose-700">{entriesErrorMessage}</p>
+            <p className="text-sm text-rose-700">{entriesQuery.error.message}</p>
           </div>
         ) : (
           <>
             <EntriesGrid
-              entries={entries}
+              entries={entriesQuery.data?.items ?? []}
               emptyMessage={
                 hasActiveFilters
                   ? 'По выбранным фильтрам карточки не найдены.'
@@ -257,11 +219,11 @@ export default function PublicCollectionDetailPage() {
               showActions={false}
             />
 
-            {entriesMeta && entriesMeta.totalPages > 1 ? (
+            {entriesQuery.data?.meta && entriesQuery.data.meta.totalPages > 1 ? (
               <EntriesPagination
-                meta={entriesMeta}
+                meta={entriesQuery.data.meta}
                 page={page}
-                isLoading={isEntriesLoading}
+                isLoading={entriesQuery.isFetching}
                 onPreviousPage={goToPreviousPage}
                 onNextPage={goToNextPage}
               />

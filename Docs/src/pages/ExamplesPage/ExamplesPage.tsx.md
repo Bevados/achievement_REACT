@@ -6,12 +6,12 @@
 
 ## Импорты и зависимости
 
-1. `src/api/collections.api.ts`
-2. `CollectionsGrid`
-3. `CollectionsFilters`
-4. `CollectionsPagination`
-5. `useCollectionsListController`
-6. `src/utils/routing.utils.ts`
+1. `CollectionsGrid` — сетка карточек коллекций.
+2. `CollectionsFilters` — фильтры и сортировка списка.
+3. `CollectionsPagination` — пагинация.
+4. `useCollectionsListController` — URL-state для страницы examples.
+5. `usePublicCollectionsQueries` — TanStack Query-загрузка публичного списка.
+6. `src/utils/routing.utils.ts` — сборка public href в формате `id + slug`.
 
 ## Экспорты и контракты
 
@@ -19,8 +19,10 @@
 
 ## Нетривиальная логика
 
-1. Detail href строятся через `getPublicCollectionHref`, поэтому URL публичных коллекций читаемые и содержат `id + slug`.
-2. Сама страница остаётся read-only и использует только public API.
+1. Страница использует `useCollectionsListState()` только как слой URL-state, а реальные данные загружает через `usePublicCollectionsQuery()`.
+2. Retry-кнопка больше не вызывает ручной reload, а использует `collectionsQuery.refetch()`.
+3. Detail href строятся через `getPublicCollectionHref`, поэтому URL публичных коллекций читаемые и содержат `id + slug`.
+4. Страница остаётся read-only и использует только public Query/API.
 
 ## Где используется
 

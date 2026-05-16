@@ -33,8 +33,9 @@
 - внутри коллекций есть карточки (`entries`);
 - есть публичная часть с example-коллекциями;
 - есть приватная часть пользователя;
-- базовый private CRUD для коллекций и карточек уже работает;
-- следующий крупный этап — перевод server-state на TanStack Query.
+- базовый private CRUD для коллекций и карточек уже работает.
+
+Следующий крупный этап — шаг 7 с качеством, финальными проверками и подготовкой к деплою.
 
 ---
 
@@ -71,7 +72,7 @@ Frontend:
 - Tailwind CSS
 
 Data layer:
-- TanStack Query уже подключён для private server-state
+- TanStack Query уже подключён для private и public server-state
 
 Backend:
 - Vercel-style API routes
@@ -91,9 +92,9 @@ Backend:
   - `/api/examples/collections`
   - `/api/examples/collections/:collectionId`
   - `/api/examples/collections/:collectionId/entries`
-- реализован `Шаг 5` по private CRUD:
+- шаг 5 по private CRUD фактически закрыт:
   - detail collection page
-  - read-only и adaptive `EntryCard`
+  - adaptive `EntryCard`
   - filters/pagination для entries
   - modal-формы `CollectionForm` и `EntryForm`
   - `react-hook-form + zod`
@@ -106,6 +107,7 @@ Backend:
 - на карточке коллекции и на detail-страницах показываются дата создания и дата обновления
 - private/public detail-страницы имеют верхнюю и нижнюю ссылки возврата к спискам
 - фильтры карточек раскрываются плавно
+- public examples уже тоже переведены на TanStack Query и используют отдельные public query hooks
 
 ---
 
@@ -115,14 +117,20 @@ Backend:
 
 Текущее состояние:
 - ранние шаги плана уже выполнены;
-- `Шаг 5` по CRUD фактически закрыт;
-- текущий активный этап — `Шаг 6.1`: перевод private server-state на TanStack Query.
+- шаг 5 по CRUD фактически закрыт;
+- шаг 6 завершён:
+  - 6.1 private server-state переведён на TanStack Query;
+  - 6.2 public examples переведены на TanStack Query;
+- следующий активный этап после завершения шага 6 — переход к шагу 7.
 
-Что уже сделано в `Шаге 6.1`:
+Что уже сделано в шаге 6:
 - добавлен `QueryClientProvider` на уровне приложения;
 - private server-state переведён на TanStack Query для:
   - `/collections`
   - `/collections/:collectionId/:collectionSlug?`
+- public server-state переведён на TanStack Query для:
+  - `/examples`
+  - `/examples/:collectionId/:collectionSlug?`
 - вынесены отдельные private query/mutation hooks:
   - `useCollectionsQuery`
   - `useCollectionDetailQuery`
@@ -133,13 +141,14 @@ Backend:
   - `useCreateEntryMutation`
   - `useUpdateEntryMutation`
   - `useDeleteEntryMutation`
-- private manual reload-сценарии заменяются на `invalidateQueries`
+- для public examples добавлены read-only query hooks:
+  - `usePublicCollectionsQuery`
+  - `usePublicCollectionDetailQuery`
+  - `usePublicCollectionEntriesQuery`
 - `useCollectionsListController` и `useEntriesListController` разделены на:
   - URL-state hooks
   - legacy manual-fetch controller layer для экранов, которые ещё не на Query
-
-Что ещё не сделано в `Шаге 6`:
-- public examples пока сознательно не переведены на TanStack Query
+- public и private query keys разделены
 
 ---
 
@@ -167,7 +176,8 @@ Private API:
 
 Разделение:
 - public examples — read-only;
-- private collections — рабочий CRUD-поток и текущая зона миграции на TanStack Query.
+- private collections — рабочий CRUD-поток;
+- server-state для обоих потоков уже переведён на TanStack Query.
 
 ---
 
@@ -206,9 +216,7 @@ Private API:
 - Public examples и private collections — разные контексты.
 - Для `completed` entry обязательны `rating` и `dateStart`.
 - Вместо одного `date` используется модель `dateStart/dateEnd`.
-- В `Шаге 6.1` private URL-state и private server-state разделены:
-  - URL-state остаётся в controller hooks;
-  - server-state и CRUD-инвалидация уходят в TanStack Query.
+- Server-state для обоих потоков уже переведён на TanStack Query; `Zustand` остаётся для `auth/modal/theme`.
 
 ---
 

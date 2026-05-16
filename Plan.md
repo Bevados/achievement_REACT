@@ -394,7 +394,7 @@
 4. Шаг 3: done (3.1 + 3.2.1-3.2.6).
 5. Шаг 4: done (4.1-4.3).
 6. Шаг 5: done.
-7. Шаг 6: in_progress.
+7. Шаг 6: done (6.1-6.2).
 8. Шаг 7: planned.
 
 ## Прогресс шага 5.1
@@ -478,6 +478,18 @@
    - URL-state (`useCollectionsListState` / `useEntriesListState`)
    - legacy manual-fetch controller для экранов, которые ещё не переведены на Query
 6. Public examples пока намеренно не переведены на TanStack Query и остаются следующим подпунктом шага 6.
+
+## Прогресс шага 6.2
+
+1. Public server-state переведён на TanStack Query для `/examples` и `/examples/:collectionId/:collectionSlug?`.
+2. Для public examples вынесены отдельные read-only query hooks:
+   - `usePublicCollectionsQuery`
+   - `usePublicCollectionDetailQuery`
+   - `usePublicCollectionEntriesQuery`
+3. Public query keys отделены от private keys, чтобы examples не смешивались с приватным CRUD-кэшем.
+4. `ExamplesPage` и `PublicCollectionDetailPage` больше не используют manual-fetch controller flow: URL-state остаётся в `useCollectionsListState()` и `useEntriesListState()`, а server-state загружается через Query hooks.
+5. Retry-кнопки на public-экранах переведены на `query.refetch()` вместо ручных reload-функций.
+6. Public examples остаются полностью read-only: в этом подпункте не добавлялись public mutations, invalidate после мутаций или optimistic updates.
 
 ## Прогресс шага 5.5
 

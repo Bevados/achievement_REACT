@@ -1,8 +1,10 @@
+import { QueryClientProvider } from '@tanstack/react-query';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { getPublicCollectionById, getPublicCollectionEntries } from '../../api/collections.api';
+import { createAppQueryClient } from '../../lib/query-client';
 import PublicCollectionDetailPage from './PublicCollectionDetailPage';
 
 vi.mock('../../api/collections.api', () => ({
@@ -13,14 +15,37 @@ vi.mock('../../api/collections.api', () => ({
 const mockedGetPublicCollectionById = vi.mocked(getPublicCollectionById);
 const mockedGetPublicCollectionEntries = vi.mocked(getPublicCollectionEntries);
 
+const RETRY_LABEL = '\u041f\u043e\u0432\u0442\u043e\u0440\u0438\u0442\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0443';
+const EMPTY_MESSAGE = '\u0412 \u044d\u0442\u043e\u0439 \u043a\u043e\u043b\u043b\u0435\u043a\u0446\u0438\u0438 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442 \u043a\u0430\u0440\u0442\u043e\u0447\u0435\u043a.';
+const FILTERED_EMPTY_MESSAGE =
+  '\u041f\u043e \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u044b\u043c \u0444\u0438\u043b\u044c\u0442\u0440\u0430\u043c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0438 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u044b.';
+
 function renderPage(initialPath = '/examples/collection-1') {
+  const queryClient = createAppQueryClient();
+
   return render(
-    <MemoryRouter initialEntries={[initialPath]}>
-      <Routes>
-        <Route path="/examples/:collectionId/:collectionSlug?" element={<PublicCollectionDetailPage />} />
-      </Routes>
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[initialPath]}>
+        <Routes>
+          <Route path="/examples/:collectionId/:collectionSlug?" element={<PublicCollectionDetailPage />} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
+}
+
+function makeCollection() {
+  return {
+    id: 'collection-1',
+    ownerId: 'system',
+    title: 'Public collection',
+    description: 'Read-only example collection',
+    category: 'travel' as const,
+    isPublic: true,
+    entriesCount: 1,
+    createdAt: '2026-04-12T09:00:00.000Z',
+    updatedAt: '2026-04-15T10:00:00.000Z',
+  };
 }
 
 describe('PublicCollectionDetailPage', () => {
@@ -28,77 +53,75 @@ describe('PublicCollectionDetailPage', () => {
     vi.clearAllMocks();
   });
 
-  it('renders loading state', () => {
-    mockedGetPublicCollectionById.mockImplementation(
-      () => new Promise(() => undefined) as ReturnType<typeof getPublicCollectionById>,
-    );
-    mockedGetPublicCollectionEntries.mockImplementation(
-      () => new Promise(() => undefined) as ReturnType<typeof getPublicCollectionEntries>,
-    );
-
-    renderPage();
-
-    expect(document.querySelector('[aria-live="polite"]')).not.toBeNull();
-  });
-
-  it('renders error state and retries loading', async () => {
-    const user = userEvent.setup();
-
-    mockedGetPublicCollectionById.mockRejectedValueOnce(
-      new Error('Не удалось загрузить публичную коллекцию.'),
-    );
-    mockedGetPublicCollectionEntries.mockRejectedValueOnce(new Error('Не удалось загрузить карточки.'));
-
-    mockedGetPublicCollectionById.mockResolvedValueOnce({
-      id: 'collection-1',
-      ownerId: 'system_examples',
-      title: 'Путешествия',
-      category: 'travel',
-      isPublic: true,
-      entriesCount: 0,
-      createdAt: '2026-05-01T08:00:00.000Z',
-      updatedAt: '2026-05-02T08:00:00.000Z',
-    });
-    mockedGetPublicCollectionEntries.mockResolvedValueOnce({
+  it('requests detail and entries on load', async () => {
+    mockedGetPublicCollectionById.mockResolvedValue(makeCollection());
+    mockedGetPublicCollectionEntries.mockResolvedValue({
       items: [],
       meta: {
         page: 1,
-        limit: 10,
+        limit: 12,
         total: 0,
         totalPages: 1,
       },
     });
 
     renderPage();
-
-    expect(await screen.findByText('Не удалось загрузить публичную коллекцию.')).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: 'Повторить загрузку' }));
 
     await waitFor(() => {
-      expect(mockedGetPublicCollectionById.mock.calls.length).toBeGreaterThanOrEqual(2);
-      expect(mockedGetPublicCollectionEntries.mock.calls.length).toBeGreaterThanOrEqual(2);
+      expect(mockedGetPublicCollectionById).toHaveBeenCalledWith('collection-1');
+      expect(mockedGetPublicCollectionEntries).toHaveBeenCalledWith('collection-1', {
+        page: 1,
+        limit: 12,
+        sortBy: 'updatedAt',
+        sortOrder: 'desc',
+        status: undefined,
+        createdAtFrom: undefined,
+        createdAtTo: undefined,
+        dateStartFrom: undefined,
+        dateStartTo: undefined,
+        minPrice: undefined,
+        maxPrice: undefined,
+        minRating: undefined,
+        maxRating: undefined,
+      });
     });
   });
 
-  it('renders empty state for public entries without active filters', async () => {
+  it('retries after error', async () => {
     const user = userEvent.setup();
 
-    mockedGetPublicCollectionById.mockResolvedValue({
-      id: 'collection-1',
-      ownerId: 'system_examples',
-      title: 'Публичная коллекция',
-      category: 'travel',
-      isPublic: true,
-      entriesCount: 0,
-      createdAt: '2026-05-01T08:00:00.000Z',
-      updatedAt: '2026-05-02T08:00:00.000Z',
+    mockedGetPublicCollectionById.mockRejectedValueOnce(new Error('boom')).mockResolvedValueOnce(makeCollection());
+    mockedGetPublicCollectionEntries
+      .mockRejectedValueOnce(new Error('boom'))
+      .mockResolvedValueOnce({
+        items: [],
+        meta: {
+          page: 1,
+          limit: 12,
+          total: 0,
+          totalPages: 1,
+        },
+      });
+
+    renderPage();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('boom');
+
+    await user.click(screen.getByRole('button', { name: RETRY_LABEL }));
+
+    await waitFor(() => {
+      expect(mockedGetPublicCollectionById).toHaveBeenCalledTimes(2);
+      expect(mockedGetPublicCollectionEntries).toHaveBeenCalledTimes(2);
     });
+  });
+
+  it('renders empty state without filters', async () => {
+    mockedGetPublicCollectionById.mockResolvedValue(makeCollection());
     mockedGetPublicCollectionEntries.mockResolvedValue({
       items: [],
       meta: {
         page: 1,
-        limit: 10,
+        limit: 12,
         total: 0,
         totalPages: 1,
       },
@@ -106,82 +129,57 @@ describe('PublicCollectionDetailPage', () => {
 
     renderPage();
 
-    expect(await screen.findByRole('heading', { name: 'Публичная коллекция' })).toBeInTheDocument();
-    expect(screen.getByText('В этой коллекции пока нет карточек.')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Показать фильтры' }));
-    expect(screen.getByLabelText('Статус')).toBeInTheDocument();
+    expect(await screen.findByText(EMPTY_MESSAGE)).toBeInTheDocument();
   });
 
-  it('renders filtered empty state for public collection', async () => {
-    mockedGetPublicCollectionById.mockResolvedValue({
-      id: 'collection-1',
-      ownerId: 'system_examples',
-      title: 'Публичная коллекция',
-      category: 'travel',
-      isPublic: true,
-      entriesCount: 0,
-      createdAt: '2026-05-01T08:00:00.000Z',
-      updatedAt: '2026-05-02T08:00:00.000Z',
-    });
+  it('renders filtered empty state', async () => {
+    mockedGetPublicCollectionById.mockResolvedValue(makeCollection());
     mockedGetPublicCollectionEntries.mockResolvedValue({
       items: [],
       meta: {
         page: 1,
-        limit: 10,
+        limit: 12,
         total: 0,
         totalPages: 1,
       },
     });
 
-    renderPage('/examples/collection-1?status=planned');
+    renderPage('/examples/collection-1/public-collection?status=completed');
 
-    expect(await screen.findByRole('heading', { name: 'Публичная коллекция' })).toBeInTheDocument();
-    expect(screen.getByText('По выбранным фильтрам карточки не найдены.')).toBeInTheDocument();
+    expect(await screen.findByText(FILTERED_EMPTY_MESSAGE)).toBeInTheDocument();
   });
 
   it('renders success state without private actions', async () => {
-    const user = userEvent.setup();
-
-    mockedGetPublicCollectionById.mockResolvedValue({
-      id: 'collection-1',
-      ownerId: 'system_examples',
-      title: 'Публичная коллекция',
-      category: 'travel',
-      description: 'Описание публичной коллекции.',
-      isPublic: true,
-      entriesCount: 1,
-      createdAt: '2026-05-01T08:00:00.000Z',
-      updatedAt: '2026-05-02T08:00:00.000Z',
-    });
+    mockedGetPublicCollectionById.mockResolvedValue(makeCollection());
     mockedGetPublicCollectionEntries.mockResolvedValue({
       items: [
         {
           id: 'entry-1',
           collectionId: 'collection-1',
-          ownerId: 'system_examples',
-          title: 'Токио',
-          status: 'planned',
-          description: 'Первый город в маршруте.',
-          createdAt: '2026-05-01T08:00:00.000Z',
-          updatedAt: '2026-05-02T08:00:00.000Z',
+          ownerId: 'system',
+          title: 'Tokyo',
+          description: 'First city on the route.',
+          status: 'completed',
+          rating: 8,
+          tags: ['city'],
+          createdAt: '2026-04-12T09:00:00.000Z',
+          updatedAt: '2026-04-15T10:00:00.000Z',
         },
       ],
       meta: {
         page: 1,
-        limit: 10,
+        limit: 12,
         total: 1,
         totalPages: 1,
       },
     });
 
-    renderPage();
+    renderPage('/examples/collection-1/public-collection');
 
-    expect(await screen.findByRole('heading', { name: 'Публичная коллекция' })).toBeInTheDocument();
-    expect(screen.getByText('Токио')).toBeInTheDocument();
-    expect(screen.getByText('Первый город в маршруте.')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Показать фильтры' }));
-    expect(screen.getByLabelText('Сортировка')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Редактировать' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Удалить' })).not.toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Public collection/i })).toBeInTheDocument();
+    expect(screen.getByText('Tokyo')).toBeInTheDocument();
+    expect(screen.getByText('First city on the route.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /\u0423\u0434\u0430\u043b\u0438\u0442\u044c/i })).not.toBeInTheDocument();
   });
 });

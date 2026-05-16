@@ -1,21 +1,18 @@
-import { getPublicCollections } from '../../api/collections.api';
 import CollectionsGrid from '../../components/Collections/CollectionsGrid';
 import CollectionsFilters from '../../components/Collections/CollectionsFilters';
 import CollectionsPagination from '../../components/Collections/CollectionsPagination';
-import { useCollectionsListController } from '../../hooks/useCollectionsListController';
+import { useCollectionsListState } from '../../hooks/useCollectionsListController';
+import { usePublicCollectionsQuery } from '../../hooks/usePublicCollectionsQueries';
 import { getPublicCollectionHref } from '../../utils/routing.utils';
 
 export default function ExamplesPage() {
   const {
-    collections,
-    meta,
     page,
     sortBy,
     sortOrder,
     category,
     searchInput,
-    isLoading,
-    errorMessage,
+    search,
     setSortBy,
     setSortOrder,
     setCategory,
@@ -24,11 +21,15 @@ export default function ExamplesPage() {
     resetFilters,
     goToPreviousPage,
     goToNextPage,
-    reloadCollections,
-  } = useCollectionsListController({
-    fetchCollections: getPublicCollections,
-    fallbackErrorMessage: 'Не удалось загрузить публичные коллекции. Попробуйте еще раз.',
-    pageSize: 12,
+  } = useCollectionsListState();
+
+  const collectionsQuery = usePublicCollectionsQuery({
+    page,
+    limit: 12,
+    sortBy,
+    sortOrder,
+    category: category || undefined,
+    search: search || undefined,
   });
 
   return (
@@ -51,7 +52,7 @@ export default function ExamplesPage() {
         onReset={resetFilters}
       />
 
-      {isLoading ? (
+      {collectionsQuery.isLoading ? (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-live="polite">
           {Array.from({ length: 3 }).map((_, index) => (
             <div
@@ -60,13 +61,13 @@ export default function ExamplesPage() {
             />
           ))}
         </div>
-      ) : errorMessage ? (
+      ) : collectionsQuery.error ? (
         <div className="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-4" role="alert">
-          <p className="text-sm text-rose-700">{errorMessage}</p>
+          <p className="text-sm text-rose-700">{collectionsQuery.error.message}</p>
           <button
             type="button"
             onClick={() => {
-              void reloadCollections();
+              void collectionsQuery.refetch();
             }}
             className="mt-3 inline-flex rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
           >
@@ -76,15 +77,15 @@ export default function ExamplesPage() {
       ) : (
         <>
           <CollectionsGrid
-            collections={collections}
+            collections={collectionsQuery.data?.items ?? []}
             emptyMessage="Публичные примеры пока отсутствуют."
             getCollectionHref={getPublicCollectionHref}
           />
 
           <CollectionsPagination
-            meta={meta}
+            meta={collectionsQuery.data?.meta ?? null}
             page={page}
-            isLoading={isLoading}
+            isLoading={collectionsQuery.isFetching}
             onPreviousPage={goToPreviousPage}
             onNextPage={goToNextPage}
           />
