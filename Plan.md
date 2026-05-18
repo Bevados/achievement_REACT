@@ -522,6 +522,17 @@
 3. Единый script стал новым источником истины для MVP release-gate, чтобы порядок проверок не хранился только в docs или в устной договоренности.
 4. В `release:check` не входят `dev:api`, seed-скрипты, ручные browser-smoke или Vercel deploy: это только локальный gate для lint/build/test/docs.
 
+## Финальное укрепление после repo-аудита
+
+1. Закрыт backend-инвариант для пользовательской категории: `category='other'` теперь требует непустой `customCategory` и на уровне shared schema, и в service-layer.
+2. Legacy API-поверхность `/api/items` и старый `item.*` stack удалены из runtime и из Docs, чтобы в проекте оставались только актуальные маршруты `collections/examples`.
+3. Backend-ошибки auth/controller/runtime приведены к русским пользовательским сообщениям.
+4. Firebase Admin инициализация получила fail-fast проверку обязательных server env (`FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`).
+5. `README.md` очищен от шаблонного Vite boilerplate и отражает реальное состояние проекта.
+6. Добавлен GitHub Actions workflow `Release Check`, который запускает `npm run release:check` на `push/pull_request`.
+7. `src/App.tsx` переведён на route-level lazy loading через `React.lazy`, чтобы убрать audit warning по слишком крупному главному frontend chunk.
+8. Исторический fallback smoke-harness `smoke/step-2.2.8.api.smoke.test.ts` тоже приведён к текущей русской backend error-policy, чтобы повторный аудит не оставлял даже мелких quality-хвостов.
+
 ## Прогресс шага 5.5
 
 1. `CollectionForm` и `EntryForm` переведены с локального `useState` на `react-hook-form`, чтобы следующий подпункт с CRUD-мутациями опирался уже на стабильный form-state и submit-flow.

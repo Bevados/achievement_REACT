@@ -8,24 +8,24 @@ function isErrorWithName(error: unknown, name: string): error is Error {
 
 export function handleControllerError(res: VercelResponse, error: unknown) {
   if (error instanceof ZodError) {
-    return sendError(res, 422, 'VALIDATION_ERROR', 'Validation failed', mapValidationIssues(error));
+    return sendError(res, 422, 'VALIDATION_ERROR', 'Проверьте введённые данные', mapValidationIssues(error));
   }
 
   if (isErrorWithName(error, 'ForbiddenError')) {
-    return sendError(res, 403, 'FORBIDDEN', error.message || 'Access is forbidden');
+    return sendError(res, 403, 'FORBIDDEN', error.message || 'Доступ запрещён');
   }
 
   if (isErrorWithName(error, 'NotFoundError')) {
-    return sendError(res, 404, 'NOT_FOUND', error.message || 'Resource not found');
+    return sendError(res, 404, 'NOT_FOUND', error.message || 'Ресурс не найден');
   }
 
   if (isErrorWithName(error, 'TransactionError')) {
-    return sendError(res, 500, 'TRANSACTION_ERROR', error.message || 'Transaction failed');
+    return sendError(res, 500, 'TRANSACTION_ERROR', error.message || 'Не удалось завершить операцию');
   }
 
   if (isErrorWithName(error, 'ValidationError')) {
-    return sendError(res, 422, 'VALIDATION_ERROR', error.message || 'Validation failed');
+    return sendError(res, 422, 'VALIDATION_ERROR', error.message || 'Проверьте введённые данные');
   }
 
-  return sendError(res, 500, 'INTERNAL_ERROR', 'Internal server error');
+  return sendError(res, 500, 'INTERNAL_ERROR', 'Внутренняя ошибка сервера');
 }

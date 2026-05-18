@@ -18,7 +18,7 @@ export async function verifyAuth(req: AuthenticatedRequest, res: VercelResponse)
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    sendError(res, 401, 'UNAUTHORIZED', 'Missing or invalid Authorization header');
+    sendError(res, 401, 'UNAUTHORIZED', 'Отсутствует или некорректен заголовок Authorization');
     throw new Error('Unauthorized');
   }
 
@@ -28,7 +28,7 @@ export async function verifyAuth(req: AuthenticatedRequest, res: VercelResponse)
     const decoded = await admin.auth().verifyIdToken(token);
     req.userId = decoded.uid;
   } catch {
-    sendError(res, 401, 'UNAUTHORIZED', 'Invalid or expired token');
+    sendError(res, 401, 'UNAUTHORIZED', 'Токен недействителен или истёк');
     throw new Error('Unauthorized');
   }
 }

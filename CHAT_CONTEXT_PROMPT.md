@@ -114,6 +114,15 @@ Testing:
 - фильтры карточек раскрываются плавно
 - public examples уже переведены на TanStack Query и используют отдельные public query hooks
 - для шага 7.1 добавлен отдельный frontend smoke-layer и script `test:smoke`
+- после финального repo-аудита закрыты найденные medium-risk точки:
+  - `category='other'` теперь обязательно требует `customCategory` и на backend;
+  - legacy `/api/items` и старый `item.*` stack удалены;
+  - backend auth/controller/runtime ошибки выровнены под русский UX;
+  - Firebase Admin получил fail-fast проверку обязательных server env;
+  - `README.md` очищен от шаблонного Vite boilerplate
+  - добавлен GitHub Actions workflow `Release Check` для автоматического прогона `release:check`;
+  - `App` использует route-level lazy loading, чтобы уменьшить главный frontend bundle
+  - исторический fallback API smoke-harness тоже синхронизирован с текущей русской error-policy
 
 ---
 
@@ -240,6 +249,7 @@ Private API:
 - Вместо одного `date` используется модель `dateStart/dateEnd`.
 - Server-state для обоих потоков уже переведён на TanStack Query; `Zustand` остаётся для локального client/UI state (`auth`, `auth-intent`, `modal`, `theme`).
 - Smoke-suite — это отдельный короткий release-layer поверх детальных unit/integration тестов, а не их замена.
+- В проекте больше нет legacy API `/api/items`; актуальная backend-поверхность ограничена `collections` и `examples`.
 
 ---
 

@@ -2,31 +2,30 @@
 
 ## Что делает файл
 
-Это serverless entrypoint для маршрута /api/collections/:collectionId/entries/:entryId.
-Файл проверяет авторизацию и делегирует обновление/удаление конкретной карточки в контроллер.
+Это private serverless entrypoint для маршрута `/api/collections/:collectionId/entries/:entryId`.
+Файл защищает маршрут через `verifyAuth` и маршрутизирует detail/update/delete карточки.
 
 ## Импорты и зависимости
 
-1. @vercel/node (VercelResponse) - тип ответа.
-2. ../../../../../lib/controllers/collection.controller - handlers updateEntry/deleteEntry.
-3. ../../../../../lib/http/api-response - sendError для стандартного fallback.
-4. ../../../../../lib/middleware/auth - verifyAuth.
-5. ../../../../../lib/types/request.types (AuthenticatedRequest) - request с userId.
+1. `../../../../../lib/middleware/auth`
+2. `../../../../../lib/controllers/collection.controller`
+3. `../../../../../lib/http/api-response`
 
 ## Экспорты и контракты
 
-1. export default handler(req, res):
-   PATCH -> updateEntry
-   DELETE -> deleteEntry
-   иначе -> 405 METHOD_NOT_ALLOWED.
-2. Для unexpected-ошибок возвращается 500 INTERNAL_ERROR при условии, что ответ еще не отправлен.
+1. Default export: `handler(req, res)`.
+2. Поддерживаемые методы:
+   - `GET`
+   - `PATCH`
+   - `DELETE`
+3. Неподдерживаемые методы получают `405`.
 
 ## Нетривиальная логика
 
-1. Обязательная аутентификация перед маршрутизацией по методу.
-2. Валидация collectionId/entryId и body централизована в контроллере.
-3. Относительные импорты нужны для надёжной работы serverless-роута в локальном режиме Vercel.
+1. Маршрут работает только в private owner-контексте.
+2. Fallback `500` возвращает единый русский текст внутренней ошибки сервера.
 
 ## Где используется
 
-1. Vercel file-based routing для пути /api/collections/:collectionId/entries/:entryId.
+1. Вызывается платформой Vercel как обработчик `api/collections/:collectionId/entries/:entryId`.
+2. Используется клиентом через `src/api/collections.api.ts`.

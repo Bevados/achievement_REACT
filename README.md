@@ -1,19 +1,28 @@
-# React + TypeScript + Vite
+# Achievement Collections MVP
 
-## Local Development Modes
+Учебный fullstack-проект на React + TypeScript с публичными example-коллекциями и приватным CRUD для пользовательских коллекций и карточек.
 
-`npm run dev` starts the Vite frontend dev server.
-`npm run dev:api` starts the local backend runtime on `http://127.0.0.1:3000`.
+## Локальная разработка
 
-During local development Vite proxies every `/api/*` request to the separate backend process, so public examples and private authenticated routes use the same backend runtime.
+- `npm run dev` — frontend на Vite
+- `npm run dev:api` — локальный backend runtime на `http://127.0.0.1:3000`
 
-The `api/*` files are still the production entrypoints for Vercel deploy. The local backend server is only a dev runner that reuses the same controllers and services without replacing the Vercel architecture.
+Во время локальной разработки Vite проксирует запросы `/api/*` в отдельный backend-процесс.  
+Файлы `api/*` остаются production-entrypoints для деплоя на Vercel.
 
-## Local Pre-release Check
+## Основные команды
 
-`npm run release:check` is the main local pre-release gate for the MVP.
+- `npm run test:smoke` — короткий smoke-набор критических сценариев
+- `npm run test` — полный тестовый набор
+- `tsc -b` — TypeScript-проверка
+- `npm run build` — production build
+- `npm run lint` — ESLint
+- `npm run docs:check` — проверка синхронизации Docs
+- `npm run release:check` — единый локальный pre-release gate
 
-It runs the required checks in a fixed order and stops on the first failing step:
+## Локальный pre-release gate
+
+`npm run release:check` последовательно запускает:
 
 1. `npm run test:smoke`
 2. `npm run test`
@@ -22,79 +31,41 @@ It runs the required checks in a fixed order and stops on the first failing step
 5. `npm run lint`
 6. `npm run docs:check`
 
-## Архитектурная карта проекта
+Скрипт останавливается на первом failing шаге и используется как основной локальный release-check для MVP.
 
-- Карта связей файлов и потоков данных: [DOCS_FILE_MAP.md](DOCS_FILE_MAP.md)
-- Визуальная карта исполнения (кто кого вызывает): [DOCS_EXECUTION_VISUAL.md](DOCS_EXECUTION_VISUAL.md)
+## CI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+В репозитории настроен GitHub Actions workflow `Release Check`, который запускает `npm run release:check` на `push` в `master` и на `pull_request`.
 
-Currently, two official plugins are available:
+## Архитектура
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- `src/` — frontend
+- `api/` — Vercel-style API entrypoints
+- `lib/` — controllers / services / repositories / middleware
+- `contracts/` — shared DTO и schema-контракты
+- `Docs/` — зеркальная документация по коду
+- `scripts/` — служебные скрипты проекта
 
-## React Compiler
+Backend flow:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+`api/* -> lib/controllers -> lib/services -> lib/repositories -> MongoDB`
 
-## Expanding the ESLint configuration
+## Основные маршруты
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Public:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- `/`
+- `/examples`
+- `/examples/:collectionId/:collectionSlug?`
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Private:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+- `/collections`
+- `/collections/:collectionId/:collectionSlug?`
+- `/profile`
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Документация
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x';
-import reactDom from 'eslint-plugin-react-dom';
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+- Карта связей файлов: [DOCS_FILE_MAP.md](DOCS_FILE_MAP.md)
+- Визуальная карта исполнения: [DOCS_EXECUTION_VISUAL.md](DOCS_EXECUTION_VISUAL.md)
+- Подробная документация по исходникам: папка `Docs/`

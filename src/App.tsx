@@ -1,19 +1,22 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import AuthModal from './components/Auth/AuthModal';
 import Header from './components/Header/Header';
 import { appQueryClient } from './lib/query-client';
-import CollectionDetailPage from './pages/CollectionDetailPage/CollectionDetailPage';
-import CollectionsPage from './pages/CollectionsPage/CollectionsPage';
-import ExamplesPage from './pages/ExamplesPage/ExamplesPage';
-import HomePage from './pages/HomePage/HomePage';
-import ProfilePage from './pages/ProfilePage/ProfilePage';
-import PublicCollectionDetailPage from './pages/PublicCollectionDetailPage/PublicCollectionDetailPage';
 import { useAuthIntentStore } from './store/auth-intent.store';
 import { useAuthStore } from './store/auth.store';
 import { useModalStore } from './store/modal.store';
 import { useThemeStore } from './store/theme.store';
+
+const CollectionDetailPage = lazy(() => import('./pages/CollectionDetailPage/CollectionDetailPage'));
+const CollectionsPage = lazy(() => import('./pages/CollectionsPage/CollectionsPage'));
+const ExamplesPage = lazy(() => import('./pages/ExamplesPage/ExamplesPage'));
+const HomePage = lazy(() => import('./pages/HomePage/HomePage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage/ProfilePage'));
+const PublicCollectionDetailPage = lazy(
+  () => import('./pages/PublicCollectionDetailPage/PublicCollectionDetailPage'),
+);
 
 function AuthResolvingState() {
   return (
@@ -84,84 +87,86 @@ function App() {
       />
 
       <main className="mx-auto w-full max-w-7xl px-4 pb-12 pt-8 sm:px-6 lg:px-8">
-        <Routes>
-          <Route
-            path="/"
-            element={
-              !isInitialized ? (
-                <AuthResolvingState />
-              ) : isAuthenticated ? (
-                <Navigate to="/collections" replace />
-              ) : (
-                <HomePage onCreateCollection={handleCreateCollectionFromHero} />
-              )
-            }
-          />
-          <Route
-            path="/examples"
-            element={
-              !isInitialized ? (
-                <AuthResolvingState />
-              ) : isAuthenticated ? (
-                <Navigate to="/collections" replace />
-              ) : (
-                <ExamplesPage />
-              )
-            }
-          />
-          <Route
-            path="/examples/:collectionId/:collectionSlug?"
-            element={
-              !isInitialized ? (
-                <AuthResolvingState />
-              ) : isAuthenticated ? (
-                <Navigate to="/collections" replace />
-              ) : (
-                <PublicCollectionDetailPage />
-              )
-            }
-          />
-          <Route
-            path="/collections"
-            element={
-              !isInitialized ? (
-                <AuthResolvingState />
-              ) : isAuthenticated ? (
-                <CollectionsPage />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            }
-          />
-          <Route
-            path="/collections/:collectionId/:collectionSlug?"
-            element={
-              !isInitialized ? (
-                <AuthResolvingState />
-              ) : isAuthenticated ? (
-                <CollectionDetailPage />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              !isInitialized ? (
-                <AuthResolvingState />
-              ) : isAuthenticated ? (
-                <ProfilePage />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            }
-          />
-          <Route
-            path="*"
-            element={<Navigate to={isAuthenticated ? '/collections' : '/'} replace />}
-          />
-        </Routes>
+        <Suspense fallback={<AuthResolvingState />}>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                !isInitialized ? (
+                  <AuthResolvingState />
+                ) : isAuthenticated ? (
+                  <Navigate to="/collections" replace />
+                ) : (
+                  <HomePage onCreateCollection={handleCreateCollectionFromHero} />
+                )
+              }
+            />
+            <Route
+              path="/examples"
+              element={
+                !isInitialized ? (
+                  <AuthResolvingState />
+                ) : isAuthenticated ? (
+                  <Navigate to="/collections" replace />
+                ) : (
+                  <ExamplesPage />
+                )
+              }
+            />
+            <Route
+              path="/examples/:collectionId/:collectionSlug?"
+              element={
+                !isInitialized ? (
+                  <AuthResolvingState />
+                ) : isAuthenticated ? (
+                  <Navigate to="/collections" replace />
+                ) : (
+                  <PublicCollectionDetailPage />
+                )
+              }
+            />
+            <Route
+              path="/collections"
+              element={
+                !isInitialized ? (
+                  <AuthResolvingState />
+                ) : isAuthenticated ? (
+                  <CollectionsPage />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+            <Route
+              path="/collections/:collectionId/:collectionSlug?"
+              element={
+                !isInitialized ? (
+                  <AuthResolvingState />
+                ) : isAuthenticated ? (
+                  <CollectionDetailPage />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                !isInitialized ? (
+                  <AuthResolvingState />
+                ) : isAuthenticated ? (
+                  <ProfilePage />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+            <Route
+              path="*"
+              element={<Navigate to={isAuthenticated ? '/collections' : '/'} replace />}
+            />
+          </Routes>
+        </Suspense>
       </main>
 
       <AuthModal />

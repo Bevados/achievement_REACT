@@ -1,87 +1,48 @@
-# Карта связей файлов проекта
+# File Map
 
-Этот файл нужен как «шпаргалка по архитектуре»: что за что отвечает и как данные текут по приложению.
+Актуальная карта проекта `achievement_collections_REACT`.
 
-## 1) Общий поток данных
+## Основные слои
 
-```mermaid
-flowchart LR
-  A[src/main.tsx] --> B[src/App.tsx]
-  B --> C[src/components/Header/Header.tsx]
-  B --> D[src/components/Auth/AuthModal.tsx]
+- `src/` — frontend на React + TypeScript
+- `api/` — Vercel-style API entrypoints
+- `lib/` — backend-логика: controllers / services / repositories / middleware
+- `contracts/` — shared DTO и runtime-схемы
+- `Docs/` — зеркальная документация по исходникам
+- `scripts/` — служебные скрипты, seed, docs, локальный backend-runner
 
-  B --> E[src/store/auth.store.ts]
-  B --> F[src/store/modal.store.ts]
-  B --> G[src/store/theme.store.tsx]
+## Ключевые frontend entrypoints
 
-  E --> H[src/firebase.ts]
-  E --> I[src/api/items.api.ts]
+- `src/App.tsx` — маршрутизация public/private flow
+- `src/pages/ExamplesPage/ExamplesPage.tsx` — public список examples
+- `src/pages/PublicCollectionDetailPage/PublicCollectionDetailPage.tsx` — public detail examples
+- `src/pages/CollectionsPage/CollectionsPage.tsx` — private список коллекций
+- `src/pages/CollectionDetailPage/CollectionDetailPage.tsx` — private detail коллекции и entries CRUD
+- `src/api/collections.api.ts` — клиентский API-слой для public/private routes
 
-  I --> J[api/items/index.ts]
-  J --> K[lib/middleware/auth.ts]
-  J --> L[lib/controllers/item.controller.ts]
-  L --> M[lib/services/item.service.ts]
-  M --> N[lib/repositories/item.repository.ts]
-  N --> O[api/_mongodb.ts]
+## Ключевые backend entrypoints
 
-  K --> P[api/_firebaseAdmin.ts]
-```
+- `api/collections/index.ts`
+- `api/collections/[collectionId]/index.ts`
+- `api/collections/[collectionId]/entries/index.ts`
+- `api/collections/[collectionId]/entries/[entryId]/index.ts`
+- `api/examples/collections/index.ts`
+- `api/examples/collections/[collectionId]/index.ts`
+- `api/examples/collections/[collectionId]/entries/index.ts`
 
-## 2) Роли слоев
+## Ключевая backend-цепочка
 
-- UI слой (компоненты React): отображает экран и вызывает действия store.
-- Store слой (Zustand): хранит состояние приложения и бизнес-сценарии UI.
-- API-клиент на фронте: делает HTTP-запросы к serverless API.
-- API слой (Vercel function): принимает HTTP, проверяет авторизацию, маршрутизирует по методам.
-- Controller: валидирует входные данные и собирает HTTP-ответ.
-- Service: бизнес-логика между controller и repository.
-- Repository: прямой доступ к MongoDB.
+`api/* -> lib/controllers/collection.controller.ts -> lib/services/collection.service.ts -> lib/repositories/collection.repository.ts -> MongoDB`
 
-## 3) Что делает каждый ключевой файл
+## Data layer
 
-### Frontend
+- `src/lib/query-client.ts` — QueryClient
+- `src/hooks/usePrivateCollectionsQueries.ts` — private Query/mutation hooks
+- `src/hooks/usePrivateEntriesQueries.ts` — private entries Query/mutation hooks
+- `src/hooks/usePublicCollectionsQueries.ts` — public read-only Query hooks
+- `src/hooks/useCollectionsListState.ts` и `src/hooks/useEntriesListState.ts` — URL/filter state
 
-- src/main.tsx: точка входа React-приложения, подключает Router и App.
-- src/App.tsx: связывает Header, AuthModal и Zustand store.
-- src/components/Header/Header.tsx: UI шапки, навигация, вход/выход, состояние меню.
-- src/store/auth.store.ts: логика авторизации, состояние пользователя, инициализация сессии.
-- src/firebase.ts: инициализация Firebase и auth-операции (login/register/logout/getIdToken).
-- src/api/items.api.ts: пример защищенного запроса к /api/items с Bearer токеном.
-- src/config/site.config.ts: конфиг пунктов меню для гостя и авторизованного пользователя.
+## Что важно
 
-### Backend (serverless)
-
-- api/items/index.ts: единая HTTP-точка /api/items (GET/POST/PATCH/DELETE).
-- lib/middleware/auth.ts: проверяет Firebase ID token и записывает req.userId.
-- lib/controllers/item.controller.ts: валидация + формирование HTTP-ответов.
-- lib/services/item.service.ts: бизнес-операции с item.
-- lib/repositories/item.repository.ts: CRUD в MongoDB.
-- api/\_mongodb.ts: подключение к базе и выдача коллекций.
-- api/\_firebaseAdmin.ts: Firebase Admin SDK для серверной верификации токена.
-
-## 4) Как читать проект по шагам
-
-1. Сначала открой src/main.tsx и src/App.tsx, чтобы понять старт приложения.
-2. Потом src/store/auth.store.ts и src/firebase.ts, чтобы понять авторизацию.
-3. Дальше src/components/Header/Header.tsx, чтобы увидеть, как UI использует auth state.
-4. Затем src/api/items.api.ts и api/items/index.ts, чтобы увидеть фронт-бэк связку.
-5. После этого lib/controllers -> lib/services -> lib/repositories.
-
-## 5) Типичный сценарий (вход + защищенный API)
-
-1. Пользователь входит через форму (AuthModal).
-2. auth.store вызывает функцию входа из firebase.ts.
-3. Firebase меняет auth state, store обновляет user.
-4. При вызове защищенного API фронт берет токен из firebase.ts.
-5. Токен уходит в Authorization: Bearer <token>.
-6. backend middleware verifyAuth проверяет токен через Firebase Admin.
-7. Контроллер вызывает сервис.
-8. Сервис вызывает репозиторий.
-9. Репозиторий работает с MongoDB и возвращает результат вверх по слоям.
-
-## 6) Быстрый чек: «где что искать»
-
-- «Почему кнопка Вход ничего не открывает?» -> Header + modal.store + AuthModal.
-- «Почему пользователь как будто не авторизован после перезагрузки?» -> auth.store initAuthListener + firebase.ts.
-- «Почему /api/items возвращает 401?» -> src/api/items.api.ts + lib/middleware/auth.ts + api/\_firebaseAdmin.ts.
-- «Почему данные не сохранились в БД?» -> item.controller -> item.service -> item.repository -> \_mongodb.
+- Актуальная runtime-поверхность ограничена `collections` и `examples`.
+- Legacy `/api/items` и старый `item.*` stack удалены из проекта.

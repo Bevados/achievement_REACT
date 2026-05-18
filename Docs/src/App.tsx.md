@@ -7,10 +7,11 @@
 ## Импорты и зависимости
 
 1. `react-router-dom` — маршруты и редиректы.
-2. `src/components/Header/Header.tsx` и `src/components/Auth/AuthModal.tsx` — глобальный UI.
-3. `src/pages/*` — страницы приложения.
-4. `src/lib/query-client.ts` — singleton `QueryClient`.
-5. auth/theme/modal stores — глобальные UI/auth состояния.
+2. `React.lazy` и `Suspense` — route-level code splitting для страниц.
+3. `src/components/Header/Header.tsx` и `src/components/Auth/AuthModal.tsx` — глобальный UI.
+4. `src/pages/*` — страницы приложения, загружаемые лениво.
+5. `src/lib/query-client.ts` — singleton `QueryClient`.
+6. auth/theme/modal stores — глобальные UI/auth состояния.
 
 ## Экспорты и контракты
 
@@ -25,9 +26,10 @@
 
 ## Нетривиальная логика
 
-1. Detail-маршруты принимают optional slug, но загрузка данных всегда идёт по `collectionId`.
-2. Гостевые и private-разделы разводятся через `Navigate`.
-3. Весь frontend теперь обёрнут в `QueryClientProvider`, поэтому private server-state живёт через TanStack Query.
+1. Страницы загружаются через `React.lazy`, поэтому главный frontend chunk не тащит все route-модули сразу.
+2. `Suspense` использует тот же `AuthResolvingState`, что и auth-gate, поэтому code splitting не меняет пользовательский UX загрузки.
+3. Detail-маршруты принимают optional slug, но загрузка данных всегда идёт по `collectionId`.
+4. Весь frontend обёрнут в `QueryClientProvider`, поэтому private и public server-state живут через TanStack Query.
 
 ## Где используется
 

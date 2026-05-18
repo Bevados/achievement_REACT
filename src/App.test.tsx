@@ -89,7 +89,7 @@ describe('App routing and CTA flow', () => {
     authStoreMock.isInitialized = true;
   });
 
-  it('redirects authenticated user from root to collections', () => {
+  it('redirects authenticated user from root to collections', async () => {
     authStoreMock.user = {
       uid: 'u-1',
       email: 'alex@example.com',
@@ -98,7 +98,7 @@ describe('App routing and CTA flow', () => {
 
     renderApp('/');
 
-    expect(screen.getByRole('heading', { name: 'Мои коллекции' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Мои коллекции' })).toBeInTheDocument();
   });
 
   it('guest CTA stores create intent and opens login modal', async () => {
@@ -106,13 +106,13 @@ describe('App routing and CTA flow', () => {
 
     renderApp('/');
 
-    await user.click(screen.getByRole('button', { name: 'Создать коллекцию' }));
+    await user.click(await screen.findByRole('button', { name: 'Создать коллекцию' }));
 
     expect(authIntentStoreMock.setIntent).toHaveBeenCalledWith('create-collection');
     expect(modalStoreMock.openModal).toHaveBeenCalledWith('login');
   });
 
-  it('renders profile placeholder for authenticated user', () => {
+  it('renders profile placeholder for authenticated user', async () => {
     authStoreMock.user = {
       uid: 'u-1',
       email: 'alex@example.com',
@@ -121,10 +121,10 @@ describe('App routing and CTA flow', () => {
 
     renderApp('/profile');
 
-    expect(screen.getByRole('heading', { name: 'Профиль' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Профиль' })).toBeInTheDocument();
   });
 
-  it('renders collection detail route for authenticated user', () => {
+  it('renders collection detail route for authenticated user', async () => {
     authStoreMock.user = {
       uid: 'u-1',
       email: 'alex@example.com',
@@ -133,22 +133,22 @@ describe('App routing and CTA flow', () => {
 
     renderApp('/collections/collection-1');
 
-    expect(screen.getByRole('heading', { name: 'COLLECTION_DETAIL_PAGE' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'COLLECTION_DETAIL_PAGE' })).toBeInTheDocument();
   });
 
-  it('redirects guest from collection detail route to home page', () => {
+  it('redirects guest from collection detail route to home page', async () => {
     renderApp('/collections/collection-1');
 
-    expect(screen.getByRole('button', { name: 'Создать коллекцию' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Создать коллекцию' })).toBeInTheDocument();
   });
 
-  it('renders public collection detail route for guest', () => {
+  it('renders public collection detail route for guest', async () => {
     renderApp('/examples/collection-1');
 
-    expect(screen.getByRole('heading', { name: 'PUBLIC_COLLECTION_DETAIL_PAGE' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'PUBLIC_COLLECTION_DETAIL_PAGE' })).toBeInTheDocument();
   });
 
-  it('redirects authenticated user from public example detail to collections', () => {
+  it('redirects authenticated user from public example detail to collections', async () => {
     authStoreMock.user = {
       uid: 'u-1',
       email: 'alex@example.com',
@@ -157,7 +157,7 @@ describe('App routing and CTA flow', () => {
 
     renderApp('/examples/collection-1');
 
-    expect(screen.getByRole('heading', { name: 'Мои коллекции' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Мои коллекции' })).toBeInTheDocument();
   });
 
   it('header login clears intent and opens login modal', async () => {

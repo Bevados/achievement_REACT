@@ -73,17 +73,17 @@ describe('App smoke routing', () => {
     authStoreMock.isInitialized = true;
   });
 
-  it('allows guest public flow', () => {
+  it('allows guest public flow', async () => {
     renderApp('/examples/collection-1');
-    expect(screen.getByRole('heading', { name: 'PUBLIC_COLLECTION_DETAIL_PAGE' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'PUBLIC_COLLECTION_DETAIL_PAGE' })).toBeInTheDocument();
   });
 
-  it('blocks guest from private detail', () => {
+  it('blocks guest from private detail', async () => {
     renderApp('/collections/collection-1');
-    expect(screen.getByRole('button', { name: 'Создать коллекцию' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Создать коллекцию' })).toBeInTheDocument();
   });
 
-  it('redirects authenticated user from root into private flow', () => {
+  it('redirects authenticated user from root into private flow', async () => {
     authStoreMock.user = {
       uid: 'u-1',
       email: 'alex@example.com',
@@ -91,10 +91,10 @@ describe('App smoke routing', () => {
     };
 
     renderApp('/');
-    expect(screen.getByRole('heading', { name: 'Мои коллекции' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Мои коллекции' })).toBeInTheDocument();
   });
 
-  it('redirects authenticated user away from public example detail', () => {
+  it('redirects authenticated user away from public example detail', async () => {
     authStoreMock.user = {
       uid: 'u-1',
       email: 'alex@example.com',
@@ -102,6 +102,6 @@ describe('App smoke routing', () => {
     };
 
     renderApp('/examples/collection-1');
-    expect(screen.getByRole('heading', { name: 'Мои коллекции' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Мои коллекции' })).toBeInTheDocument();
   });
 });

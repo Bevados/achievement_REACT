@@ -2,32 +2,30 @@
 
 ## Что делает файл
 
-Это serverless entrypoint для маршрута /api/collections/:collectionId.
-Файл проверяет авторизацию и делегирует операции чтения/обновления/удаления одной коллекции в контроллер.
+Это private serverless entrypoint для маршрута `/api/collections/:collectionId`.
+Файл защищает маршрут через `verifyAuth` и маршрутизирует detail/update/delete коллекции.
 
 ## Импорты и зависимости
 
-1. @vercel/node (VercelResponse) - тип ответа.
-2. ../../../lib/controllers/collection.controller - handlers getCollection/updateCollection/deleteCollection.
-3. ../../../lib/http/api-response - sendError для единых fallback-ошибок.
-4. ../../../lib/middleware/auth - verifyAuth.
-5. ../../../lib/types/request.types (AuthenticatedRequest) - request с userId.
+1. `../../../lib/middleware/auth`
+2. `../../../lib/controllers/collection.controller`
+3. `../../../lib/http/api-response`
 
 ## Экспорты и контракты
 
-1. export default handler(req, res):
-   GET -> getCollection
-   PATCH -> updateCollection
-   DELETE -> deleteCollection
-   иначе -> 405 METHOD_NOT_ALLOWED.
-2. Для неотправленного ответа в catch возвращает 500 INTERNAL_ERROR.
+1. Default export: `handler(req, res)`.
+2. Поддерживаемые методы:
+   - `GET`
+   - `PATCH`
+   - `DELETE`
+3. Неподдерживаемые методы получают `405`.
 
 ## Нетривиальная логика
 
-1. Маршрут приватный: verifyAuth всегда выполняется первым.
-2. Валидация collectionId выполняется в контроллере через Zod-схему params.
-3. Относительные импорты помогают локальному Vercel runtime корректно резолвить зависимости без alias `@lib/*`.
+1. Маршрут обслуживает только private owner-flow.
+2. Fallback `500` возвращает единый русский текст внутренней ошибки сервера.
 
 ## Где используется
 
-1. Vercel file-based routing для пути /api/collections/:collectionId.
+1. Вызывается платформой Vercel как обработчик `api/collections/:collectionId`.
+2. Используется клиентом через `src/api/collections.api.ts`.

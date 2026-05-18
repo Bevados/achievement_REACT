@@ -29,13 +29,27 @@ import { ensureServerEnvLoaded } from './_loadEnv';
 
 ensureServerEnvLoaded();
 
+function requireServerEnv(name: 'FIREBASE_PROJECT_ID' | 'FIREBASE_CLIENT_EMAIL' | 'FIREBASE_PRIVATE_KEY'): string {
+  const value = process.env[name]?.trim();
+
+  if (!value) {
+    throw new Error(`Missing required server env: ${name}`);
+  }
+
+  return value;
+}
+
 // --- Инициализация Admin SDK ---
 if (!admin.apps.length) {
+  const projectId = requireServerEnv('FIREBASE_PROJECT_ID');
+  const clientEmail = requireServerEnv('FIREBASE_CLIENT_EMAIL');
+  const privateKey = requireServerEnv('FIREBASE_PRIVATE_KEY').replace(/\\n/g, '\n');
+
   admin.initializeApp({
     credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      projectId,
+      clientEmail,
+      privateKey,
     }),
   });
 }

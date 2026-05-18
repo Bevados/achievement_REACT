@@ -8,7 +8,6 @@ import entryHandler from '../api/collections/[collectionId]/entries/[entryId]/in
 import publicCollectionsHandler from '../api/examples/collections/index.ts';
 import publicCollectionHandler from '../api/examples/collections/[collectionId]/index.ts';
 import publicEntriesHandler from '../api/examples/collections/[collectionId]/entries/index.ts';
-import itemsHandler from '../api/items/index.ts';
 
 type RouteHandler = (req: VercelRequest, res: VercelResponse) => Promise<unknown> | unknown;
 
@@ -67,10 +66,6 @@ const routes: RouteDefinition[] = [
   {
     pattern: ['api', 'collections'],
     handler: wrapHandler(collectionsHandler),
-  },
-  {
-    pattern: ['api', 'items'],
-    handler: wrapHandler(itemsHandler),
   },
 ];
 
@@ -200,11 +195,11 @@ async function requestListener(nodeReq: IncomingMessage, nodeRes: ServerResponse
 
   if (!matchedRoute) {
     sendJson(nodeRes, 404, {
-      ok: false,
-      error: {
-        code: 'NOT_FOUND',
-        message: 'Route not found',
-      },
+        ok: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Маршрут не найден',
+        },
     });
     return;
   }
@@ -220,11 +215,11 @@ async function requestListener(nodeReq: IncomingMessage, nodeRes: ServerResponse
     body = await readBody(nodeReq);
   } catch {
     sendJson(nodeRes, 400, {
-      ok: false,
-      error: {
-        code: 'INVALID_JSON',
-        message: 'Request body contains invalid JSON',
-      },
+        ok: false,
+        error: {
+          code: 'INVALID_JSON',
+          message: 'Тело запроса содержит некорректный JSON',
+        },
     });
     return;
   }
@@ -253,7 +248,7 @@ async function requestListener(nodeReq: IncomingMessage, nodeRes: ServerResponse
         ok: false,
         error: {
           code: 'INTERNAL_ERROR',
-          message: error instanceof Error ? error.message : 'Internal server error',
+          message: error instanceof Error ? error.message : 'Внутренняя ошибка сервера',
         },
       });
     }

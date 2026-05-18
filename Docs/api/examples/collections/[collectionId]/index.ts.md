@@ -2,28 +2,27 @@
 
 ## Что делает файл
 
-Это публичный Vercel entrypoint для загрузки одной example-коллекции по `collectionId`.
-Файл обслуживает `GET /api/examples/collections/:collectionId` без авторизации.
+Это public serverless entrypoint для маршрута `/api/examples/collections/:collectionId`.
+Файл отдаёт detail публичной example-коллекции в read-only режиме.
 
 ## Импорты и зависимости
 
-1. `@vercel/node` — типы request/response.
-2. `lib/controllers/collection.controller` — controller с логикой чтения публичной коллекции.
-3. `lib/http/api-response` — helper для стандартного `405` и резервного `500`.
+1. `../../../../lib/controllers/collection.controller`
+2. `../../../../lib/http/api-response`
 
 ## Экспорты и контракты
 
-1. Default export `handler(req, res)`.
-2. Поддерживается только `GET`.
-3. Успех: `{ ok: true, data: CollectionView }`.
-4. Ошибки: `404`, `422`, `500`.
+1. Default export: `handler(req, res)`.
+2. Поддерживаемый метод:
+   - `GET`
+3. Неподдерживаемые методы получают `405`.
 
 ## Нетривиальная логика
 
-1. Entry-point не содержит бизнес-логики и просто делегирует чтение controller-слою.
-2. Route остается публичным и не использует `verifyAuth`.
+1. Маршрут не требует auth и не даёт private actions.
+2. Fallback `500` возвращает единый русский текст внутренней ошибки сервера.
 
 ## Где используется
 
-1. `src/api/collections.api.ts` — клиентский метод `getPublicCollectionById`.
-2. `src/pages/PublicCollectionDetailPage/PublicCollectionDetailPage.tsx` — страница публичной detail-view.
+1. Вызывается платформой Vercel как обработчик `api/examples/collections/:collectionId`.
+2. Используется клиентом через `src/api/collections.api.ts`.

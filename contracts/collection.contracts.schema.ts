@@ -80,6 +80,15 @@ export const createCollectionSchema: z.ZodType<CreateCollectionDto> = z
     description: descriptionSchema.optional(),
     coverImageUrl: urlSchema.optional(),
   })
+  .superRefine((payload, ctx) => {
+    if (payload.category === 'other' && !payload.customCategory) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Введите свой вариант категории',
+        path: ['customCategory'],
+      });
+    }
+  })
   .strict();
 
 export const updateCollectionSchema: z.ZodType<UpdateCollectionDto> = z

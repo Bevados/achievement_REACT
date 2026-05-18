@@ -206,6 +206,15 @@ describe('collection.service', () => {
     expect(result.isPublic).toBe(false);
   });
 
+  it('rejects collection creation with category other and empty customCategory', async () => {
+    await expect(
+      createCollection('user-1', {
+        title: 'My New Collection',
+        category: 'other',
+      }),
+    ).rejects.toThrow('Для категории «Свой вариант» нужно указать своё название');
+  });
+
   it('clears customCategory when collection category changes from other to preset', async () => {
     const collectionId = new ObjectId().toHexString();
     const existing = {
@@ -243,6 +252,23 @@ describe('collection.service', () => {
       }),
     );
     expect(result.customCategory).toBeUndefined();
+  });
+
+  it('rejects update when category remains other but customCategory is empty', async () => {
+    const collectionId = new ObjectId().toHexString();
+    const existing = {
+      ...buildCollectionDoc('user-1', new ObjectId(collectionId)),
+      category: 'other' as const,
+      customCategory: 'Гастротуры',
+    };
+
+    repositoryMocks.findCollectionById.mockResolvedValue(existing);
+
+    await expect(
+      updateCollection('user-1', collectionId, {
+        customCategory: '   ',
+      }),
+    ).rejects.toThrow('Для категории «Свой вариант» нужно указать своё название');
   });
 
   it('createEntry converts dto fields and increments entriesCount', async () => {

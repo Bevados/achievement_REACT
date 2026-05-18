@@ -102,6 +102,16 @@ function parseOptionalDate(value?: string): Date | undefined {
   return new Date(value);
 }
 
+function assertCustomCategory(category: CollectionDocument['category'], customCategory?: string): string | undefined {
+  const normalized = normalizeOptionalString(customCategory);
+
+  if (category === 'other' && !normalized) {
+    throw new ValidationError('Для категории «Свой вариант» нужно указать своё название');
+  }
+
+  return normalized;
+}
+
 function assertEntryBusinessRules({
   status,
   rating,
@@ -115,16 +125,16 @@ function assertEntryBusinessRules({
 }) {
   if (status === 'completed') {
     if (rating === undefined) {
-      throw new ValidationError('rating is required when status is completed');
+      throw new ValidationError('Для статуса «Завершено» нужно указать рейтинг');
     }
 
     if (!dateStart) {
-      throw new ValidationError('dateStart is required when status is completed');
+      throw new ValidationError('Для статуса «Завершено» нужно указать дату');
     }
   }
 
   if (dateStart && dateEnd && dateEnd.getTime() < dateStart.getTime()) {
-    throw new ValidationError('dateEnd must be greater than or equal to dateStart');
+    throw new ValidationError('Дата окончания не может быть раньше даты начала');
   }
 }
 
@@ -266,7 +276,8 @@ export async function createCollection(
     ownerId,
     title: data.title,
     category: data.category,
-    customCategory: data.category === 'other' ? normalizeOptionalString(data.customCategory) : undefined,
+    customCategory:
+      data.category === 'other' ? assertCustomCategory(data.category, data.customCategory) : undefined,
     description: data.description,
     coverImageUrl: data.coverImageUrl,
     isPublic: false,
@@ -310,6 +321,11 @@ export async function updateCollection(
     if (data.customCategory !== undefined) {
       updateData.customCategory = normalizeOptionalString(data.customCategory);
     }
+
+    updateData.customCategory = assertCustomCategory(
+      nextCategory,
+      data.customCategory !== undefined ? updateData.customCategory : existingCollection.customCategory,
+    );
   } else {
     updateData.customCategory = undefined;
   }

@@ -23,7 +23,7 @@ const verifyAuthMock = vi.hoisted(() =>
         ok: false,
         error: {
           code: 'UNAUTHORIZED',
-          message: 'Missing or invalid Authorization header',
+          message: 'Отсутствует или некорректен заголовок Authorization',
         },
       });
       throw new Error('Unauthorized');
@@ -36,7 +36,7 @@ const verifyAuthMock = vi.hoisted(() =>
         ok: false,
         error: {
           code: 'UNAUTHORIZED',
-          message: 'Invalid or expired token',
+          message: 'Недействительный или просроченный токен',
         },
       });
       throw new Error('Unauthorized');
@@ -128,12 +128,12 @@ const entryView = {
   updatedAt: '2026-04-21T10:00:00.000Z',
 };
 
-describe('step 2.2.8 api smoke (handler/controller harness fallback)', () => {
+describe('step 2.2.8 api smoke (fallback harness для handler/controller)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('C1: private endpoint returns 401 when auth header is missing', async () => {
+  it('C1: private endpoint возвращает 401 без auth header', async () => {
     const req = createRequest({ method: 'GET' });
     const res = createResponse();
 
@@ -144,12 +144,12 @@ describe('step 2.2.8 api smoke (handler/controller harness fallback)', () => {
       ok: false,
       error: {
         code: 'UNAUTHORIZED',
-        message: 'Missing or invalid Authorization header',
+        message: 'Отсутствует или некорректен заголовок Authorization',
       },
     });
   });
 
-  it('C1: private endpoint returns 401 when token is invalid', async () => {
+  it('C1: private endpoint возвращает 401 при невалидном токене', async () => {
     const req = createRequest({ method: 'GET', token: 'invalid-token' });
     const res = createResponse();
 
@@ -160,12 +160,12 @@ describe('step 2.2.8 api smoke (handler/controller harness fallback)', () => {
       ok: false,
       error: {
         code: 'UNAUTHORIZED',
-        message: 'Invalid or expired token',
+        message: 'Недействительный или просроченный токен',
       },
     });
   });
 
-  it('C2: returns 422 for invalid collection payload', async () => {
+  it('C2: возвращает 422 для невалидного payload коллекции', async () => {
     const req = createRequest({
       method: 'POST',
       token: 'user-1',
@@ -180,7 +180,7 @@ describe('step 2.2.8 api smoke (handler/controller harness fallback)', () => {
     expect((res.body as any).error.code).toBe('VALIDATION_ERROR');
   });
 
-  it('C2: returns 422 for invalid entry payload', async () => {
+  it('C2: возвращает 422 для невалидного payload карточки', async () => {
     const req = createRequest({
       method: 'POST',
       token: 'user-1',
@@ -196,7 +196,7 @@ describe('step 2.2.8 api smoke (handler/controller harness fallback)', () => {
     expect((res.body as any).error.code).toBe('VALIDATION_ERROR');
   });
 
-  it('C3: returns unified success envelope for private list endpoint', async () => {
+  it('C3: возвращает единый success envelope для private list endpoint', async () => {
     serviceMocks.getOwnerCollections.mockResolvedValue({
       items: [collectionView],
       meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
@@ -217,7 +217,7 @@ describe('step 2.2.8 api smoke (handler/controller harness fallback)', () => {
     });
   });
 
-  it('C4: maps ForbiddenError to 403 on collection access', async () => {
+  it('C4: маппит ForbiddenError в 403 при доступе к коллекции', async () => {
     const forbidden = new Error('Access is forbidden');
     forbidden.name = 'ForbiddenError';
     serviceMocks.getCollectionById.mockRejectedValue(forbidden);
@@ -236,7 +236,7 @@ describe('step 2.2.8 api smoke (handler/controller harness fallback)', () => {
     expect((res.body as any).error.code).toBe('FORBIDDEN');
   });
 
-  it('C4: maps NotFoundError to 404 on collection access', async () => {
+  it('C4: маппит NotFoundError в 404 при доступе к коллекции', async () => {
     const notFound = new Error('Collection not found');
     notFound.name = 'NotFoundError';
     serviceMocks.getCollectionById.mockRejectedValue(notFound);
@@ -255,7 +255,7 @@ describe('step 2.2.8 api smoke (handler/controller harness fallback)', () => {
     expect((res.body as any).error.code).toBe('NOT_FOUND');
   });
 
-  it('C5: collection CRUD handlers return expected statuses and envelopes', async () => {
+  it('C5: collection CRUD handlers возвращают ожидаемые статусы и envelopes', async () => {
     serviceMocks.createCollection.mockResolvedValue(collectionView);
     serviceMocks.getCollectionById.mockResolvedValue(collectionView);
     serviceMocks.updateCollection.mockResolvedValue({ ...collectionView, title: 'Updated title' });
@@ -303,7 +303,7 @@ describe('step 2.2.8 api smoke (handler/controller harness fallback)', () => {
     expect(deleteRes.body).toEqual({ ok: true, data: null });
   });
 
-  it('C6: entry CRUD handlers return expected statuses and envelopes', async () => {
+  it('C6: entry CRUD handlers возвращают ожидаемые статусы и envelopes', async () => {
     serviceMocks.createEntry.mockResolvedValue(entryView);
     serviceMocks.getCollectionEntries.mockResolvedValue({
       items: [entryView],
@@ -370,7 +370,7 @@ describe('step 2.2.8 api smoke (handler/controller harness fallback)', () => {
     expect(deleteRes.body).toEqual({ ok: true, data: null });
   });
 
-  it('C7: public endpoint works without token and returns 200', async () => {
+  it('C7: public endpoint работает без токена и возвращает 200', async () => {
     serviceMocks.getPublicCollections.mockResolvedValue({
       items: [
         {

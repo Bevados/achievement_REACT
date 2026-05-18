@@ -2,28 +2,27 @@
 
 ## Что делает файл
 
-Это публичный serverless entrypoint для маршрута /api/examples/collections.
-Файл не требует авторизации и делегирует чтение публичных коллекций в контроллер.
+Это public serverless entrypoint для маршрута `/api/examples/collections`.
+Файл отдаёт read-only список публичных example-коллекций.
 
 ## Импорты и зависимости
 
-1. @vercel/node (VercelRequest, VercelResponse) - типы HTTP.
-2. ../../../lib/controllers/collection.controller - handler getPublicCollections.
-3. ../../../lib/http/api-response - sendError для единых fallback-ошибок.
+1. `../../../lib/controllers/collection.controller`
+2. `../../../lib/http/api-response`
 
 ## Экспорты и контракты
 
-1. export default handler(req, res):
-   GET -> getPublicCollections
-   иначе -> 405 METHOD_NOT_ALLOWED.
-2. В catch возвращает 500 INTERNAL_ERROR при отсутствии уже отправленного ответа.
+1. Default export: `handler(req, res)`.
+2. Поддерживаемый метод:
+   - `GET`
+3. Неподдерживаемые методы получают `405`.
 
 ## Нетривиальная логика
 
-1. Это единственный endpoint блока collections, который intentionally публичный (без verifyAuth).
-2. Ошибки также возвращаются в unified API envelope, как и в приватных маршрутах.
-3. Относительные импорты выбраны специально для стабильной работы local `vercel dev` без зависимости от alias `@lib/*`.
+1. Маршрут работает без auth и обслуживает только public examples.
+2. Fallback `500` возвращает единый русский текст внутренней ошибки сервера.
 
 ## Где используется
 
-1. Vercel file-based routing для пути /api/examples/collections.
+1. Вызывается платформой Vercel как обработчик `api/examples/collections`.
+2. Используется клиентом через `src/api/collections.api.ts`.

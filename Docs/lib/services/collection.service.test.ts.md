@@ -21,12 +21,12 @@
    - create/update/delete коллекций и карточек
    - completed-entry business rules
    - transaction behavior
-   - custom category mapping and cleanup
+   - custom category mapping, required-правило и cleanup
 
 ## Нетривиальная логика
 
-1. Отдельный тест проверяет, что `customCategory` доходит до `CollectionView`.
-2. Отдельный тест защищает от регрессии, где после смены категории с `other` на preset в документе могла остаться старая пользовательская категория.
+1. Отдельные тесты страхуют инвариант `category='other' -> customCategory required` и на create, и на update после merge с текущим состоянием документа.
+2. Транзакционные сценарии проверяют не только happy-path, но и abort при сбое обновления счётчика карточек.
 
 ## Где используется
 

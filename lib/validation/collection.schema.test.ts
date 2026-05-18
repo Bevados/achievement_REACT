@@ -36,6 +36,15 @@ describe('collection.schema private contract', () => {
     ).not.toThrow();
   });
 
+  it('requires customCategory when category is other', () => {
+    expect(() =>
+      createCollectionSchema.parse({
+        title: 'Custom Collection',
+        category: 'other',
+      }),
+    ).toThrow();
+  });
+
   it('requires rating and dateStart for completed entry creation', () => {
     expect(() =>
       createEntrySchema.parse({

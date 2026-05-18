@@ -8,11 +8,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       case 'GET':
         return controller.getPublicEntries(req, res);
       default:
-        return sendError(res, 405, 'METHOD_NOT_ALLOWED', 'Method not allowed');
+        return sendError(res, 405, 'METHOD_NOT_ALLOWED', 'Метод не поддерживается');
     }
   } catch {
     if (!res.headersSent) {
-      return sendError(res, 500, 'INTERNAL_ERROR', 'Internal server error');
+      return sendError(res, 500, 'INTERNAL_ERROR', 'Внутренняя ошибка сервера');
     }
 
     return;

@@ -2,28 +2,24 @@
 
 ## Что делает файл
 
-Файл описывает расширенный тип HTTP-запроса для авторизованных API-операций.
-Он добавляет поле `userId` к стандартному `VercelRequest`.
+Файл хранит типы request-объектов для backend-слоя, включая расширенный запрос после аутентификации.
 
 ## Импорты и зависимости
 
-1. `@vercel/node` (`VercelRequest`) - базовый тип запроса для Vercel serverless.
+1. `@vercel/node` (`VercelRequest`) — базовый тип входящего запроса.
 
 ## Экспорты и контракты
 
-1. Экспортируется интерфейс `AuthenticatedRequest extends VercelRequest`.
-2. Добавленное поле:`userId: string`.
-4. Инварианты:
- `userId` должен быть установлен middleware `verifyAuth` до выполнения контроллера.
- Использование `AuthenticatedRequest` без auth-проверки может привести к runtime-ошибке из-за отсутствующего `userId`.
+1. `AuthenticatedRequest` — расширяет `VercelRequest` и добавляет `userId?: string`.
+2. После успешного `verifyAuth` downstream-слои могут рассчитывать на заполненный `req.userId`.
 
 ## Нетривиальная логика
 
-1. Это типовой «контракт между middleware и контроллером»: middleware пишет `req.userId`, контроллер читает.
-2. Файл не содержит runtime-кода, но критичен для корректной типизации авторизованных endpoint-ов.
+1. Тип нужен именно для serverless backend-цепочки и не используется на клиенте.
+2. `userId` остаётся optional на уровне типа, потому что поле заполняется runtime-middleware, а не самим request-объектом платформы.
 
 ## Где используется
 
-1. `lib/middleware/auth.ts` - функция `verifyAuth` заполняет `req.userId`.
-2. `lib/controllers/item.controller.ts` - handlers принимают `AuthenticatedRequest` и используют `req.userId`.
-3. `api/items/index.ts` - handler типизирован как `AuthenticatedRequest`.
+1. `lib/middleware/auth.ts`.
+2. Private API handlers в `api/collections/*`.
+3. `lib/controllers/collection.controller.ts`.
