@@ -13,7 +13,9 @@
     "docs:check": "node scripts/docs-check.mjs",
     "seed:examples": "node scripts/seed-system-examples.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:smoke": "vitest run src/App.smoke.test.tsx src/pages/CollectionsPage/CollectionsPage.smoke.test.tsx src/pages/CollectionDetailPage/CollectionDetailPage.smoke.test.tsx src/pages/ExamplesPage/ExamplesPage.smoke.test.tsx src/pages/PublicCollectionDetailPage/PublicCollectionDetailPage.smoke.test.tsx",
+    "test:watch": "vitest",
+    "release:check": "npm run test:smoke && npm run test && tsc -b && npm run build && npm run lint && npm run docs:check"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",

@@ -395,7 +395,7 @@
 5. Шаг 4: done (4.1-4.3).
 6. Шаг 5: done.
 7. Шаг 6: done (6.1-6.2).
-8. Шаг 7: planned.
+8. Шаг 7: in_progress.
 
 ## Прогресс шага 5.1
 
@@ -490,6 +490,37 @@
 4. `ExamplesPage` и `PublicCollectionDetailPage` больше не используют manual-fetch controller flow: URL-state остаётся в `useCollectionsListState()` и `useEntriesListState()`, а server-state загружается через Query hooks.
 5. Retry-кнопки на public-экранах переведены на `query.refetch()` вместо ручных reload-функций.
 6. Public examples остаются полностью read-only: в этом подпункте не добавлялись public mutations, invalidate после мутаций или optimistic updates.
+
+## Прогресс шага 7.1
+
+1. Для проекта добавлен отдельный frontend smoke-layer на базе Vitest + Testing Library, без отдельного backend-smoke раннера.
+2. В `package.json` добавлен короткий pre-release script `test:smoke`, который запускает только smoke-suite.
+3. Smoke-набор покрывает критические сценарии:
+   - app routing и auth gate;
+   - private collections list + create/update/delete collection;
+   - private collection detail + create/update/delete entry;
+   - public examples list;
+   - public example detail в read-only режиме.
+4. Smoke-suite не заменяет детальные unit/integration тесты, а существует как отдельный release-gate поверх уже имеющегося тестового слоя.
+5. Текущий release-gate для MVP зафиксирован так:
+   - `npm.cmd run test:smoke`
+   - `npm.cmd run test`
+   - `npx.cmd tsc -b`
+   - `npm.cmd run lint`
+   - `npm.cmd run docs:check`
+
+## Прогресс шага 7.2
+
+1. В `package.json` добавлен единый локальный pre-release script `release:check`.
+2. `release:check` последовательно запускает:
+   - `npm.cmd run test:smoke`
+   - `npm.cmd run test`
+   - `npx.cmd tsc -b`
+   - `npm.cmd run build`
+   - `npm.cmd run lint`
+   - `npm.cmd run docs:check`
+3. Единый script стал новым источником истины для MVP release-gate, чтобы порядок проверок не хранился только в docs или в устной договоренности.
+4. В `release:check` не входят `dev:api`, seed-скрипты, ручные browser-smoke или Vercel deploy: это только локальный gate для lint/build/test/docs.
 
 ## Прогресс шага 5.5
 

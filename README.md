@@ -9,6 +9,19 @@ During local development Vite proxies every `/api/*` request to the separate bac
 
 The `api/*` files are still the production entrypoints for Vercel deploy. The local backend server is only a dev runner that reuses the same controllers and services without replacing the Vercel architecture.
 
+## Local Pre-release Check
+
+`npm run release:check` is the main local pre-release gate for the MVP.
+
+It runs the required checks in a fixed order and stops on the first failing step:
+
+1. `npm run test:smoke`
+2. `npm run test`
+3. `tsc -b`
+4. `npm run build`
+5. `npm run lint`
+6. `npm run docs:check`
+
 ## Архитектурная карта проекта
 
 - Карта связей файлов и потоков данных: [DOCS_FILE_MAP.md](DOCS_FILE_MAP.md)

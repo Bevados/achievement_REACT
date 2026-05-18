@@ -79,6 +79,11 @@ Backend:
 - MongoDB
 - Firebase Admin
 
+Testing:
+- Vitest
+- Testing Library
+- отдельный smoke-script `test:smoke`
+
 ---
 
 # 4. Что уже сделано
@@ -107,7 +112,8 @@ Backend:
 - на карточке коллекции и на detail-страницах показываются дата создания и дата обновления
 - private/public detail-страницы имеют верхнюю и нижнюю ссылки возврата к спискам
 - фильтры карточек раскрываются плавно
-- public examples уже тоже переведены на TanStack Query и используют отдельные public query hooks
+- public examples уже переведены на TanStack Query и используют отдельные public query hooks
+- для шага 7.1 добавлен отдельный frontend smoke-layer и script `test:smoke`
 
 ---
 
@@ -121,7 +127,8 @@ Backend:
 - шаг 6 завершён:
   - 6.1 private server-state переведён на TanStack Query;
   - 6.2 public examples переведены на TanStack Query;
-- следующий активный этап после завершения шага 6 — переход к шагу 7.
+- шаг 7 начат;
+- текущий активный подпункт — `7.2`: единый `release:check` для локального pre-release цикла.
 
 Что уже сделано в шаге 6:
 - добавлен `QueryClientProvider` на уровне приложения;
@@ -149,6 +156,19 @@ Backend:
   - URL-state hooks
   - legacy manual-fetch controller layer для экранов, которые ещё не на Query
 - public и private query keys разделены
+
+Что уже сделано в шаге 7.1:
+- добавлен script `test:smoke`
+- собран короткий smoke-suite для критических пользовательских сценариев
+- release-gate сейчас формализован через:
+  - `npm.cmd run release:check`
+- внутри `release:check` последовательно запускаются:
+  - `npm.cmd run test:smoke`
+  - `npm.cmd run test`
+  - `npx.cmd tsc -b`
+  - `npm.cmd run build`
+  - `npm.cmd run lint`
+  - `npm.cmd run docs:check`
 
 ---
 
@@ -198,9 +218,11 @@ Private API:
 
 - `npm.cmd run dev`
 - `npm.cmd run dev:api`
+- `npm.cmd run release:check`
+- `npm.cmd run test:smoke`
+- `npm.cmd run test`
 - `npx.cmd tsc -b`
 - `npm.cmd run lint`
-- `npm.cmd run test`
 - `npm.cmd run docs:scaffold`
 - `npm.cmd run docs:check`
 - `npm.cmd run seed:examples`
@@ -216,7 +238,8 @@ Private API:
 - Public examples и private collections — разные контексты.
 - Для `completed` entry обязательны `rating` и `dateStart`.
 - Вместо одного `date` используется модель `dateStart/dateEnd`.
-- Server-state для обоих потоков уже переведён на TanStack Query; `Zustand` остаётся для `auth/modal/theme`.
+- Server-state для обоих потоков уже переведён на TanStack Query; `Zustand` остаётся для локального client/UI state (`auth`, `auth-intent`, `modal`, `theme`).
+- Smoke-suite — это отдельный короткий release-layer поверх детальных unit/integration тестов, а не их замена.
 
 ---
 
