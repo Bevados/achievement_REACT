@@ -54,6 +54,13 @@
 - Для Vercel runtime зафиксирован `Node 20` через `package.json -> engines.node`.
 - Для SPA-маршрутов `/examples`, `/collections` и `/profile` используется `vercel.json` rewrite слой.
 
+## Production
+
+- Live URL: `https://achievement-collections-react.vercel.app`
+- Базово проверено после deploy:
+  - `GET /api/examples/collections` -> `200 OK`
+  - `/examples` -> `200 OK`
+
 ## CI
 
 В репозитории настроен GitHub Actions workflow `Release Check`, который запускает `npm run release:check` на `push` в `master` и на `pull_request`.

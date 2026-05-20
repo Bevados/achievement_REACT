@@ -1,16 +1,17 @@
 # Plan: Achievement Collections MVP
 
-## Update 2026-05-18 — статус шага 7.3
+## Update 2026-05-20 — шаг 7.3 закрыт
 
-1. Vercel project уже связан через `.vercel/project.json`, а обязательные preview/production env заведены в linked project.
-2. Для Vercel production build пришлось перевести server-side relative imports в `api/`, `lib/` и `contracts/` на явные `.js`, потому что локальный `tsc -b` был зелёным, а Vercel Node builder раньше падал на extensionless imports.
-3. Для frontend SPA на Vercel добавлен `vercel.json` с rewrites для маршрутов `/examples`, `/collections` и `/profile`, чтобы прямой заход в client routes больше не отдавал `404`.
-4. `src/App.test.tsx` и `src/App.smoke.test.tsx` стабилизированы page-mocks для lazy routing, чтобы `release:check` не зависел от тайминга `Suspense`.
-5. `package.json` получил `engines.node = 20.x`, чтобы Vercel не поднимал backend по умолчанию на `nodejs24.x`.
-6. Локальный `npm.cmd run release:check` снова полностью зелёный после deploy-совместимых правок.
-7. Preview deploy на Vercel успешно собирает frontend и serverless entrypoints, но deployed public API `/api/examples/collections` всё ещё отвечает `500`.
-8. Диагностика показала, что этот блокер живёт уже в Vercel runtime/Mongo connectivity слое и не воспроизводится локально: repo-state зелёный, а deploy-state требует отдельного добивания.
-9. Значит `7.3` начат и частично выполнен, но ещё не считается закрытым до тех пор, пока deployed public API и финальный manual smoke не станут зелёными.
+1. Vercel project связан, а обязательные preview/production env заданы и перепроверены.
+2. Для Vercel production build server-side relative imports в `api/`, `lib/` и `contracts/` переведены на явные `.js`, поэтому backend больше не падает на `TS2307/TS2835`.
+3. Для frontend SPA добавлен `vercel.json` с rewrites для `/examples`, `/collections` и `/profile`, поэтому прямой заход в client routes больше не отдаёт `404`.
+4. `src/App.test.tsx` и `src/App.smoke.test.tsx` стабилизированы под lazy routing.
+5. `package.json` получил `engines.node = 20.x` для Vercel runtime.
+6. После открытия `MongoDB Atlas Network Access` (`0.0.0.0/0`) и возврата точного SRV `MONGODB_URI` deployed preview/public API перестал отдавать `500`.
+7. Production deploy выполнен на `https://achievement-collections-react.vercel.app`.
+8. Production публичный API `GET /api/examples/collections` отвечает `200 OK` и отдаёт реальные данные MongoDB.
+9. Production маршрут `/examples` отвечает `200 OK`, значит deploy-связка `Vercel + SPA rewrites + MongoDB` рабочая.
+10. `Шаг 7.3` считается выполненным: проект задеплоен и прошёл базовую ручную проверку deployed public flow.
 
 Этот файл - рабочий план реализации.
 Цель: идти по шагам, по одному за раз, с понятными объяснениями что и зачем делается.

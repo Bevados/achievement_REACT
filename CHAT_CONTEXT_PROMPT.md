@@ -137,7 +137,10 @@ Testing:
   - 6.1 private server-state переведён на TanStack Query;
   - 6.2 public examples переведены на TanStack Query;
 - шаг 7 начат;
-- текущий активный подпункт — `7.2`: единый `release:check` для локального pre-release цикла.
+- шаг 7 закрыт:
+  - `7.1` frontend smoke-layer готов;
+  - `7.2` единый `release:check` готов;
+  - `7.3` Vercel deploy и MongoDB production connectivity доведены до рабочего состояния.
 
 Что уже сделано в шаге 6:
 - добавлен `QueryClientProvider` на уровне приложения;
@@ -255,20 +258,21 @@ Private API:
 
 # 10. Known Runtime Constraints
 
-## Update 2026-05-18 — шаг 7.3
+## Update 2026-05-20 — шаг 7.3 завершён
 
-- Локальный `npm.cmd run release:check` полностью зелёный.
-- Для Vercel deploy уже сделаны:
+- Локальный `npm.cmd run release:check` остаётся зелёным.
+- Для Vercel deploy зафиксированы:
   - server-side `.js` imports для backend ESM build;
   - `vercel.json` rewrites для `/examples`, `/collections`, `/profile`;
   - `package.json -> engines.node = 20.x`;
   - стабилизация `src/App.test.tsx` и `src/App.smoke.test.tsx` под lazy routing.
-- Preview deploy на Vercel собирается успешно.
-- Текущий реальный блокер не локальный, а внешний runtime:
-  - deployed public API `/api/examples/collections` всё ещё даёт `500`;
-  - это не воспроизводится локально;
-  - расследование уже упёрлось в слой Vercel runtime / Mongo connectivity.
-- Если продолжать шаг `7.3`, первым делом нужно смотреть `vercel logs` и добивать именно deployed Mongo/API связность, а не перепроверять локальный repo-state.
+- После открытия `MongoDB Atlas Network Access` и возврата точного SRV `MONGODB_URI` deployed public API перестал отдавать `500`.
+- Production домен:
+  - `https://achievement-collections-react.vercel.app`
+- Production проверено:
+  - `GET /api/examples/collections` -> `200 OK`
+  - `/examples` -> `200 OK`
+- Основной deploy-блок плана закрыт; оставшаяся ручная проверка — это уже финальный QA, а не infrastructure blocker.
 
 - Windows environment
 - PowerShell execution policy limitations
