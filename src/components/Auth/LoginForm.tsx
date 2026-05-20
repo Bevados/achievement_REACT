@@ -35,7 +35,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
       await login(values.email, values.password);
       onSuccess();
     } catch {
-      // РћС€РёР±РєР° СѓР¶Рµ Р·Р°РїРёСЃР°РЅР° РІ auth.store Рё РѕС‚РѕР±СЂР°Р¶Р°РµС‚СЃСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ.
+      // Ошибка уже записана в auth.store и отображается пользователю.
     }
   };
 
@@ -49,10 +49,10 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
           className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none transition focus:border-secondary"
           placeholder="you@example.com"
           {...register('email', {
-            required: 'Р’РІРµРґРёС‚Рµ email',
+            required: 'Введите email',
             pattern: {
               value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: 'Р’РІРµРґРёС‚Рµ РєРѕСЂСЂРµРєС‚РЅС‹Р№ email',
+              message: 'Введите корректный email',
             },
           })}
         />
@@ -60,17 +60,17 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
       </label>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-gray-700">РџР°СЂРѕР»СЊ</span>
+        <span className="mb-1 block text-sm font-medium text-gray-700">Пароль</span>
         <input
           type="password"
           autoComplete="current-password"
           className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none transition focus:border-secondary"
           placeholder="********"
           {...register('password', {
-            required: 'Р’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ',
+            required: 'Введите пароль',
             minLength: {
               value: 6,
-              message: 'РџР°СЂРѕР»СЊ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РЅРµ РєРѕСЂРѕС‡Рµ 6 СЃРёРјРІРѕР»РѕРІ',
+              message: 'Пароль должен быть не короче 6 символов',
             },
           })}
         />
@@ -86,11 +86,11 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
         disabled={isSubmitting}
         className="w-full rounded-lg bg-secondary px-4 py-2 font-medium text-white transition hover:bg-secondary-dark disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isSubmitting ? 'Р’С…РѕРґРёРј...' : 'Р’РѕР№С‚Рё'}
+        {isSubmitting ? 'Входим...' : 'Войти'}
       </button>
 
       <p className="text-center text-sm text-gray-600">
-        РќРµС‚ Р°РєРєР°СѓРЅС‚Р°?{' '}
+        Нет аккаунта?{' '}
         <button
           type="button"
           onClick={() => {
@@ -99,7 +99,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
           }}
           className="font-medium text-secondary hover:underline"
         >
-          Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊСЃСЏ
+          Зарегистрироваться
         </button>
       </p>
     </form>

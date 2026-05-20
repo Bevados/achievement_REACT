@@ -1,39 +1,8 @@
-import { useCallback, useEffect, useReducer, useState } from 'react';
+import { useEffect, useReducer } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import type {
-  EntryListQueryDto,
-  EntrySortField,
-  EntryStatus,
-  EntryView,
-  PaginatedResult,
-  PaginationMeta,
-  SortOrder,
-} from '../../contracts/collection.contracts';
+import type { EntrySortField, EntryStatus, SortOrder } from '../../contracts/collection.contracts';
 import { ENTRY_SORT_FIELDS, ENTRY_STATUSES, SORT_ORDERS } from '../../contracts/collection.contracts';
-
-export type EntriesQuery = Pick<
-  EntryListQueryDto,
-  | 'page'
-  | 'limit'
-  | 'sortBy'
-  | 'sortOrder'
-  | 'status'
-  | 'createdAtFrom'
-  | 'createdAtTo'
-  | 'dateStartFrom'
-  | 'dateStartTo'
-  | 'minPrice'
-  | 'maxPrice'
-  | 'minRating'
-  | 'maxRating'
->;
-
-interface UseEntriesListControllerOptions {
-  collectionId: string;
-  fetchEntries: (collectionId: string, query: EntriesQuery) => Promise<PaginatedResult<EntryView>>;
-  fallbackErrorMessage: string;
-  pageSize?: number;
-}
+import type { EntriesQuery } from './query.types';
 
 interface UseEntriesListStateResult {
   hasActiveFilters: boolean;
@@ -88,42 +57,6 @@ interface EntriesListState {
   maxPrice: string;
   minRating: string;
   maxRating: string;
-}
-
-interface UseEntriesListControllerResult {
-  entries: EntryView[];
-  meta: PaginationMeta | null;
-  hasActiveFilters: boolean;
-  page: number;
-  sortBy: EntrySortField;
-  sortOrder: SortOrder;
-  status: EntryStatus | '';
-  createdAtFromInput: string;
-  createdAtToInput: string;
-  dateStartFromInput: string;
-  dateStartToInput: string;
-  minPriceInput: string;
-  maxPriceInput: string;
-  minRatingInput: string;
-  maxRatingInput: string;
-  isLoading: boolean;
-  errorMessage: string | null;
-  setSortBy: (value: EntrySortField) => void;
-  setSortOrder: (value: SortOrder) => void;
-  setStatus: (value: EntryStatus | '') => void;
-  setCreatedAtFromInput: (value: string) => void;
-  setCreatedAtToInput: (value: string) => void;
-  setDateStartFromInput: (value: string) => void;
-  setDateStartToInput: (value: string) => void;
-  setMinPriceInput: (value: string) => void;
-  setMaxPriceInput: (value: string) => void;
-  setMinRatingInput: (value: string) => void;
-  setMaxRatingInput: (value: string) => void;
-  applyFilters: () => void;
-  resetFilters: () => void;
-  goToPreviousPage: () => void;
-  goToNextPage: () => void;
-  reloadEntries: () => Promise<void>;
 }
 
 const DEFAULT_PAGE = 1;
@@ -324,7 +257,7 @@ export function useEntriesListState(pageSize = 12): UseEntriesListStateResult {
       state.minPrice ||
       state.maxPrice ||
       state.minRating ||
-      state.maxRating
+      state.maxRating,
   );
 
   useEffect(() => {
@@ -375,34 +308,6 @@ export function useEntriesListState(pageSize = 12): UseEntriesListStateResult {
     }
   }, [searchParams, setSearchParams, state]);
 
-  function applyFilters(): void {
-    dispatch({ type: 'apply_filters' });
-  }
-
-  function resetFilters(): void {
-    dispatch({ type: 'reset_filters' });
-  }
-
-  function setSortBy(value: EntrySortField): void {
-    dispatch({ type: 'set_sort_by', value });
-  }
-
-  function setSortOrder(value: SortOrder): void {
-    dispatch({ type: 'set_sort_order', value });
-  }
-
-  function setStatus(value: EntryStatus | ''): void {
-    dispatch({ type: 'set_status', value });
-  }
-
-  function goToPreviousPage(): void {
-    dispatch({ type: 'go_to_previous_page' });
-  }
-
-  function goToNextPage(): void {
-    dispatch({ type: 'go_to_next_page' });
-  }
-
   return {
     hasActiveFilters,
     page: state.page,
@@ -432,9 +337,15 @@ export function useEntriesListState(pageSize = 12): UseEntriesListStateResult {
       minRating: parseOptionalNumber(state.minRating),
       maxRating: parseOptionalNumber(state.maxRating),
     },
-    setSortBy,
-    setSortOrder,
-    setStatus,
+    setSortBy: (value) => {
+      dispatch({ type: 'set_sort_by', value });
+    },
+    setSortOrder: (value) => {
+      dispatch({ type: 'set_sort_order', value });
+    },
+    setStatus: (value) => {
+      dispatch({ type: 'set_status', value });
+    },
     setCreatedAtFromInput: (value) => {
       dispatch({ type: 'set_created_at_from_input', value });
     },
@@ -459,85 +370,17 @@ export function useEntriesListState(pageSize = 12): UseEntriesListStateResult {
     setMaxRatingInput: (value) => {
       dispatch({ type: 'set_max_rating_input', value });
     },
-    applyFilters,
-    resetFilters,
-    goToPreviousPage,
-    goToNextPage,
-  };
-}
-
-export function useEntriesListController(
-  options: UseEntriesListControllerOptions,
-): UseEntriesListControllerResult {
-  const { collectionId, fetchEntries, fallbackErrorMessage, pageSize = 12 } = options;
-  const state = useEntriesListState(pageSize);
-  const [entries, setEntries] = useState<EntryView[]>([]);
-  const [meta, setMeta] = useState<PaginationMeta | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const reloadEntries = useCallback(async () => {
-    if (!collectionId) {
-      setEntries([]);
-      setMeta(null);
-      setErrorMessage('Не удалось определить идентификатор коллекции.');
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    try {
-      const result = await fetchEntries(collectionId, state.query);
-      setEntries(result.items);
-      setMeta(result.meta);
-    } catch (error) {
-      setEntries([]);
-      setMeta(null);
-      setErrorMessage(error instanceof Error ? error.message : fallbackErrorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [collectionId, fallbackErrorMessage, fetchEntries, state.query]);
-
-  useEffect(() => {
-    void reloadEntries();
-  }, [reloadEntries]);
-
-  return {
-    entries,
-    meta,
-    hasActiveFilters: state.hasActiveFilters,
-    page: state.page,
-    sortBy: state.sortBy,
-    sortOrder: state.sortOrder,
-    status: state.status,
-    createdAtFromInput: state.createdAtFromInput,
-    createdAtToInput: state.createdAtToInput,
-    dateStartFromInput: state.dateStartFromInput,
-    dateStartToInput: state.dateStartToInput,
-    minPriceInput: state.minPriceInput,
-    maxPriceInput: state.maxPriceInput,
-    minRatingInput: state.minRatingInput,
-    maxRatingInput: state.maxRatingInput,
-    isLoading,
-    errorMessage,
-    setSortBy: state.setSortBy,
-    setSortOrder: state.setSortOrder,
-    setStatus: state.setStatus,
-    setCreatedAtFromInput: state.setCreatedAtFromInput,
-    setCreatedAtToInput: state.setCreatedAtToInput,
-    setDateStartFromInput: state.setDateStartFromInput,
-    setDateStartToInput: state.setDateStartToInput,
-    setMinPriceInput: state.setMinPriceInput,
-    setMaxPriceInput: state.setMaxPriceInput,
-    setMinRatingInput: state.setMinRatingInput,
-    setMaxRatingInput: state.setMaxRatingInput,
-    applyFilters: state.applyFilters,
-    resetFilters: state.resetFilters,
-    goToPreviousPage: state.goToPreviousPage,
-    goToNextPage: state.goToNextPage,
-    reloadEntries,
+    applyFilters: () => {
+      dispatch({ type: 'apply_filters' });
+    },
+    resetFilters: () => {
+      dispatch({ type: 'reset_filters' });
+    },
+    goToPreviousPage: () => {
+      dispatch({ type: 'go_to_previous_page' });
+    },
+    goToNextPage: () => {
+      dispatch({ type: 'go_to_next_page' });
+    },
   };
 }

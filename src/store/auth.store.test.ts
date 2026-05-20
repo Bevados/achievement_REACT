@@ -72,6 +72,6 @@ describe('auth.store', () => {
     );
 
     await expect(useAuthStore.getState().login('x@y.z', 'bad')).rejects.toBeTruthy();
-    expect(useAuthStore.getState().error).toBe('РќРµРІРµСЂРЅС‹Р№ email РёР»Рё РїР°СЂРѕР»СЊ.');
+    expect(useAuthStore.getState().error).toBe('Неверный email или пароль.');
   });
 });

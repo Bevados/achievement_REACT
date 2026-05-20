@@ -18,8 +18,7 @@ import {
   getOwnerCollections,
   updateCollection,
 } from '../api/collections.api';
-import type { CollectionsQuery } from './useCollectionsListController';
-import type { EntriesQuery } from './useEntriesListController';
+import type { CollectionsQuery, EntriesQuery } from './query.types';
 
 export const privateCollectionKeys = {
   all: ['private-collections'] as const,

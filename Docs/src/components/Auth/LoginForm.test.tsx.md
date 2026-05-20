@@ -2,32 +2,23 @@
 
 ## Что делает файл
 
-Файл тестирует форму входа `LoginForm`.
-Покрываются клиентская валидация полей, корректный вызов `login`, показ ошибок из store и переход на регистрацию с очисткой ошибки.
+Тестирует форму входа в изоляции от реального auth-store через мок `useAuthStore`.
 
 ## Импорты и зависимости
 
-1. `vitest`, Testing Library и `user-event` используются для сценариев взаимодействия с формой.
-2. `./LoginForm` - тестируемый компонент.
-3. `../../store/auth.store` мокается через selector-совместимый `storeMocks`.
+1. `vitest` даёт test runner и моки.
+2. `@testing-library/react` и `user-event` эмулируют ввод и submit.
+3. `./LoginForm` — тестируемый компонент.
 
 ## Экспорты и контракты
 
-1. Runtime-экспортов нет.
-2. Проверяемые контракты:
-2.1. невалидный пароль блокирует submit и `login` не вызывается;
-2.2. валидные данные передаются в `login(email, password)`;
-2.3. ошибка из `auth.store.error` рендерится пользователю;
-2.4. кнопка перехода на регистрацию вызывает `clearError` и `onSwitchToRegister`.
+1. Экспортов нет: файл содержит только unit-tests для `LoginForm`.
 
 ## Нетривиальная логика
 
-1. Мок повторяет паттерн Zustand selector API: `useAuthStore(selector) => selector(storeMocks)`.
-2. Успешный submit проверяется через `waitFor`, потому что обработчик формы асинхронный.
-3. Тесты проверяют не только сам факт submit, но и аргументы, переданные в store.
+1. `useAuthStore` мокается как selector-based API, чтобы форма тестировалась без реального Zustand-store.
+2. Ошибки проверяются как на уровне client-side валидации, так и на уровне `auth.store.error`.
 
 ## Где используется
 
-1. Запускается в наборе `npm run test`.
-2. Защищает от регрессий компонент `src/components/Auth/LoginForm.tsx`.
-3. Использует общий test setup из `src/test/setup.ts`.
+1. Запускается в общем Vitest suite через `npm run test`.

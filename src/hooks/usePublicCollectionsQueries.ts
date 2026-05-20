@@ -9,8 +9,7 @@ import {
   getPublicCollectionEntries,
   getPublicCollections,
 } from '../api/collections.api';
-import type { CollectionsQuery } from './useCollectionsListController';
-import type { EntriesQuery } from './useEntriesListController';
+import type { CollectionsQuery, EntriesQuery } from './query.types';
 
 export const publicCollectionKeys = {
   all: ['public-collections'] as const,

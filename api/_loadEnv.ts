@@ -7,7 +7,9 @@ export function ensureServerEnvLoaded() {
     return;
   }
 
-  loadEnv({ path: '.env.local' });
-  loadEnv();
+  const quiet = process.env.VERCEL === '1' || Boolean(process.env.VERCEL_ENV);
+
+  loadEnv({ path: '.env.local', quiet });
+  loadEnv({ quiet });
   isEnvLoaded = true;
 }

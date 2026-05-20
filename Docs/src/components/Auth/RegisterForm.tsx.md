@@ -2,34 +2,27 @@
 
 ## Что делает файл
 
-Компонент реализует форму регистрации пользователя с полями `nickname`, `email`, `password`, `confirmPassword`.
-Форма валидирует поля на клиенте, вызывает `register` из auth-store и по успеху сообщает контейнеру через `onSuccess`.
+Рендерит форму регистрации с никнеймом, email и подтверждением пароля.
+Проверяет поля на клиенте, вызывает `register` из `auth.store` и показывает серверные ошибки из стора.
 
 ## Импорты и зависимости
 
-1. `react-hook-form` (`useForm`) управляет состоянием формы, валидацией и submit.
-2. `src/store/auth.store.ts` (`useAuthStore`) даёт `register`, `error` и `clearError`.
+1. `react-hook-form` управляет полями и submit-валидацией.
+2. `src/store/auth.store.ts` даёт `register`, `error` и `clearError`.
 
 ## Экспорты и контракты
 
 1. Экспортируется default-компонент `RegisterForm`.
-2. Проп `onSuccess: () => void` вызывается после успешной регистрации.
-3. Проп `onSwitchToLogin: () => void` переключает модалку на форму входа.
-4. Локальная форма `RegisterFormValues` содержит `nickname`, `email`, `password`, `confirmPassword`.
-5. Инварианты:
-5.1. `register(email, password, nickname)` вызывается только при валидной форме.
-5.2. `confirmPassword` должен совпадать со значением `password`.
-5.3. Ошибка регистрации читается из `auth.store.error`.
+2. `onSuccess` вызывается после успешной регистрации.
+3. `onSwitchToLogin` переключает модалку назад на форму входа.
 
 ## Нетривиальная логика
 
-1. Перед submit форма вызывает `clearError()`, чтобы убрать сообщение от предыдущей попытки.
-2. Проверка `confirmPassword` использует второй аргумент `formValues` из `react-hook-form`, поэтому компоненту не нужен отдельный `watch('password')`.
-3. Валидация `nickname` строже остальных полей: минимум 3 символа, максимум 20, только латиница, цифры и `_`.
-4. При переключении на логин компонент сначала очищает ошибку, затем вызывает `onSwitchToLogin`.
+1. `nickname` проверяется на длину и разрешённый набор символов.
+2. `confirmPassword` сравнивается с `password` прямо в форме.
+3. `catch` после `register` пустой, потому что сообщение ошибки уже хранится в `auth.store`.
 
 ## Где используется
 
-1. `src/components/Auth/AuthModal.tsx` - рендер формы в register-режиме.
-2. `src/components/Auth/RegisterForm.test.tsx` - тестирует кросс-полевую валидацию и submit.
-3. `src/components/Auth/AuthModal.test.tsx` - мокает компонент для изоляции контейнерной логики модалки.
+1. `src/components/Auth/AuthModal.tsx` — рендерит форму в режиме регистрации.
+2. `src/components/Auth/RegisterForm.test.tsx` — проверяет submit, валидацию и показ ошибок.

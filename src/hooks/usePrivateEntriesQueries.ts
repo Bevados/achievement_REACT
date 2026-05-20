@@ -12,7 +12,7 @@ import {
   updateEntry,
 } from '../api/collections.api';
 import { privateCollectionKeys } from './usePrivateCollectionsQueries';
-import type { EntriesQuery } from './useEntriesListController';
+import type { EntriesQuery } from './query.types';
 
 export function useCollectionEntriesQuery(
   collectionId: string,

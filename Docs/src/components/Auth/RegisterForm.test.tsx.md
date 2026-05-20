@@ -2,31 +2,23 @@
 
 ## Что делает файл
 
-Файл тестирует форму регистрации `RegisterForm`.
-Покрываются кросс-полевая валидация паролей, корректный вызов `register` и показ ошибок из store.
+Тестирует форму регистрации в изоляции от реального auth-store через мок `useAuthStore`.
 
 ## Импорты и зависимости
 
-1. `vitest`, Testing Library и `user-event` используются для сценариев взаимодействия с формой.
-2. `./RegisterForm` - тестируемый компонент.
-3. `../../store/auth.store` мокается через selector-совместимый `storeMocks`.
+1. `vitest` даёт test runner и моки.
+2. `@testing-library/react` и `user-event` эмулируют ввод и submit.
+3. `./RegisterForm` — тестируемый компонент.
 
 ## Экспорты и контракты
 
-1. Runtime-экспортов нет.
-2. Проверяемые контракты:
-2.1. при несовпадении `password` и `confirmPassword` submit блокируется;
-2.2. при валидном вводе вызывается `register(email, password, nickname)`;
-2.3. ошибка из `auth.store.error` отображается в интерфейсе.
+1. Экспортов нет: файл содержит только unit-tests для `RegisterForm`.
 
 ## Нетривиальная логика
 
-1. Тесты проверяют business-critical порядок аргументов `register(email, password, nickname)`.
-2. Асинхронный submit проверяется через `waitFor`, чтобы избежать гонок с ререндером формы.
-3. Плейсхолдеры используются как стабильные селекторы инпутов.
+1. `useAuthStore` мокается как selector-based API, чтобы форма тестировалась без реального Zustand-store.
+2. Основной валидационный кейс — несовпадение `password` и `confirmPassword`.
 
 ## Где используется
 
-1. Запускается в наборе `npm run test`.
-2. Защищает от регрессий компонент `src/components/Auth/RegisterForm.tsx`.
-3. Использует общий test setup из `src/test/setup.ts`.
+1. Запускается в общем Vitest suite через `npm run test`.

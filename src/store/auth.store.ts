@@ -27,26 +27,26 @@ let unsubscribeAuthListener: (() => void) | null = null;
 
 function mapFirebaseError(error: unknown): string {
   if (!(error instanceof FirebaseError)) {
-    return 'РќРµРёР·РІРµСЃС‚РЅР°СЏ РѕС€РёР±РєР°. РџРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰Рµ СЂР°Р·.';
+    return 'Неизвестная ошибка. Попробуйте еще раз.';
   }
 
   switch (error.code) {
     case 'auth/invalid-email':
-      return 'РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ С„РѕСЂРјР°С‚ email.';
+      return 'Некорректный формат email.';
     case 'auth/missing-password':
-      return 'Р’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ.';
+      return 'Введите пароль.';
     case 'auth/weak-password':
-      return 'РЎР»РёС€РєРѕРј РїСЂРѕСЃС‚РѕР№ РїР°СЂРѕР»СЊ. РњРёРЅРёРјСѓРј 6 СЃРёРјРІРѕР»РѕРІ.';
+      return 'Слишком простой пароль. Минимум 6 символов.';
     case 'auth/email-already-in-use':
-      return 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ С‚Р°РєРёРј email СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.';
+      return 'Пользователь с таким email уже существует.';
     case 'auth/invalid-credential':
-      return 'РќРµРІРµСЂРЅС‹Р№ email РёР»Рё РїР°СЂРѕР»СЊ.';
+      return 'Неверный email или пароль.';
     case 'auth/user-disabled':
-      return 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅ.';
+      return 'Пользователь заблокирован.';
     case 'auth/too-many-requests':
-      return 'РЎР»РёС€РєРѕРј РјРЅРѕРіРѕ РїРѕРїС‹С‚РѕРє. РџРѕРїСЂРѕР±СѓР№С‚Рµ РїРѕР·Р¶Рµ.';
+      return 'Слишком много попыток. Попробуйте позже.';
     default:
-      return `РћС€РёР±РєР° Р°РІС‚РѕСЂРёР·Р°С†РёРё: ${error.code}`;
+      return `Ошибка авторизации: ${error.code}`;
   }
 }
 

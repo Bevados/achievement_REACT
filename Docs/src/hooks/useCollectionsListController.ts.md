@@ -2,28 +2,27 @@
 
 ## Что делает файл
 
-Хранит общий controller-хук и отдельный state-хук для списков коллекций.
+Хранит только URL-state для списка коллекций.
+Хук больше не содержит manual-fetch controller-логику и отвечает только за фильтры, поиск, сортировку и пагинацию через query-параметры.
 
 ## Импорты и зависимости
 
-1. `react` — reducer, эффекты и legacy manual-fetch state.
-2. `react-router-dom` — `useSearchParams`.
-3. `contracts/collection.contracts.ts` — типы коллекций, категорий и сортировок.
+1. `react` используется для reducer и синхронизации состояния.
+2. `react-router-dom` даёт `useSearchParams`.
+3. `contracts/collection.contracts.ts` даёт списки валидных значений для категорий и сортировок.
 
 ## Экспорты и контракты
 
-1. `CollectionsQuery` — нормализованный shape query-параметров списка коллекций.
-2. `useCollectionsListState()` — URL-state для фильтров, сортировки, поиска и пагинации без загрузки данных.
-3. `useCollectionsListController(options)` — legacy/manual-fetch обёртка над `useCollectionsListState()` для совместимости со старыми сценариями.
+1. `useCollectionsListState()` — состояние и действия для списка коллекций.
 
 ## Нетривиальная логика
 
-1. URL-state синхронизируется через reducer, а не через пачку `setState` в эффекте.
-2. Sync обратно в URL идёт без `replace`, чтобы back/forward в браузере ощущались естественно.
+1. Значения читаются из `URLSearchParams` и нормализуются в reducer-state.
+2. Обратная синхронизация в URL идёт без `replace`, чтобы back/forward в браузере работали естественно.
 3. При смене фильтров и сортировки страница сбрасывается на `1`.
 
 ## Где используется
 
-1. `src/pages/ExamplesPage/ExamplesPage.tsx` — через `useCollectionsListState()`.
-2. `src/pages/CollectionsPage/CollectionsPage.tsx` — через `useCollectionsListState()` и private Query hooks.
-3. Тип `CollectionsQuery` используется в private и public query keys.
+1. `src/pages/CollectionsPage/CollectionsPage.tsx`
+2. `src/pages/ExamplesPage/ExamplesPage.tsx`
+3. Private/public Query hooks используют shape query через `src/hooks/query.types.ts`.

@@ -2,28 +2,26 @@
 
 ## Что делает файл
 
-Поднимает public Vercel entrypoint для списка example-коллекций в read-only режиме.
+Vercel entrypoint для публичного списка example-коллекций.
 
 ## Импорты и зависимости
 
-1. `@vercel/node` — типы `VercelRequest` и `VercelResponse`.
-2. `lib/controllers/collection.controller.js` — public read-only handlers.
-3. `lib/http/api-response.js` — отправка унифицированных ошибок.
+1. `@vercel/node` даёт типы `VercelRequest` и `VercelResponse`.
+2. `lib/controllers/collection.controller.js` обрабатывает read-only public collection flow.
+3. `lib/http/api-response.js` формирует унифицированный error-response.
 
 ## Экспорты и контракты
 
-1. Default export: `handler(req, res)`.
-2. Route обслуживает public `/api/examples/collections`.
-3. Auth middleware здесь не используется.
+1. Экспортируется default `handler(req, res)`.
+2. Поддерживается только `GET`.
+3. Любой неподдерживаемый метод получает `405 METHOD_NOT_ALLOWED`.
 
 ## Нетривиальная логика
 
-1. Route остаётся полностью read-only и делегирует логику public выборки controller/service layer.
-2. Явные `.js` в imports нужны для стабильной serverless сборки на Vercel в ESM-режиме.
-3. Ошибки приводятся к общему envelope через `sendError`.
-4. Верхний `catch` дополнительно логирует неожиданные route-level ошибки, чтобы preview/prod расследование на Vercel не теряло первичный stack trace.
+1. Route-слой не дублирует логирование ошибок: финальный ответ об ошибке возвращается без второго `console.error`.
+2. Если ответ уже отправлен deeper-слоем, handler просто завершает выполнение.
 
 ## Где используется
 
-1. `src/pages/ExamplesPage/ExamplesPage.tsx`.
-2. Public TanStack Query hooks для списка examples.
+1. Путь `/api/examples/collections`.
+2. `src/api/collections.api.ts` в `getPublicCollections`.

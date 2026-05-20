@@ -10,9 +10,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       default:
         return sendError(res, 405, 'METHOD_NOT_ALLOWED', 'Метод не поддерживается');
     }
-  } catch (error) {
-    console.error('Route /api/examples/collections failed:', error);
-
+  } catch {
     if (!res.headersSent) {
       return sendError(res, 500, 'INTERNAL_ERROR', 'Внутренняя ошибка сервера');
     }

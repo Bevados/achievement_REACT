@@ -2,27 +2,25 @@
 
 ## Что делает файл
 
-Содержит TanStack Query-слой для private-списка карточек коллекции и entry CRUD-мутаций.
+Хранит TanStack Query hooks и mutations для private списка карточек внутри коллекции.
 
 ## Импорты и зависимости
 
-1. `@tanstack/react-query` — query/mutation primitives.
-2. `src/api/collections.api.ts` — private entry endpoints.
-3. `contracts/collection.contracts.ts` — типы карточек и DTO.
-4. `usePrivateCollectionsQueries.ts` — общий namespace query keys.
-5. `useEntriesListController.ts` — тип `EntriesQuery`.
+1. `@tanstack/react-query` даёт query и mutation primitives.
+2. `src/api/collections.api.ts` даёт private entry API-операции.
+3. `src/hooks/usePrivateCollectionsQueries.ts` даёт shared private query keys.
+4. `src/hooks/query.types.ts` даёт тип `EntriesQuery`.
 
 ## Экспорты и контракты
 
-1. `useCollectionEntriesQuery(collectionId, query)` — server-state списка карточек внутри private detail.
-2. `useCreateEntryMutation()` — create entry + invalidate списка коллекций, detail и entries текущей коллекции.
-3. `useUpdateEntryMutation()` — update entry + та же инвалидaция.
-4. `useDeleteEntryMutation()` — delete entry + та же инвалидaция.
+1. `useCollectionEntriesQuery(collectionId, query)`
+2. `useCreateEntryMutation()`
+3. `useUpdateEntryMutation()`
+4. `useDeleteEntryMutation()`
 
 ## Нетривиальная логика
 
-1. Инвалидируется не только `entries`, но и `lists` / `detail`, чтобы счётчики карточек и summary-блоки не расходились после мутаций.
-2. Query списка карточек выключен, пока не появился валидный `collectionId`.
+1. Любая entry-мутация инвалидирует и entries-список, и detail коллекции, и owner collection list.
 
 ## Где используется
 
