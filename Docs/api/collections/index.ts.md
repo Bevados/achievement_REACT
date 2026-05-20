@@ -2,29 +2,29 @@
 
 ## Что делает файл
 
-Это private serverless entrypoint для маршрута `/api/collections`.
-Файл защищает маршрут через `verifyAuth` и маршрутизирует `GET` и `POST` в контроллер коллекций.
+Поднимает private Vercel entrypoint для списка коллекций пользователя: чтение списка и создание новой коллекции.
 
 ## Импорты и зависимости
 
-1. `../../lib/middleware/auth` — проверка Bearer-токена.
-2. `../../lib/controllers/collection.controller` — handlers списка и создания коллекций.
-3. `../../lib/http/api-response` — единый формат ошибок.
+1. `@vercel/node` — тип `VercelResponse`.
+2. `lib/controllers/collection.controller.js` — HTTP-обработчики коллекций.
+3. `lib/http/api-response.js` — унифицированная отправка ошибок.
+4. `lib/middleware/auth.js` — проверка Bearer token.
+5. `lib/types/request.types.js` — типизированный `AuthenticatedRequest`.
 
 ## Экспорты и контракты
 
 1. Default export: `handler(req, res)`.
-2. Поддерживаемые методы:
-   - `GET` — список private-коллекций
-   - `POST` — создание private-коллекции
-3. Неподдерживаемые методы получают `405`.
+2. Route обслуживает private `/api/collections`.
+3. Перед входом в controller всегда выполняется `verifyAuth`.
 
 ## Нетривиальная логика
 
-1. Любая непойманная ошибка возвращает единый `500 INTERNAL_ERROR`.
-2. Fallback-ответы backend теперь отдают русское сообщение о внутренней ошибке сервера.
+1. Handler не хранит бизнес-логику: он только проверяет auth и делегирует в controller.
+2. Все относительные server imports используют явные `.js`, чтобы production build на Vercel был совместим с Node ESM resolver.
+3. Общий `catch` приводит неожиданные ошибки к единому API envelope через `sendError`.
 
 ## Где используется
 
-1. Вызывается платформой Vercel как обработчик `api/collections`.
-2. Используется клиентом через `src/api/collections.api.ts`.
+1. Private frontend flow `/collections`.
+2. CRUD-мутации создания коллекции.

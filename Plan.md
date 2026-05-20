@@ -1,5 +1,17 @@
 # Plan: Achievement Collections MVP
 
+## Update 2026-05-18 — статус шага 7.3
+
+1. Vercel project уже связан через `.vercel/project.json`, а обязательные preview/production env заведены в linked project.
+2. Для Vercel production build пришлось перевести server-side relative imports в `api/`, `lib/` и `contracts/` на явные `.js`, потому что локальный `tsc -b` был зелёным, а Vercel Node builder раньше падал на extensionless imports.
+3. Для frontend SPA на Vercel добавлен `vercel.json` с rewrites для маршрутов `/examples`, `/collections` и `/profile`, чтобы прямой заход в client routes больше не отдавал `404`.
+4. `src/App.test.tsx` и `src/App.smoke.test.tsx` стабилизированы page-mocks для lazy routing, чтобы `release:check` не зависел от тайминга `Suspense`.
+5. `package.json` получил `engines.node = 20.x`, чтобы Vercel не поднимал backend по умолчанию на `nodejs24.x`.
+6. Локальный `npm.cmd run release:check` снова полностью зелёный после deploy-совместимых правок.
+7. Preview deploy на Vercel успешно собирает frontend и serverless entrypoints, но deployed public API `/api/examples/collections` всё ещё отвечает `500`.
+8. Диагностика показала, что этот блокер живёт уже в Vercel runtime/Mongo connectivity слое и не воспроизводится локально: repo-state зелёный, а deploy-state требует отдельного добивания.
+9. Значит `7.3` начат и частично выполнен, но ещё не считается закрытым до тех пор, пока deployed public API и финальный manual smoke не станут зелёными.
+
 Этот файл - рабочий план реализации.
 Цель: идти по шагам, по одному за раз, с понятными объяснениями что и зачем делается.
 

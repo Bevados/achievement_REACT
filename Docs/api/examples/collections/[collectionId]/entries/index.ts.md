@@ -2,27 +2,27 @@
 
 ## Что делает файл
 
-Это public serverless entrypoint для маршрута `/api/examples/collections/:collectionId/entries`.
-Файл отдаёт read-only список карточек публичной example-коллекции.
+Поднимает public Vercel entrypoint для списка карточек внутри одной example-коллекции.
 
 ## Импорты и зависимости
 
-1. `../../../../../lib/controllers/collection.controller`
-2. `../../../../../lib/http/api-response`
+1. `@vercel/node` — `VercelRequest` и `VercelResponse`.
+2. `lib/controllers/collection.controller.js` — public entry-list handler.
+3. `lib/http/api-response.js` — единый формат ошибок.
 
 ## Экспорты и контракты
 
 1. Default export: `handler(req, res)`.
-2. Поддерживаемый метод:
-   - `GET`
-3. Неподдерживаемые методы получают `405`.
+2. Route обслуживает public `/api/examples/collections/:collectionId/entries`.
+3. Работает без auth и без private CRUD-операций.
 
 ## Нетривиальная логика
 
-1. Маршрут работает только в public read-only контексте.
-2. Fallback `500` возвращает единый русский текст внутренней ошибки сервера.
+1. Public entries берутся только из example-данных и остаются read-only.
+2. Relative imports переведены на `.js` для корректной Node ESM сборки Vercel serverless function.
+3. Ошибки возвращаются в общем JSON envelope через `sendError`.
 
 ## Где используется
 
-1. Вызывается платформой Vercel как обработчик `api/examples/collections/:collectionId/entries`.
-2. Используется клиентом через `src/api/collections.api.ts`.
+1. `src/pages/PublicCollectionDetailPage/PublicCollectionDetailPage.tsx`.
+2. Public entries TanStack Query hook.

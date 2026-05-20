@@ -2,36 +2,29 @@
 
 ## Что делает файл
 
-Это серверный helper для подключения к MongoDB и доступа к коллекциям.
-Модуль:
-
-1. создаёт соединение по `MONGODB_URI`;
-2. кеширует `client` и `db` для serverless warm-start;
-3. инициализирует индексы для `collections` и `entries`;
-4. предоставляет `connectToDatabase`, `getDatabase`, `getCollection`, `closeConnection`.
+Создаёт и кэширует серверное подключение к MongoDB для Vercel API routes и локального backend-runner.
 
 ## Импорты и зависимости
 
-1. `mongodb` (`MongoClient`, `Db`, `Document`) — клиент БД и типы.
-2. `./_loadEnv` (`ensureServerEnvLoaded`) — локально подгружает `.env.local`.
-3. `process.env.MONGODB_URI` — строка подключения к MongoDB.
-4. `global.mongoCache` — кеш соединения между вызовами.
+1. `mongodb` — `MongoClient`, `Db` и базовые типы документов.
+2. `./_loadEnv.js` — локально подгружает `.env.local` перед чтением `MONGODB_URI`.
+3. Переменная окружения `MONGODB_URI`.
 
 ## Экспорты и контракты
 
-1. `connectToDatabase(): Promise<{ client: MongoClient; db: Db }>`
-2. `getDatabase(): Promise<Db>`
-3. `getCollection<T>(collectionName: string)`
-4. `closeConnection(): Promise<void>`
-5. `MONGODB_URI` обязателен; без него модуль бросает ошибку.
+1. `connectToDatabase(): Promise<Db>`.
+2. `getCollection<TDocument>(name: string)`.
+3. Подключение к MongoDB кэшируется на уровне модуля, чтобы не открывать новый клиент на каждый запрос.
 
 ## Нетривиальная логика
 
-1. Кеш в `global.mongoCache` критичен для serverless и локального backend-runner.
-2. Индексы инициализируются lazy при первом успешном подключении.
-3. Модуль обслуживает только актуальный доменный слой `collections` и `entries`; legacy `items`-цепочка больше не используется.
+1. Модуль поддерживает повторное использование одного MongoDB клиента.
+2. Ошибка по отсутствующему `MONGODB_URI` возникает рано и явно.
+3. Относительный импорт переведён на `./_loadEnv.js`, чтобы серверный ESM build на Vercel не падал из-за отсутствия явного расширения.
+4. При проблемах подключения модуль пишет диагностический `console.error`, чтобы Vercel runtime logs показывали причину неуспешного Mongo handshake или сбоя инициализации индексов.
 
 ## Где используется
 
-1. `lib/repositories/collection.repository.ts` — использует коллекции `collections` и `entries`.
-2. Косвенно участвует во всех запросах к `/api/collections` и `/api/examples/collections`.
+1. `lib/repositories/collection.repository.ts`.
+2. `lib/services/collection.service.ts`.
+3. Любые serverless handlers, работающие с коллекциями и карточками через repository/service layer.

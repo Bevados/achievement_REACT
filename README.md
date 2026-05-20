@@ -33,6 +33,27 @@
 
 Скрипт останавливается на первом failing шаге и используется как основной локальный release-check для MVP.
 
+## Vercel env checklist
+
+Для деплоя на Vercel должны быть заданы:
+
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_CLIENT_EMAIL`
+- `FIREBASE_PRIVATE_KEY`
+- `MONGODB_URI`
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
+
+Дополнительно:
+
+- `FIREBASE_PRIVATE_KEY` должен быть сохранён в формате, который корректно восстанавливает переводы строк на сервере.
+- Для Vercel runtime зафиксирован `Node 20` через `package.json -> engines.node`.
+- Для SPA-маршрутов `/examples`, `/collections` и `/profile` используется `vercel.json` rewrite слой.
+
 ## CI
 
 В репозитории настроен GitHub Actions workflow `Release Check`, который запускает `npm run release:check` на `push` в `master` и на `pull_request`.

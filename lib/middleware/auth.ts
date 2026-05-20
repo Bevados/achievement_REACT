@@ -10,9 +10,9 @@
 */
 
 import type { VercelResponse } from '@vercel/node';
-import admin from '../../api/_firebaseAdmin';
-import type { AuthenticatedRequest } from '../types/request.types';
-import { sendError } from '../http/api-response';
+import admin from '../../api/_firebaseAdmin.js';
+import type { AuthenticatedRequest } from '../types/request.types.js';
+import { sendError } from '../http/api-response.js';
 
 export async function verifyAuth(req: AuthenticatedRequest, res: VercelResponse): Promise<void> {
   const authHeader = req.headers.authorization;

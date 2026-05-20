@@ -1,6 +1,6 @@
 import type { VercelResponse } from '@vercel/node';
 import { ZodError } from 'zod';
-import { mapValidationIssues, sendError } from '../http/api-response';
+import { mapValidationIssues, sendError } from '../http/api-response.js';
 
 function isErrorWithName(error: unknown, name: string): error is Error {
   return error instanceof Error && error.name === name;
@@ -27,5 +27,6 @@ export function handleControllerError(res: VercelResponse, error: unknown) {
     return sendError(res, 422, 'VALIDATION_ERROR', error.message || 'Проверьте введённые данные');
   }
 
+  console.error('Unhandled controller error:', error);
   return sendError(res, 500, 'INTERNAL_ERROR', 'Внутренняя ошибка сервера');
 }

@@ -2,29 +2,27 @@
 
 ## Что делает файл
 
-Это централизованный mapper ошибок для HTTP-контроллеров.
-Файл переводит типы ошибок в единый API-формат и корректные HTTP-статусы.
+Нормализует ошибки controller/service слоя и превращает их в единый HTTP envelope для Vercel API routes.
 
 ## Импорты и зависимости
 
-1. `@vercel/node` (`VercelResponse`) — тип ответа.
-2. `zod` (`ZodError`) — распознавание ошибок входной валидации.
-3. `../http/api-response` — `sendError` и `mapValidationIssues` для унифицированного payload.
+1. `@vercel/node` — тип `VercelResponse`.
+2. `zod` — распознавание `ZodError`.
+3. `../http/api-response.js` — mapping validation issues и отправка ошибок.
 
 ## Экспорты и контракты
 
-1. `handleControllerError(res, error)`:
-   возвращает API-ошибку с кодом и статусом на основе типа входной ошибки.
-2. `isErrorWithName(error, name)`:
-   локальный helper для narrowing по `error.name`.
+1. Экспортирует `handleControllerError(res, error)`.
+2. Функция принимает уже пойманную ошибку и сама выбирает корректный статус/сообщение ответа.
 
 ## Нетривиальная логика
 
-1. `ZodError` маппится в `422 VALIDATION_ERROR` c массивом `details`.
-2. Ошибки бизнес-слоя маппятся по имени: `ForbiddenError -> 403`, `NotFoundError -> 404`, `ValidationError -> 422`, `TransactionError -> 500`.
-3. Публичные сообщения ошибок выровнены под русский пользовательский API-UX.
+1. Zod-ошибки отдельно маппятся в список понятных validation issues.
+2. Runtime-ошибки service layer приводятся к пользовательским русским сообщениям.
+3. Relative import на `api-response.js` зафиксирован с явным расширением для Vercel ESM build.
+4. Для полностью неожиданных ошибок helper пишет `console.error`, чтобы production и preview логи на Vercel сохраняли первопричину `500`.
 
 ## Где используется
 
 1. `lib/controllers/collection.controller.ts`.
-2. Может переиспользоваться в следующих контроллерах для сохранения единого контракта ошибок.
+2. Косвенно все `api/*` handlers, которые делегируют ошибки в controller layer.

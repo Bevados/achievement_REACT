@@ -2,31 +2,27 @@
 
 ## Что делает файл
 
-Тестирует ключевые маршруты и CTA-flow корневого приложения.
+Проверяет ключевые маршруты и CTA-flow корневого приложения на уровне полноценного route integration test.
 
 ## Импорты и зависимости
 
 1. `vitest` — mocks и assertions.
-2. `@testing-library/react` и `user-event` — рендер и действия пользователя.
-3. `MemoryRouter` — локальная маршрутизация.
-4. `src/App.tsx` — тестируемый корневой модуль.
+2. `@testing-library/react` и `user-event` — рендер и пользовательские действия.
+3. `react-router-dom` — `MemoryRouter`.
+4. `src/App.tsx` — тестируемый routing root.
 
 ## Экспорты и контракты
 
 1. Файл не экспортирует production-сущности.
-2. Проверяет:
-   - redirect auth-user с `/`
-   - deferred-intent CTA
-   - private detail route
-   - public example detail route
-   - redirect auth-user из public example detail
-   - profile route
+2. Проверяет redirect auth-user с `/`, deferred-intent CTA, profile route, private/public detail routing и header auth actions.
 
 ## Нетривиальная логика
 
-1. Store-слои мокируются через selector-паттерн Zustand.
-2. Из-за lazy route loading проверки выполняются через `findByRole`, чтобы дождаться загрузки страницы после `Suspense`.
+1. Zustand store-слои мокируются через selector-pattern.
+2. После перехода на lazy routes тест стабилизирован явными page mocks для `HomePage`, `CollectionsPage`, `ExamplesPage` и `ProfilePage`, чтобы assertions не зависели от реальной загрузки тяжёлых страниц.
+3. Проверки используют `findByRole`, чтобы дождаться route-resolve после `Suspense`.
 
 ## Где используется
 
-1. `npm test` — интеграционное покрытие `App`.
+1. `npm.cmd run test`.
+2. Regression-покрытие `src/App.tsx`.

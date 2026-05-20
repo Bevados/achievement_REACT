@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
-import type { CollectionCategory, EntryStatus } from '../../contracts/collection.contracts';
+import type { CollectionCategory, EntryStatus } from '../../contracts/collection.contracts.js';
 
-export * from '../../contracts/collection.contracts';
+export * from '../../contracts/collection.contracts.js';
 
 export interface CollectionDocument {
   _id?: ObjectId;

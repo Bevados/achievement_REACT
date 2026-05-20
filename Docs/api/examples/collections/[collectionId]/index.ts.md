@@ -2,27 +2,27 @@
 
 ## Что делает файл
 
-Это public serverless entrypoint для маршрута `/api/examples/collections/:collectionId`.
-Файл отдаёт detail публичной example-коллекции в read-only режиме.
+Поднимает public Vercel entrypoint для detail-данных одной example-коллекции.
 
 ## Импорты и зависимости
 
-1. `../../../../lib/controllers/collection.controller`
-2. `../../../../lib/http/api-response`
+1. `@vercel/node` — `VercelRequest` и `VercelResponse`.
+2. `lib/controllers/collection.controller.js` — public detail handler.
+3. `lib/http/api-response.js` — единая отправка ошибок.
 
 ## Экспорты и контракты
 
 1. Default export: `handler(req, res)`.
-2. Поддерживаемый метод:
-   - `GET`
-3. Неподдерживаемые методы получают `405`.
+2. Route обслуживает public `/api/examples/collections/:collectionId`.
+3. API не принимает private auth и не отдаёт private actions.
 
 ## Нетривиальная логика
 
-1. Маршрут не требует auth и не даёт private actions.
-2. Fallback `500` возвращает единый русский текст внутренней ошибки сервера.
+1. Detail route завязан на публичный owner `system_examples` через service/repository layer, а не на данные пользователя.
+2. Relative imports используют `.js`, чтобы Vercel Node ESM builder собирал backend без ошибок по отсутствию расширения.
+3. Ошибки нормализуются через `sendError`.
 
 ## Где используется
 
-1. Вызывается платформой Vercel как обработчик `api/examples/collections/:collectionId`.
-2. Используется клиентом через `src/api/collections.api.ts`.
+1. `src/pages/PublicCollectionDetailPage/PublicCollectionDetailPage.tsx`.
+2. Public detail TanStack Query hook.

@@ -2,38 +2,29 @@
 
 ## Что делает файл
 
-Файл хранит бизнес-логику коллекций и карточек.
-Сервис проверяет доступ, преобразует DTO в document-модель, валидирует доменные правила и возвращает `View`-модели для API.
+Хранит бизнес-логику коллекций и карточек: access control, доменные инварианты, преобразование DTO в документы и сборку API view-моделей.
 
 ## Импорты и зависимости
 
-1. `mongodb` — транзакции и `ObjectId`.
-2. `api/_mongodb` — подключение к базе.
-3. `../repositories/collection.repository` — низкоуровневые операции с MongoDB.
-4. `../types/collection.types` — document- и contract-типы.
+1. `mongodb` — `ObjectId` и `ClientSession`.
+2. `../../api/_mongodb.js` — подключение к БД и транзакционный контекст.
+3. `../repositories/collection.repository.js` — MongoDB-операции.
+4. `../types/collection.types.js` — типы документов, DTO и view-моделей.
 
 ## Экспорты и контракты
 
-1. Ошибки доменного слоя:
-   - `ForbiddenError`
-   - `NotFoundError`
-   - `TransactionError`
-   - `ValidationError`
-2. CRUD-методы для коллекций и карточек.
-3. Методы публичных и приватных read-only выборок.
+1. Экспортирует доменные ошибки `ForbiddenError`, `NotFoundError`, `TransactionError`, `ValidationError`.
+2. Экспортирует CRUD-методы для private flow и read-only методы для public examples.
+3. Возвращает уже нормализованные `CollectionView` и `EntryView` для controller-слоя.
 
 ## Нетривиальная логика
 
-1. `toCollectionView` пробрасывает `customCategory` в `CollectionView`.
-2. Для пользовательской категории действует жёсткий инвариант:
-   - `category: 'other'`
-   - `customCategory` обязателен и нормализуется перед сохранением
-3. `updateCollection` вычисляет итоговую категорию после merge с текущим состоянием коллекции и не позволяет оставить `other` без собственного названия.
-4. Если итоговая категория не `other`, сервис принудительно очищает `customCategory`, чтобы не хранить противоречивые данные.
-5. Для карточек соблюдаются бизнес-правила completed-status и `dateStart/dateEnd`, а пользовательские ошибки возвращаются на русском.
+1. Сервис поддерживает инвариант `category='other' -> customCategory required` и очищает `customCategory`, если итоговая категория уже не `other`.
+2. Для карточек соблюдаются правила `completed`-статуса и модели `dateStart/dateEnd`.
+3. User-facing ошибки возвращаются на русском, а относительные imports используют `.js`, чтобы Vercel ESM build не падал на server code.
 
 ## Где используется
 
-1. `api/collections/*`
-2. `api/examples/collections/*`
-3. Тесты `lib/services/collection.service.test.ts`
+1. `lib/controllers/collection.controller.ts`.
+2. Все `api/collections/*` и `api/examples/collections/*`.
+3. Тесты service layer.

@@ -255,6 +255,21 @@ Private API:
 
 # 10. Known Runtime Constraints
 
+## Update 2026-05-18 — шаг 7.3
+
+- Локальный `npm.cmd run release:check` полностью зелёный.
+- Для Vercel deploy уже сделаны:
+  - server-side `.js` imports для backend ESM build;
+  - `vercel.json` rewrites для `/examples`, `/collections`, `/profile`;
+  - `package.json -> engines.node = 20.x`;
+  - стабилизация `src/App.test.tsx` и `src/App.smoke.test.tsx` под lazy routing.
+- Preview deploy на Vercel собирается успешно.
+- Текущий реальный блокер не локальный, а внешний runtime:
+  - deployed public API `/api/examples/collections` всё ещё даёт `500`;
+  - это не воспроизводится локально;
+  - расследование уже упёрлось в слой Vercel runtime / Mongo connectivity.
+- Если продолжать шаг `7.3`, первым делом нужно смотреть `vercel logs` и добивать именно deployed Mongo/API связность, а не перепроверять локальный repo-state.
+
 - Windows environment
 - PowerShell execution policy limitations
 - prefer `npm.cmd` commands

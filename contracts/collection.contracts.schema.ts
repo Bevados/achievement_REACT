@@ -9,7 +9,7 @@ import {
   type CreateEntryDto,
   type UpdateCollectionDto,
   type UpdateEntryDto,
-} from './collection.contracts';
+} from './collection.contracts.js';
 
 const objectIdPattern = /^[a-f0-9]{24}$/i;
 

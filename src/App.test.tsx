@@ -66,6 +66,26 @@ vi.mock('./components/Auth/AuthModal', () => ({
   default: () => <div data-testid="auth-modal" />,
 }));
 
+vi.mock('./pages/HomePage/HomePage', () => ({
+  default: ({ onCreateCollection }: { onCreateCollection?: () => void }) => (
+    <button type="button" onClick={onCreateCollection}>
+      Создать коллекцию
+    </button>
+  ),
+}));
+
+vi.mock('./pages/CollectionsPage/CollectionsPage', () => ({
+  default: () => <h1>Мои коллекции</h1>,
+}));
+
+vi.mock('./pages/ExamplesPage/ExamplesPage', () => ({
+  default: () => <h1>EXAMPLES_PAGE</h1>,
+}));
+
+vi.mock('./pages/ProfilePage/ProfilePage', () => ({
+  default: () => <h1>Профиль</h1>,
+}));
+
 vi.mock('./pages/CollectionDetailPage/CollectionDetailPage', () => ({
   default: () => <h1>COLLECTION_DETAIL_PAGE</h1>,
 }));

@@ -12,8 +12,8 @@ import {
   getPublicCollections as getPublicCollectionsService,
   updateCollection as updateCollectionService,
   updateEntry as updateEntryService,
-} from '../services/collection.service';
-import type { AuthenticatedRequest } from '../types/request.types';
+} from '../services/collection.service.js';
+import type { AuthenticatedRequest } from '../types/request.types.js';
 import {
   collectionAndEntryIdsParamSchema,
   collectionIdParamSchema,
@@ -23,9 +23,9 @@ import {
   entryListQuerySchema,
   updateCollectionSchema,
   updateEntrySchema,
-} from '../../contracts/collection.contracts.schema';
-import { handleControllerError } from './controller-error';
-import { getSingleQueryValue, normalizeQueryObject, sendSuccess } from '../http/api-response';
+} from '../../contracts/collection.contracts.schema.js';
+import { handleControllerError } from './controller-error.js';
+import { getSingleQueryValue, normalizeQueryObject, sendSuccess } from '../http/api-response.js';
 
 function parseCollectionId(req: VercelRequest): string {
   const parsed = collectionIdParamSchema.parse({
@@ -144,6 +144,7 @@ export async function getPublicCollections(req: VercelRequest, res: VercelRespon
     const result = await getPublicCollectionsService(query);
     return sendSuccess(res, 200, result);
   } catch (error) {
+    console.error('Public collections request failed:', error);
     return handleControllerError(res, error);
   }
 }
@@ -154,6 +155,7 @@ export async function getPublicCollection(req: VercelRequest, res: VercelRespons
     const result = await getPublicCollectionByIdService(collectionId);
     return sendSuccess(res, 200, result);
   } catch (error) {
+    console.error('Public collection detail request failed:', error);
     return handleControllerError(res, error);
   }
 }
@@ -167,6 +169,7 @@ export async function getPublicEntries(req: VercelRequest, res: VercelResponse) 
     const result = await getPublicCollectionEntriesService(collectionId, query);
     return sendSuccess(res, 200, result);
   } catch (error) {
+    console.error('Public collection entries request failed:', error);
     return handleControllerError(res, error);
   }
 }

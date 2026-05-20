@@ -1,6 +1,6 @@
 import { type ClientSession, ObjectId } from 'mongodb';
-import { connectToDatabase } from '../../api/_mongodb';
-import * as repository from '../repositories/collection.repository';
+import { connectToDatabase } from '../../api/_mongodb.js';
+import * as repository from '../repositories/collection.repository.js';
 import type {
   CollectionDocument,
   CollectionListQueryDto,
@@ -13,7 +13,7 @@ import type {
   PaginatedResult,
   UpdateCollectionDto,
   UpdateEntryDto,
-} from '../types/collection.types';
+} from '../types/collection.types.js';
 
 export class ForbiddenError extends Error {
   constructor(message: string) {

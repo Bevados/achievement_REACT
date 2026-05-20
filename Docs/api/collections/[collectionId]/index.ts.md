@@ -2,30 +2,29 @@
 
 ## Что делает файл
 
-Это private serverless entrypoint для маршрута `/api/collections/:collectionId`.
-Файл защищает маршрут через `verifyAuth` и маршрутизирует detail/update/delete коллекции.
+Поднимает private Vercel entrypoint для detail-операций над одной коллекцией: чтение, редактирование и удаление.
 
 ## Импорты и зависимости
 
-1. `../../../lib/middleware/auth`
-2. `../../../lib/controllers/collection.controller`
-3. `../../../lib/http/api-response`
+1. `@vercel/node` — тип `VercelResponse`.
+2. `lib/controllers/collection.controller.js` — detail CRUD-обработчики коллекции.
+3. `lib/http/api-response.js` — стандартная отправка ошибок.
+4. `lib/middleware/auth.js` — проверка Bearer token.
+5. `lib/types/request.types.js` — типизированный private request.
 
 ## Экспорты и контракты
 
 1. Default export: `handler(req, res)`.
-2. Поддерживаемые методы:
-   - `GET`
-   - `PATCH`
-   - `DELETE`
-3. Неподдерживаемые методы получают `405`.
+2. Route обслуживает private `/api/collections/:collectionId`.
+3. Доступ разрешён только владельцу коллекции.
 
 ## Нетривиальная логика
 
-1. Маршрут обслуживает только private owner-flow.
-2. Fallback `500` возвращает единый русский текст внутренней ошибки сервера.
+1. Auth выполняется до делегирования в controller, чтобы business layer получал уже авторизованный request.
+2. Все относительные imports переведены на явные `.js` для стабильной сборки Vercel serverless functions в Node ESM режиме.
+3. Ошибки из controller/service layer приводятся к общему JSON envelope через `sendError`.
 
 ## Где используется
 
-1. Вызывается платформой Vercel как обработчик `api/collections/:collectionId`.
-2. Используется клиентом через `src/api/collections.api.ts`.
+1. Private detail page `/collections/:collectionId/:collectionSlug?`.
+2. CRUD-операции редактирования и удаления коллекции.

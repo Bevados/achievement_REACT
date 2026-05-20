@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import * as controller from '../../../../lib/controllers/collection.controller';
-import { sendError } from '../../../../lib/http/api-response';
+import * as controller from '../../../../lib/controllers/collection.controller.js';
+import { sendError } from '../../../../lib/http/api-response.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {

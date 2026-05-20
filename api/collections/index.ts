@@ -1,8 +1,8 @@
 import type { VercelResponse } from '@vercel/node';
-import * as controller from '../../lib/controllers/collection.controller';
-import { sendError } from '../../lib/http/api-response';
-import { verifyAuth } from '../../lib/middleware/auth';
-import type { AuthenticatedRequest } from '../../lib/types/request.types';
+import * as controller from '../../lib/controllers/collection.controller.js';
+import { sendError } from '../../lib/http/api-response.js';
+import { verifyAuth } from '../../lib/middleware/auth.js';
+import type { AuthenticatedRequest } from '../../lib/types/request.types.js';
 
 export default async function handler(req: AuthenticatedRequest, res: VercelResponse) {
   try {

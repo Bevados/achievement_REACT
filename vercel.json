@@ -1,0 +1,24 @@
+{
+  "rewrites": [
+    {
+      "source": "/examples",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/examples/(.*)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/collections",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/collections/(.*)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/profile",
+      "destination": "/index.html"
+    }
+  ]
+}

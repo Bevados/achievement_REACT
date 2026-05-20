@@ -2,42 +2,27 @@
 
 ## Что делает файл
 
-Файл хранит Zod-схемы для runtime-валидации контрактов коллекций и карточек.
-Он проверяет create/update payloads, route params и query-объекты для списков.
+Хранит shared Zod-схемы для API параметров, query и DTO коллекций и карточек.
 
 ## Импорты и зависимости
 
-1. `zod` — runtime-валидация.
-2. `./collection.contracts` — enum-константы и DTO-типы, над которыми строятся схемы.
+1. `zod` — базовый конструктор схем и refinement-проверок.
+2. `./collection.contracts.js` — shared типы и enum-значения контрактов.
 
 ## Экспорты и контракты
 
-1. Схемы params:
-   - `objectIdSchema`
-   - `collectionIdParamSchema`
-   - `collectionAndEntryIdsParamSchema`
-2. Схемы коллекций:
-   - `createCollectionSchema`
-   - `updateCollectionSchema`
-3. Схемы карточек:
-   - `createEntrySchema`
-   - `updateEntrySchema`
-4. Схемы query:
-   - `baseListQuerySchema`
-   - `collectionListQuerySchema`
-   - `entryListQuerySchema`
+1. Экспортирует schema-объекты для params, query, create/update DTO.
+2. Используется и на backend, и на клиенте как единый источник контрактов.
+3. Содержит инварианты для `completed` entry и пользовательской категории `other`.
 
 ## Нетривиальная логика
 
-1. Для коллекций поддерживается модель `category='other' + customCategory`, при этом `customCategory` обязателен для create-потока, если выбран `other`.
-2. Схемы карточек проверяют бизнес-правила completed-статуса:
-   - `rating` обязателен для `completed`
-   - `dateStart` обязателен для `completed`
-   - `dateEnd` не может быть раньше `dateStart`
-3. Query-схемы валидируют диапазоны рейтинга, цены и дат с русскими пользовательскими сообщениями.
+1. Схемы хранят условные проверки вроде `customCategory required for other`, `rating/dateStart required for completed`, `dateEnd >= dateStart`.
+2. Импорт shared contracts переведён на `./collection.contracts.js`, потому что schema участвует в Vercel server-side ESM build.
+3. Сообщения ошибок ориентированы на пользовательский русскоязычный UX, а не на технические формулировки Zod по умолчанию.
 
 ## Где используется
 
-1. В API-handlers `api/collections/*` и `api/examples/collections/*`.
-2. В backend-валидации через compatibility-реэкспорты.
-3. В тестах `lib/validation/collection.schema.test.ts`.
+1. `lib/controllers/collection.controller.ts`.
+2. Клиентские CRUD-формы через локальный RHF/Zod adapter.
+3. Тесты контрактов и валидации.

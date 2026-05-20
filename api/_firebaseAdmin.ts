@@ -25,7 +25,7 @@
 */
 
 import admin from 'firebase-admin';
-import { ensureServerEnvLoaded } from './_loadEnv';
+import { ensureServerEnvLoaded } from './_loadEnv.js';
 
 ensureServerEnvLoaded();
 

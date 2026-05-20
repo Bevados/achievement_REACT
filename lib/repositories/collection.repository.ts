@@ -7,7 +7,7 @@ import {
   type SortDirection,
   type UpdateResult,
 } from 'mongodb';
-import { getCollection } from '../../api/_mongodb';
+import { getCollection } from '../../api/_mongodb.js';
 import type {
   CollectionDocument,
   CollectionListQueryDto,
@@ -16,8 +16,8 @@ import type {
   EntryListQueryDto,
   EntrySortField,
   PaginatedResult,
-} from '../types/collection.types';
-import { SYSTEM_EXAMPLES_OWNER_ID } from '../types/collection.types';
+} from '../types/collection.types.js';
+import { SYSTEM_EXAMPLES_OWNER_ID } from '../types/collection.types.js';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
