@@ -6,7 +6,7 @@
 2. Для Vercel production build server-side relative imports в `api/`, `lib/` и `contracts/` переведены на явные `.js`, поэтому backend больше не падает на `TS2307/TS2835`.
 3. Для frontend SPA добавлен `vercel.json` с rewrites для `/examples`, `/collections` и `/profile`, поэтому прямой заход в client routes больше не отдаёт `404`.
 4. `src/App.test.tsx` и `src/App.smoke.test.tsx` стабилизированы под lazy routing.
-5. `package.json` получил `engines.node = 20.x` для Vercel runtime.
+5. `package.json` получил `engines.node = 22.x` для Vercel runtime.
 6. После открытия `MongoDB Atlas Network Access` (`0.0.0.0/0`) и возврата точного SRV `MONGODB_URI` deployed preview/public API перестал отдавать `500`.
 7. Production deploy выполнен на `https://achievement-collections-react.vercel.app`.
 8. Production публичный API `GET /api/examples/collections` отвечает `200 OK` и отдаёт реальные данные MongoDB.

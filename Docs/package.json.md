@@ -2,28 +2,30 @@
 
 ## Назначение
 
-Хранит npm scripts и список зависимостей проекта.
+Хранит npm scripts, список зависимостей и служебные метаданные проекта.
 
-## Ключевые scripts
+## Импорты и зависимости
 
-- `dev` — запускает Vite frontend dev server.
-- `dev:api` — запускает локальный backend runner для `/api`.
-- `build` — делает TypeScript build-check и production build через Vite.
-- `lint` — запускает ESLint по проекту.
-- `test` — запускает полный Vitest suite.
-- `test:smoke` — запускает только короткий smoke-suite для критических MVP-сценариев.
-- `docs:check` — проверяет актуальность и полноту документации в `Docs`.
-- `release:check` — единый локальный pre-release gate.
+1. Файл не импортируется рантаймом как модуль, но определяет доступные dev/runtime зависимости для frontend, API и tooling.
 
-## release:check
+## Экспорты и контракты
 
-`release:check` последовательно запускает:
+1. `scripts` задают основные команды разработки, тестирования, сборки и release-check.
+2. `engines.node` фиксирует целевой Node runtime для Vercel deploy.
+3. Текущее целевое значение `engines.node`: `22.x`.
 
-1. `npm run test:smoke`
-2. `npm run test`
-3. `tsc -b`
-4. `npm run build`
-5. `npm run lint`
-6. `npm run docs:check`
+## Нетривиальная логика
 
-Скрипт завершается с ошибкой на первом failing шаге и не должен менять tracked-файлы репозитория.
+1. `release:check` последовательно запускает:
+1.1. `npm run test:smoke`
+1.2. `npm run test`
+1.3. `tsc -b`
+1.4. `npm run build`
+1.5. `npm run lint`
+1.6. `npm run docs:check`
+2. Скрипт завершается на первом failing шаге и используется как локальный pre-release gate.
+
+## Где используется
+
+1. Локальная разработка через `npm.cmd run ...`
+2. Vercel deploy использует `engines.node` для выбора production Node runtime.

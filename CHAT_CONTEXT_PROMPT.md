@@ -264,7 +264,7 @@ Private API:
 - Для Vercel deploy зафиксированы:
   - server-side `.js` imports для backend ESM build;
   - `vercel.json` rewrites для `/examples`, `/collections`, `/profile`;
-  - `package.json -> engines.node = 20.x`;
+  - `package.json -> engines.node = 22.x`;
   - стабилизация `src/App.test.tsx` и `src/App.smoke.test.tsx` под lazy routing.
 - После открытия `MongoDB Atlas Network Access` и возврата точного SRV `MONGODB_URI` deployed public API перестал отдавать `500`.
 - Production домен:
