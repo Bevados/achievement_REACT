@@ -51,7 +51,7 @@
 Дополнительно:
 
 - `FIREBASE_PRIVATE_KEY` должен быть сохранён в формате, который корректно восстанавливает переводы строк на сервере.
-- Для Vercel runtime зафиксирован `Node 22` через `package.json -> engines.node`.
+- Для Vercel runtime зафиксирован `Node 24` через `package.json -> engines.node`.
 - Для SPA-маршрутов `/examples`, `/collections` и `/profile` используется `vercel.json` rewrite слой.
 
 ## Production
