@@ -23,30 +23,46 @@ interface AuthStore {
   clearError: () => void;
 }
 
+const AUTH_ERROR_TEXT = {
+  unknown: '\u041d\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043d\u0430\u044f \u043e\u0448\u0438\u0431\u043a\u0430. \u041f\u043e\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u0435\u0449\u0435 \u0440\u0430\u0437.',
+  invalidEmail: '\u041d\u0435\u043a\u043e\u0440\u0440\u0435\u043a\u0442\u043d\u044b\u0439 \u0444\u043e\u0440\u043c\u0430\u0442 email.',
+  missingPassword: '\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043f\u0430\u0440\u043e\u043b\u044c.',
+  weakPassword:
+    '\u0421\u043b\u0438\u0448\u043a\u043e\u043c \u043f\u0440\u043e\u0441\u0442\u043e\u0439 \u043f\u0430\u0440\u043e\u043b\u044c. \u041c\u0438\u043d\u0438\u043c\u0443\u043c 6 \u0441\u0438\u043c\u0432\u043e\u043b\u043e\u0432.',
+  emailAlreadyInUse:
+    '\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c \u0441 \u0442\u0430\u043a\u0438\u043c email \u0443\u0436\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442.',
+  invalidCredential:
+    '\u041d\u0435\u0432\u0435\u0440\u043d\u044b\u0439 email \u0438\u043b\u0438 \u043f\u0430\u0440\u043e\u043b\u044c.',
+  userDisabled: '\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c \u0437\u0430\u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u0430\u043d.',
+  tooManyRequests:
+    '\u0421\u043b\u0438\u0448\u043a\u043e\u043c \u043c\u043d\u043e\u0433\u043e \u043f\u043e\u043f\u044b\u0442\u043e\u043a. \u041f\u043e\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u043f\u043e\u0437\u0436\u0435.',
+  authPrefix: '\u041e\u0448\u0438\u0431\u043a\u0430 \u0430\u0432\u0442\u043e\u0440\u0438\u0437\u0430\u0446\u0438\u0438',
+} as const;
+
 let unsubscribeAuthListener: (() => void) | null = null;
 
 function mapFirebaseError(error: unknown): string {
   if (!(error instanceof FirebaseError)) {
-    return 'Неизвестная ошибка. Попробуйте еще раз.';
+    return AUTH_ERROR_TEXT.unknown;
   }
 
   switch (error.code) {
     case 'auth/invalid-email':
-      return 'Некорректный формат email.';
+      return AUTH_ERROR_TEXT.invalidEmail;
     case 'auth/missing-password':
-      return 'Введите пароль.';
+      return AUTH_ERROR_TEXT.missingPassword;
     case 'auth/weak-password':
-      return 'Слишком простой пароль. Минимум 6 символов.';
+      return AUTH_ERROR_TEXT.weakPassword;
     case 'auth/email-already-in-use':
-      return 'Пользователь с таким email уже существует.';
+      return AUTH_ERROR_TEXT.emailAlreadyInUse;
     case 'auth/invalid-credential':
-      return 'Неверный email или пароль.';
+      return AUTH_ERROR_TEXT.invalidCredential;
     case 'auth/user-disabled':
-      return 'Пользователь заблокирован.';
+      return AUTH_ERROR_TEXT.userDisabled;
     case 'auth/too-many-requests':
-      return 'Слишком много попыток. Попробуйте позже.';
+      return AUTH_ERROR_TEXT.tooManyRequests;
     default:
-      return `Ошибка авторизации: ${error.code}`;
+      return `${AUTH_ERROR_TEXT.authPrefix}: ${error.code}`;
   }
 }
 
