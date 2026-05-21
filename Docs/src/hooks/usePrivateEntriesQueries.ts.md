@@ -21,6 +21,11 @@
 ## Нетривиальная логика
 
 1. Любая entry-мутация инвалидирует и entries-список, и detail коллекции, и owner collection list.
+2. `useDeleteEntryMutation()` дополнительно сразу обновляет Query-кэш:
+2.1. удаляет карточку из entries-списков этой коллекции;
+2.2. уменьшает `entriesCount` в detail-кэше коллекции;
+2.3. уменьшает `entriesCount` в owner collections list.
+3. После локального обновления кэша сохраняется `invalidateQueries` как серверная синхронизация.
 
 ## Где используется
 

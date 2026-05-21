@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type UseMutationResult, type UseQueryResult } from '@tanstack/react-query';
 import type {
+  CollectionView,
   CreateEntryDto,
   EntryView,
   PaginatedResult,
@@ -31,6 +32,40 @@ async function invalidateEntryScope(queryClient: ReturnType<typeof useQueryClien
     queryClient.invalidateQueries({ queryKey: privateCollectionKeys.detail(collectionId) }),
     queryClient.invalidateQueries({ queryKey: privateCollectionKeys.entries(collectionId) }),
   ]);
+}
+
+function removeDeletedEntryFromEntriesCache(
+  current: PaginatedResult<EntryView> | undefined,
+  entryId: string,
+): PaginatedResult<EntryView> | undefined {
+  if (!current) {
+    return current;
+  }
+
+  const nextItems = current.items.filter((entry) => entry.id !== entryId);
+  if (nextItems.length === current.items.length) {
+    return current;
+  }
+
+  return {
+    ...current,
+    items: nextItems,
+    meta: {
+      ...current.meta,
+      total: Math.max(0, current.meta.total - 1),
+    },
+  };
+}
+
+function decrementEntriesCount(current: CollectionView | undefined): CollectionView | undefined {
+  if (!current) {
+    return current;
+  }
+
+  return {
+    ...current,
+    entriesCount: Math.max(0, current.entriesCount - 1),
+  };
 }
 
 export function useCreateEntryMutation(): UseMutationResult<
@@ -73,6 +108,30 @@ export function useDeleteEntryMutation(): UseMutationResult<
   return useMutation({
     mutationFn: ({ collectionId, entryId }) => deleteEntry(collectionId, entryId),
     onSuccess: async (_data, variables) => {
+      queryClient.setQueriesData<PaginatedResult<EntryView>>(
+        { queryKey: privateCollectionKeys.entries(variables.collectionId) },
+        (current) => removeDeletedEntryFromEntriesCache(current, variables.entryId),
+      );
+      queryClient.setQueryData<CollectionView>(
+        privateCollectionKeys.detail(variables.collectionId),
+        (current) => decrementEntriesCount(current),
+      );
+      queryClient.setQueriesData<PaginatedResult<CollectionView>>(
+        { queryKey: privateCollectionKeys.lists() },
+        (current) => {
+          if (!current) {
+            return current;
+          }
+
+          return {
+            ...current,
+            items: current.items.map((collection) =>
+              collection.id === variables.collectionId ? decrementEntriesCount(collection)! : collection,
+            ),
+          };
+        },
+      );
+
       await invalidateEntryScope(queryClient, variables.collectionId);
     },
   });
